@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<package>
+
+  <name>interprocesses_communication</name>
+  <version>1.0.0</version>
+  <description>convenience functions for (boost) interprocess data exchange</description>
+  <license>TODO</license>
+  <author email="vberenz@tuebingen.mpg.de">Vincent Berenz</author>
+  <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+
+</package>

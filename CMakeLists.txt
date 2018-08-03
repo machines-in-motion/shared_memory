@@ -16,8 +16,8 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
 )
 
-add_executable(create_data src/tests/create_data.cpp)
-target_link_libraries(create_data ${Boost_LIBRARIES})
+add_executable(set_data src/tests/set_data.cpp)
+target_link_libraries(set_data ${Boost_LIBRARIES})
 
 add_executable(get_data src/tests/get_data.cpp)
 target_link_libraries(get_data ${Boost_LIBRARIES})

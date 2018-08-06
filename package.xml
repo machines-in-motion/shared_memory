@@ -2,9 +2,9 @@
 
 <package>
 
-  <name>interprocesses_communication</name>
+  <name>shared_memory</name>
   <version>1.0.0</version>
-  <description>convenience functions for (boost) interprocess data exchange</description>
+  <description>convenience functions using (boost) interprocess data exchange</description>
   <license>TODO</license>
   <author email="vberenz@tuebingen.mpg.de">Vincent Berenz</author>
   <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>

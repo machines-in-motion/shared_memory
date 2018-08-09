@@ -25,12 +25,11 @@ namespace shared_memory {
   
   void clear_mutexes(const std::vector<std::string> &mutexes);
   void clear();
-  
 
   template<typename T>
   void set(const std::string &segment_id,
 	   const std::string &object_id,
-	   T &set_){
+	   const T &set_){
 
     _add(segment_id,object_id);
 
@@ -50,7 +49,7 @@ namespace shared_memory {
   template<typename T>
   void set(const std::string &segment_id,
 	   const std::string &object_id,
-	   T *set_,
+	   const T *set_,
 	   std::size_t size){
 
     _add(segment_id,object_id);

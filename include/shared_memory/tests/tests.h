@@ -1,3 +1,7 @@
+#include <string>
+#include <map>
+#include <vector>
+
 
 
 namespace shared_memory_test {
@@ -18,7 +22,7 @@ namespace shared_memory_test {
   const double map_value_1 = 3.3;
   const double map_value_2 = 4.4;
   
-  const std::test_map_size = 2;
+  const int test_map_size = 2;
 
   const int set_double = 1;
   const int set_int = 2;

@@ -47,14 +47,5 @@ namespace shared_memory {
   }
 
 
-  class Cleaner {
-  public:
-    ~Cleaner(){
-      clear();
-    }
-  };
-
-  static Cleaner cleaner;
-
     
 }

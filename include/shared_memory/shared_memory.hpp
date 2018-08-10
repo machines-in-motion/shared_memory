@@ -22,7 +22,9 @@ namespace shared_memory {
 	    const std::string &object_id);
   void _clear_all_mutexes();
   void _clear_all_segments();
-  
+
+  void clear_segment(const std::string &segment_id);
+  void clear_mutex(const std::string &object_id);
   void clear_mutexes(const std::vector<std::string> &mutexes);
   void clear();
 
@@ -118,10 +120,6 @@ namespace shared_memory {
     mutex.unlock();
 
   }
-
-  
-
-
   
   
   template<typename T>
@@ -143,9 +141,6 @@ namespace shared_memory {
 
   }
 
-
-  
-
   
   template<typename T>
   void get(const std::string &segment_id,
@@ -157,7 +152,7 @@ namespace shared_memory {
   
     mutex.lock();
     std::pair<T*, std::size_t> object = segment.find<T>(object_id.c_str());
-  
+
     if(object.second != get_.size()){
       get_.resize(object.second);
     }

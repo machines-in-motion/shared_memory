@@ -9,12 +9,18 @@
 // see tests/support/tests_executable.cpp
 static std::string PATH_TO_EXECUTABLE = SHM_PATH_TO_SUPPORT_EXE;
 
-static unsigned int TIME_SLEEP = 1000;  //microseconds
+static unsigned int TIME_SLEEP = 5000;  //microseconds
 
 class Shared_memory_tests : public ::testing::Test {
 protected:
-  void SetUp() {}
+  void SetUp() {
+    shared_memory::clear_mutex(shared_memory_test::object_id);
+    shared_memory::clear_segment(shared_memory_test::segment_id);
+    shared_memory::clear();
+  }
   void TearDown() {
+    shared_memory::clear_mutex(shared_memory_test::object_id);
+    shared_memory::clear_segment(shared_memory_test::segment_id);
     shared_memory::clear();
   }
 };
@@ -37,6 +43,7 @@ TEST_F(Shared_memory_tests,spawn_thread_test){
 }
 
 
+
 TEST_F(Shared_memory_tests,double_test){
 
   _call_executable(shared_memory_test::set_double);
@@ -48,7 +55,9 @@ TEST_F(Shared_memory_tests,double_test){
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_double);
+
 }
+
 
 
 TEST_F(Shared_memory_tests,int_test){
@@ -62,6 +71,7 @@ TEST_F(Shared_memory_tests,int_test){
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_int);
+
 }
 
 
@@ -76,7 +86,28 @@ TEST_F(Shared_memory_tests,test_float){
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_float);
+
 }
+
+
+TEST_F(Shared_memory_tests,test_array){
+
+  _call_executable(shared_memory_test::set_double_array);
+
+  usleep(TIME_SLEEP);
+  
+  double a[shared_memory_test::test_array_size];
+  shared_memory::get<double>(shared_memory_test::segment_id,
+			     shared_memory_test::object_id,
+			     a,
+			     shared_memory_test::test_array_size);
+
+  for(int i=0;i<shared_memory_test::test_array_size;i++){
+    ASSERT_EQ(a[i],shared_memory_test::test_array[i]);
+  }
+
+}
+
 
 
 TEST_F(Shared_memory_tests,test_vector){
@@ -94,5 +125,22 @@ TEST_F(Shared_memory_tests,test_vector){
   for(int i=0;i<shared_memory_test::test_array_size;i++){
     ASSERT_EQ(v[i],shared_memory_test::test_array[i]);
   }
+
+}
+
+TEST_F(Shared_memory_tests,test_int_double_map){
+
+  _call_executable(shared_memory_test::set_int_double_map);
+
+  usleep(TIME_SLEEP);
+
+  std::map<int,double> m;
+  shared_memory::get<int,double>(shared_memory_test::segment_id,
+				 shared_memory_test::object_id,
+				 m);
+
+  ASSERT_EQ(m.size(),shared_memory_test::test_map_size);
+  ASSERT_EQ(m[shared_memory_test::map_int_keys1],shared_memory_test::map_value_1);
+  ASSERT_EQ(m[shared_memory_test::map_int_keys2],shared_memory_test::map_value_2);
 
 }

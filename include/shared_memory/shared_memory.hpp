@@ -16,24 +16,16 @@
 namespace shared_memory {
 
 
-  void _add_segment(const std::string &segment_id);
-  void _add_mutex(const std::string &object_id);
-  void _add(const std::string &segment_id,
-	    const std::string &object_id);
-  void _clear_all_mutexes();
-  void _clear_all_segments();
-
   void clear_segment(const std::string &segment_id);
   void clear_mutex(const std::string &object_id);
   void clear_mutexes(const std::vector<std::string> &mutexes);
   void clear();
 
+  
   template<typename T>
   void set(const std::string &segment_id,
 	   const std::string &object_id,
 	   const T &set_){
-
-    _add(segment_id,object_id);
 
     boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,
 	                                               segment_id.c_str(),
@@ -54,8 +46,6 @@ namespace shared_memory {
 	   const T *set_,
 	   std::size_t size){
 
-    _add(segment_id,object_id);
-
     boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_DEFAULT_SIZE};
     boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
 
@@ -72,8 +62,6 @@ namespace shared_memory {
 	   const std::string &object_id,
 	   const std::vector<T> &set_){
 
-    _add(segment_id,object_id);
-
     boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_DEFAULT_SIZE};
     boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
 
@@ -89,8 +77,6 @@ namespace shared_memory {
   void set(const std::string &segment_id,
 	   const std::string &object_id,
 	   std::vector<T*> &set_){
-
-    _add(segment_id,object_id);
 
     boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_DEFAULT_SIZE};
     boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};

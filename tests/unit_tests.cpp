@@ -16,12 +16,10 @@ protected:
   void SetUp() {
     shared_memory::clear_mutex(shared_memory_test::object_id);
     shared_memory::clear_segment(shared_memory_test::segment_id);
-    shared_memory::clear();
   }
   void TearDown() {
     shared_memory::clear_mutex(shared_memory_test::object_id);
     shared_memory::clear_segment(shared_memory_test::segment_id);
-    shared_memory::clear();
   }
 };
 

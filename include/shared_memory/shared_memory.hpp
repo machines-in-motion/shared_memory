@@ -91,34 +91,6 @@ namespace shared_memory {
   }
 
   
-  /*
-  template<typename T>
-  void set(const std::string &segment_id,
-	   const std::string &object_id,
-	   const std::vector<T> &set_){
-
-    typedef boost::interprocess::allocator<T,boost::interprocess::managed_shared_memory::segment_manager> mem_allocator;
-    typedef boost::interprocess::vector<T,mem_allocator> Vector;
-
-    boost::interprocess::managed_shared_memory segment(boost::interprocess::open_or_create,
-						       segment_id.c_str(),
-						       SHARED_MEMORY_DEFAULT_SIZE);
-    const mem_allocator allocator_instance (segment.get_segment_manager());
-
-    boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-    
-    Vector *vector = segment.find_or_construct<Vector>(object_id.c_str())(allocator_instance);
-
-    mutex.lock();
-    for(int i=0;i<set_.size();i++){
-      vector->push_back(set_[i]);
-    }
-    mutex.unlock();
-    
-  }*/
-
-
-  
   template<typename KEY, typename VALUE>
   void set(const std::string &segment_id,
 	   const std::string &object_id,
@@ -127,19 +99,21 @@ namespace shared_memory {
     std::string keys_object_id = std::string("key_")+object_id;
     std::string values_object_id = std::string("values_")+object_id;
 
-    std::vector<KEY> keys;
-    std::vector<VALUE*> values;
-    
-    for(std::pair<const KEY, VALUE> &p : set_){
-      values.push_back( &(p.second) );
-      keys.push_back(p.first);
+    boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_DEFAULT_SIZE};
+    boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+
+    mutex.lock();
+    KEY* keys = segment.find_or_construct<KEY>(keys_object_id.c_str())[set_.size()]();
+    VALUE* values = segment.find_or_construct<VALUE>(values_object_id.c_str())[set_.size()]();
+    int i=0;
+    for (const auto& key_value: set_){
+      keys[i]=key_value.first;
+      values[i]=key_value.second;
+      i++;
     }
-
-    set<KEY>(segment_id,keys_object_id,keys);
-    set<VALUE>(segment_id,values_object_id,values);
-
+    mutex.unlock();
+    
   }
-
 
 
   template<typename T>
@@ -207,15 +181,16 @@ namespace shared_memory {
     std::string keys_object_id = std::string("key_")+object_id;
     std::string values_object_id = std::string("values_")+object_id;
 
-    std::vector<KEY> keys;
-    std::vector<VALUE> values;
-    
-    get(segment_id,keys_object_id,keys);
-    get(segment_id,values_object_id,values);
-
-    for(int i=0;i<keys.size();i++){
-      get_[keys[i]]=values[i];
+    boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_DEFAULT_SIZE};
+    boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+  
+    mutex.lock();
+    std::pair<KEY*, std::size_t> keys = segment.find<KEY>(keys_object_id.c_str());
+    std::pair<VALUE*, std::size_t> values = segment.find<VALUE>(values_object_id.c_str());
+    for(int i=0;i<keys.second;i++){
+      get_[(keys.first)[i]]=(values.first)[i];
     }
+    mutex.unlock();
 
   }
 

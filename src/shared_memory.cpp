@@ -25,6 +25,12 @@ namespace shared_memory {
   }
 
   
+  void clear(const std::string &segment_id,
+	     const std::vector<std::string> &mutexes){
+    clear_mutexes(mutexes);
+    clear_segment(segment_id);
+  }
+  
   void set(const std::string &segment_id,
 	   const std::string &object_id,
 	   const std::string &set_){

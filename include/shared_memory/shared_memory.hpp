@@ -11,7 +11,7 @@
 
 
 
-#define _SHARED_MEMORY_SIZE 32768
+#define _SHARED_MEMORY_SIZE 65536
 #define _MAP_STRING_KEY_SEPARATOR ';'
 
 
@@ -26,7 +26,8 @@ namespace shared_memory {
   void clear_segment(const std::string &segment_id);
   void clear_mutex(const std::string &object_id);
   void clear_mutexes(const std::vector<std::string> &mutexes);
-  void clear();
+  void clear(const std::string &segment_id,
+	     const std::vector<std::string> &mutexes);
 
   void set(const std::string &segment_id,
 	   const std::string &object_id,

@@ -16,14 +16,16 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
 )
 
-add_library(shared_memory SHARED src/shared_memory.cpp)
+add_library(shared_memory SHARED
+  src/shared_memory.cpp
+  src/exceptions.cpp)
 target_link_libraries(shared_memory ${Boost_LIBRARY_DIRS} -lrt -pthread)
 
-add_executable(set_data src/examples/set_data.cpp)
-target_link_libraries(set_data shared_memory)
+#add_executable(set_data src/examples/set_data.cpp)
+#target_link_libraries(set_data shared_memory)
 
-add_executable(get_data src/examples/get_data.cpp)
-target_link_libraries(get_data shared_memory)
+#add_executable(get_data src/examples/get_data.cpp)
+#target_link_libraries(get_data shared_memory)
 
 
 add_executable(tests_executable tests/support/tests_executable.cpp)

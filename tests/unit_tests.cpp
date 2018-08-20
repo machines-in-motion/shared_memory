@@ -24,22 +24,29 @@ protected:
 };
 
 
-static bool _call_executable(int action){
+static bool _call_executable(int action,bool blocking=false);
+
+static bool _call_executable(int action,bool blocking){
   std::stringstream s;
   s << PATH_TO_EXECUTABLE << " " << action;
-  s << std::ends;
-  if(0 != std::system(s.str().c_str())){
-    return false;
+  if(!blocking){
+    s << " &";
   }
-  return true;
+  s << std::ends;
+  if(blocking){
+    if(0 != std::system(s.str().c_str())){
+      return false;
+    }
+    return true;
+  }
+  std::system(s.str().c_str());
 }
 
 
 TEST_F(Shared_memory_tests,spawn_thread_test){
-  bool called = _call_executable(shared_memory_test::set_double);
+  bool called = _call_executable(shared_memory_test::set_double,true);
   ASSERT_EQ(called,true);
 }
-
 
 
 TEST_F(Shared_memory_tests,double_test){
@@ -49,13 +56,12 @@ TEST_F(Shared_memory_tests,double_test){
   usleep(TIME_SLEEP);
   
   double value;
-  shared_memory::get<double>(shared_memory_test::segment_id,
+  shared_memory::get(shared_memory_test::segment_id,
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_double);
 
 }
-
 
 
 TEST_F(Shared_memory_tests,int_test){
@@ -65,7 +71,7 @@ TEST_F(Shared_memory_tests,int_test){
   usleep(TIME_SLEEP);
   
   int value;
-  shared_memory::get<int>(shared_memory_test::segment_id,
+  shared_memory::get(shared_memory_test::segment_id,
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_int);
@@ -80,7 +86,7 @@ TEST_F(Shared_memory_tests,test_float){
   usleep(TIME_SLEEP);
   
   float value;
-  shared_memory::get<float>(shared_memory_test::segment_id,
+  shared_memory::get(shared_memory_test::segment_id,
 			     shared_memory_test::object_id,
 			     value);
   ASSERT_EQ(value,shared_memory_test::test_float);
@@ -95,9 +101,9 @@ TEST_F(Shared_memory_tests,test_string){
   usleep(TIME_SLEEP);
 
   std::string str;
-  shared_memory::get<std::string>(shared_memory_test::segment_id,
-				  shared_memory_test::object_id,
-				  str);
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     str);
   ASSERT_EQ(str,shared_memory_test::test_string);
   
 }
@@ -110,17 +116,16 @@ TEST_F(Shared_memory_tests,test_array){
   usleep(TIME_SLEEP);
   
   double a[shared_memory_test::test_array_size];
-  shared_memory::get<double>(shared_memory_test::segment_id,
-			     shared_memory_test::object_id,
-			     a,
-			     shared_memory_test::test_array_size);
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     a,
+		     shared_memory_test::test_array_size);
 
   for(int i=0;i<shared_memory_test::test_array_size;i++){
     ASSERT_EQ(a[i],shared_memory_test::test_array[i]);
   }
 
 }
-
 
 
 TEST_F(Shared_memory_tests,test_vector){
@@ -130,9 +135,9 @@ TEST_F(Shared_memory_tests,test_vector){
   usleep(TIME_SLEEP);
 
   std::vector<double> v(shared_memory_test::test_array_size);
-  shared_memory::get<double>(shared_memory_test::segment_id,
-			     shared_memory_test::object_id,
-			     v);
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     v);
 
   ASSERT_EQ(v.size(),shared_memory_test::test_array_size);
   for(int i=0;i<shared_memory_test::test_array_size;i++){
@@ -151,9 +156,9 @@ TEST_F(Shared_memory_tests,test_int_double_map){
   std::map<int,double> m;
   m[shared_memory_test::map_int_keys1]=0.0;
   m[shared_memory_test::map_int_keys2]=0.0;
-  shared_memory::get<int,double>(shared_memory_test::segment_id,
-				 shared_memory_test::object_id,
-				 m);
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     m);
 
   ASSERT_EQ(m.size(),shared_memory_test::test_map_size);
   ASSERT_EQ(m[shared_memory_test::map_int_keys1],shared_memory_test::map_value_1);
@@ -171,9 +176,9 @@ TEST_F(Shared_memory_tests,test_string_double_map){
   std::map<std::string,double> m;
   m[shared_memory_test::map_string_keys1]=0.0;
   m[shared_memory_test::map_string_keys2]=0.0;
-  shared_memory::get<std::string,double>(shared_memory_test::segment_id,
-				 shared_memory_test::object_id,
-				 m);
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     m);
 
   ASSERT_EQ(m.size(),shared_memory_test::test_map_size);
   ASSERT_EQ(m[shared_memory_test::map_string_keys1],shared_memory_test::map_value_1);
@@ -184,17 +189,18 @@ TEST_F(Shared_memory_tests,test_string_double_map){
 
 TEST_F(Shared_memory_tests,test_memory_overflow){
 
-  unsigned int max_size = SHARED_MEMORY_SIZE_ / sizeof(int) + 1 ;
+  unsigned int max_size = _SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
   for(int i=0;i<v.size();i++) v[i]=1;
 
   ASSERT_THROW (
-	       shared_memory::set<int>(shared_memory_test::segment_id,
-				       shared_memory_test::object_id,
-				       v) ,
+	       shared_memory::set(shared_memory_test::segment_id,
+				  shared_memory_test::object_id,
+				  v) ,
 	       shared_memory::Allocation_exception);
 
 }
+
 
 TEST_F(Shared_memory_tests,test_wrong_size_vector){
 
@@ -205,9 +211,71 @@ TEST_F(Shared_memory_tests,test_wrong_size_vector){
   std::vector<double> v(shared_memory_test::test_array_size + 1); // !
 
   ASSERT_THROW (
-		shared_memory::get<double>(shared_memory_test::segment_id,
-					   shared_memory_test::object_id,
-					   v) ,
+		shared_memory::get(shared_memory_test::segment_id,
+				   shared_memory_test::object_id,
+				   v) ,
 		shared_memory::Unexpected_size_exception);
 
+}
+
+
+static inline bool is_one_of(double v, double a1, double a2){
+  if(v==a1) return true;
+  if(v==a2) return true;
+  return false;
+}
+
+TEST_F(Shared_memory_tests,test_concurrency){
+
+  _call_executable(shared_memory_test::concurrent_1);
+  _call_executable(shared_memory_test::concurrent_2);
+
+  usleep(TIME_SLEEP);
+
+  bool set_1_observed = false;
+  bool set_2_observed = false;
+
+  int nb_1 = 0;
+  int nb_2 = 0;
+  
+  double a[shared_memory_test::test_array_size];
+  
+  bool end = false;
+  while (!end){
+
+    shared_memory::get(shared_memory_test::segment_id,
+		       shared_memory_test::object_id,
+		       a,
+		       shared_memory_test::test_array_size);
+
+    if(a[0]==shared_memory_test::concurrent_stop_value){
+      break;
+    }
+
+    if(a[0]==shared_memory_test::concurrent_value_1){
+      set_1_observed=true;
+      nb_1++;
+    }
+
+    if(a[0]==shared_memory_test::concurrent_value_2){
+      set_2_observed=true;
+      nb_2++;
+    }
+    
+    ASSERT_EQ(is_one_of(a[0],
+			shared_memory_test::concurrent_value_1,
+			shared_memory_test::concurrent_value_2),
+	      true);
+
+    for(int i=1;i<shared_memory_test::test_array_size;i++){
+      ASSERT_EQ(a[0],a[i]);
+    }
+
+    usleep(50);
+    
+  }
+
+  ASSERT_EQ(set_1_observed,true);
+  ASSERT_EQ(set_2_observed,true);
+  
 }

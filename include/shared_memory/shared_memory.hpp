@@ -2,21 +2,24 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <iostream>
+
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 
-#include <iostream>
-
-#include <type_traits>
-
 #include "shared_memory/exceptions.h"
 
-#define _SHARED_MEMORY_SIZE 32768
 
+
+#define _SHARED_MEMORY_SIZE 32768
 #define _MAP_STRING_KEY_SEPARATOR ';'
+
+
 
 // cool doc: https://theboostcpplibraries.com/boost.interprocess-managed-shared-memory
 //           https://www.boost.org/doc/libs/1_63_0/doc/html/interprocess/quick_guide.html
+
+
 
 namespace shared_memory {
 
@@ -164,7 +167,7 @@ namespace shared_memory {
 
 
   template<typename VALUE>
-  void set<std::string,VALUE>(const std::string &segment_id,
+  void set(const std::string &segment_id,
 	   const std::string &object_id,
 	   std::map<std::string,VALUE> &set_){
 
@@ -301,16 +304,17 @@ namespace shared_memory {
 
   // convenience function for splitting an std::string into
   // strings based on separator.
-  static void _get_next(char *a, char separator, int start, int &end){
+  static void _get_next(const char *a, char separator, int start, int &end){
     end = start;
     while (a[end]!=separator){
       end+=1;
     }
   }
 
-  static std::string _get_next_key(char *a, char separator, int start, int &end){
+  static std::string _get_next_key(const char *a, char separator, int start, int &end){
     _get_next(a,separator,start,end);
-    return std::string(a+start,a+end);
+    std::string s(a+start,a+end);
+    return s;
   }
   
 
@@ -338,12 +342,13 @@ namespace shared_memory {
       // values are stored as fixed sized array
       std::pair<VALUE*, std::size_t> values = segment.find<VALUE>(values_object_id.c_str());
 
-      int start = 0;
+      int start=0;
       int end=0;
       for(int i=0;i<values.second;i++){
 	std::string key = _get_next_key(keys.c_str(),
 					_MAP_STRING_KEY_SEPARATOR,
 					start,end);
+	start=end+1;
 	get_[key]=(values.first)[i];
       }
       mutex.unlock();
@@ -361,15 +366,6 @@ namespace shared_memory {
 	   const std::string &object_id,
 	   std::map<KEY,VALUE> &get_){
 
-    // if the keys turns out to be std::string,
-    // calling specialized function
-    if (std::is_same<KEY, std::string>::value){
-      get<VALUE>(segment_id,
-		 object_id,
-		 get_);
-      return;
-    }
-      
     try {
       
       std::string keys_object_id = std::string("key_")+object_id;

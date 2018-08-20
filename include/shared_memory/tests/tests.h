@@ -21,6 +21,9 @@ namespace shared_memory_test {
   const std::string map_string_keys2("s2");
   const double map_value_1 = 3.3;
   const double map_value_2 = 4.4;
+  const double concurrent_value_1 = 1.0;
+  const double concurrent_value_2 = 2.0;
+  const double concurrent_stop_value = 3.0;
   
   const int test_map_size = 2;
 
@@ -32,14 +35,9 @@ namespace shared_memory_test {
   const int set_int_double_map = 6;
   const int set_string_double_map = 7;
   const int set_double_array = 8;
-
-  const int get_double = -1;
-  const int get_int = -2;
-  const int get_float = -3;
-  const int get_string = -4;
-  const int get_vector = -5;
-  const int get_int_double_map = -6;
-  const int get_string_double_map = -7;
-  const int get_double_array = -8;
+  const int concurrent_1 = 9;
+  const int concurrent_2 = 10;
+  
+  
  
 }

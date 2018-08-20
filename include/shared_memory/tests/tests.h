@@ -35,8 +35,9 @@ namespace shared_memory_test {
   const int set_int_double_map = 6;
   const int set_string_double_map = 7;
   const int set_double_array = 8;
-  const int concurrent_1 = 9;
-  const int concurrent_2 = 10;
+  const int set_string_vector_double_map = 9;
+  const int concurrent_1 = 10;
+  const int concurrent_2 = 11;
   
   
  

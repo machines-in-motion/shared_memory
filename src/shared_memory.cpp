@@ -19,6 +19,7 @@ namespace shared_memory {
       boost::interprocess::named_mutex::remove(str.c_str());
       std::string keys_object_id = std::string("key_")+str;
       std::string values_object_id = std::string("values_")+str;
+      std::string sizes_object_id = std::string("sizes_")+str;
       boost::interprocess::named_mutex::remove(keys_object_id.c_str());
       boost::interprocess::named_mutex::remove(values_object_id.c_str());
     }
@@ -30,6 +31,28 @@ namespace shared_memory {
     clear_mutexes(mutexes);
     clear_segment(segment_id);
   }
+
+  void clear(const std::string &segment_id,
+	     const std::vector<std::string> &mutexes,
+	     const std::map<std::string,std::vector<std::string>> &map_keys){
+
+    clear_mutexes(mutexes);
+
+    std::vector<std::string> mutexes_;
+    
+    for(auto& key_values: map_keys){
+      for(std::string key: key_values.second){
+	std::string object_id = key_values.first+"_"+key;
+	mutexes_.push_back(object_id);
+      }
+    }
+
+    clear_mutexes(mutexes_);
+
+    clear_segment(segment_id);
+    
+  }
+  
   
   void set(const std::string &segment_id,
 	   const std::string &object_id,

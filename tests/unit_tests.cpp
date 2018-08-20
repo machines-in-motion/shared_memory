@@ -11,6 +11,24 @@ static std::string PATH_TO_EXECUTABLE = SHM_PATH_TO_SUPPORT_EXE;
 
 static unsigned int TIME_SLEEP = 5000;  //microseconds
 
+
+static inline void clear_memory(){
+
+  std::vector<std::string> objects(1);
+  objects[0]=shared_memory_test::object_id;
+
+  std::map<std::string,std::vector<std::string>> map_keys;
+  std::vector<std::string> keys(2);
+  keys[0]=shared_memory_test::map_string_keys1;
+  keys[1]=shared_memory_test::map_string_keys2;
+  map_keys[shared_memory_test::object_id]=keys;
+
+  shared_memory::clear(shared_memory_test::segment_id,
+		       objects,
+		       map_keys);
+  
+}
+
 class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
@@ -184,6 +202,42 @@ TEST_F(Shared_memory_tests,test_string_double_map){
   ASSERT_EQ(m[shared_memory_test::map_string_keys1],shared_memory_test::map_value_1);
   ASSERT_EQ(m[shared_memory_test::map_string_keys2],shared_memory_test::map_value_2);
 
+}
+
+
+TEST_F(Shared_memory_tests,test_string_vector_double_map){
+
+  _call_executable(shared_memory_test::set_string_vector_double_map);
+
+  usleep(TIME_SLEEP);
+
+  std::map<std::string,std::vector<double>> m;
+
+  std::vector<double> v1(2);
+  v1[0]=0.0;
+  v1[1]=0.0;
+
+  std::vector<double> v2(2);
+  v2[0]=0.0;
+  v2[1]=0.0;
+  
+  m[shared_memory_test::map_string_keys1]=v1;
+  m[shared_memory_test::map_string_keys2]=v2;
+
+  shared_memory::get(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     m);
+
+  ASSERT_EQ(m.size(),shared_memory_test::test_map_size);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1].size(),2);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2].size(),2);
+
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1][0],shared_memory_test::map_value_1);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1][1],shared_memory_test::map_value_2);
+
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2][0],shared_memory_test::map_value_2);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2][1],shared_memory_test::map_value_1);
+  
 }
 
 

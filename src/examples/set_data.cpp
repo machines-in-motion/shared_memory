@@ -19,14 +19,24 @@ void cleaning_memory(int){
 
   std::cout << "\n\n--cleaning shared memory --\n\n";
 
+  // objects that have been set to the shared memory
+  std::vector<std::string> objects;
+  objects.push_back("d1");
+  objects.push_back("d2");
+  objects.push_back("v1");
+  objects.push_back("v2");
+  objects.push_back("m1");
+
+  // maps (and their relative keys) that have been set to
+  // the shared memory
+  std::map<std::string,std::vector<std::string>> map_keys;
   std::vector<std::string> keys;
-  keys.push_back("d1");
-  keys.push_back("d2");
-  keys.push_back("v1");
-  keys.push_back("v2");
-  keys.push_back("m1");
-  keys.push_back("m2");
-  shared_memory::clear("main_memory",keys);
+  keys.push_back("value_1");
+  keys.push_back("value_2");
+  map_keys[std::string("m2")]=keys;
+  map_keys[std::string("m3")]=keys;
+
+  shared_memory::clear("main_memory",objects,map_keys);
 
 }
 
@@ -55,6 +65,14 @@ int main(){
   std::map<std::string,double> m2;
   m2["value_1"]=d1;
   m2["value_2"]=d2;
+
+  std::map<std::string,std::vector<double>> m3;
+  std::vector<double> v3(1);
+  v3[0]=0.0;
+  std::vector<double> v4(1);
+  v4[0]=0.0;
+  m3["value_1"]=v3;
+  m3["value_2"]=v4;
   
   
   while (RUNNING){
@@ -73,6 +91,9 @@ int main(){
 
     m2["value_1"]=(d1+4);
     m2["value_2"]=(d2+4);
+
+    m3["value_1"][0]=(d1+5);
+    m3["value_2"][0]=(d2+5);
     
     shared_memory::set("main_memory","d1",d1);
     shared_memory::set("main_memory","d2",d2);
@@ -80,6 +101,7 @@ int main(){
     shared_memory::set("main_memory","v2",v2);
     shared_memory::set("main_memory","m1",m1);
     shared_memory::set("main_memory","m2",m2);
+    shared_memory::set("main_memory","m3",m3);
     
     std::cout << ".\n";
     

@@ -32,12 +32,10 @@ static inline void clear_memory(){
 class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
-    shared_memory::clear_mutex(shared_memory_test::object_id);
-    shared_memory::clear_segment(shared_memory_test::segment_id);
+    clear_memory();
   }
   void TearDown() {
-    shared_memory::clear_mutex(shared_memory_test::object_id);
-    shared_memory::clear_segment(shared_memory_test::segment_id);
+    clear_memory();
   }
 };
 

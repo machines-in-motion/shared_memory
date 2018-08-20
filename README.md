@@ -1,5 +1,4 @@
 
-
 ## what it is
 
 * This library is a convenient wrapper over boost:interprocess. It is meant to be trivial to use, and to make interprocess communication between processes trivial
@@ -7,7 +6,7 @@
 
 ## how it works / API
 
-An example covering the complete API is in src/examples . You may run the related executables.
+An example covering the complete API is in [src/examples](https://git-amd.tuebingen.mpg.de/amd-clmc/shared_memory/tree/master/src/examples) . You may run the related executables.
 
 ## how to run the unit tests
 

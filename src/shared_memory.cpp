@@ -60,7 +60,11 @@ namespace shared_memory {
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
+
     
   }
 

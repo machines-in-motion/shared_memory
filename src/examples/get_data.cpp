@@ -10,32 +10,21 @@ static bool RUNNING = true;
 // segment and objects it created (to be realtime compatible),
 // so cleaning has to be "manual"
 
-void cleaning_memory(int){
+void exiting_memory(int){
 
   RUNNING=false;
-
-  std::cout << "\n\n--cleaning shared memory --\n\n";
-
-  std::vector<std::string> keys;
-  keys.push_back("d1");
-  keys.push_back("d2");
-  keys.push_back("v1");
-  keys.push_back("v2");
-  keys.push_back("m1");
-  keys.push_back("m2");
-  shared_memory::clear("main_memory",keys);
 
 }
 
 
 int main(){
 
-  // cleaning on ctrl+c 
-  struct sigaction cleaning;
-  cleaning.sa_handler = cleaning_memory;
-  sigemptyset(&cleaning.sa_mask);
-  cleaning.sa_flags = 0;
-  sigaction(SIGINT, &cleaning, NULL);
+  // exiting on ctrl+c 
+  struct sigaction exiting;
+  exiting.sa_handler = exiting_memory;
+  sigemptyset(&exiting.sa_mask);
+  exiting.sa_flags = 0;
+  sigaction(SIGINT, &exiting, NULL);
 
   double d1=0.0;
   double d2=0.0;
@@ -57,8 +46,8 @@ int main(){
   m2["value_1"]=d1;
   m2["value_2"]=d2;
   
-  while (true){
-  
+  while (RUNNING){
+
     shared_memory::get("main_memory","d1",d1);
     shared_memory::get("main_memory","d2",d2);
     shared_memory::get("main_memory","v1",v1,2);

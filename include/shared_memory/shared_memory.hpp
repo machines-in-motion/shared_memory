@@ -223,22 +223,25 @@ namespace shared_memory {
     // if T turns out to be std::string,
     // calling specialized function
     if (std::is_same<T, std::string>::value){
-      return get(segment_id,object_id,get_);
+      get(segment_id,object_id,get_);
+      return;
     }
     
     try {
-
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,
-	  segment_id.c_str(),
-	  _SHARED_MEMORY_SIZE};
+      
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-
+      
+      
       mutex.lock();
       get_ = * ( segment.find_or_construct<T>(object_id.c_str())() );
       mutex.unlock();
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+      
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
       
   }
@@ -252,7 +255,7 @@ namespace shared_memory {
 
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -268,7 +271,11 @@ namespace shared_memory {
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
+
       
   }
 
@@ -280,7 +287,7 @@ namespace shared_memory {
 
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -297,7 +304,11 @@ namespace shared_memory {
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
+
       
   }
 
@@ -329,7 +340,7 @@ namespace shared_memory {
       std::string keys_object_id = std::string("key_")+object_id;
       std::string values_object_id = std::string("values_")+object_id;
       
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -356,7 +367,11 @@ namespace shared_memory {
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
+
       
   }
 
@@ -372,7 +387,7 @@ namespace shared_memory {
       std::string keys_object_id = std::string("key_")+object_id;
       std::string values_object_id = std::string("values_")+object_id;
       
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -381,7 +396,7 @@ namespace shared_memory {
       if(keys.second != get_.size()){
 	throw shared_memory::Unexpected_size_exception(segment_id,
 						       object_id,
-						       keys.second,
+						       keys.second, 
 						       get_.size());
       }
       for(int i=0;i<keys.second;i++){
@@ -391,7 +406,11 @@ namespace shared_memory {
 
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
     }
+
       
   }
 

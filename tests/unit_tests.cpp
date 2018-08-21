@@ -255,6 +255,33 @@ TEST_F(Shared_memory_tests,test_string_vector_double_map){
   
 }
 
+TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
+
+  _call_executable(shared_memory_test::set_string_vector_eigen_map);
+
+  usleep(TIME_SLEEP);
+
+  std::map<std::string,Eigen::VectorXd> m;
+
+  Eigen::VectorXd v1(2), v2(2);
+
+  m[shared_memory_test::map_string_keys1]=v1;
+  m[shared_memory_test::map_string_keys2]=v2;
+
+  shared_memory::get(shared_memory_test::segment_id,
+         shared_memory_test::object_id,
+         m);
+
+  ASSERT_EQ(m.size(),shared_memory_test::test_map_size);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1].size(),2);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2].size(),2);
+
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1][0],shared_memory_test::map_value_1);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys1][1],shared_memory_test::map_value_2);
+
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2][0],shared_memory_test::map_value_2);
+  ASSERT_EQ(m[shared_memory_test::map_string_keys2][1],shared_memory_test::map_value_1);
+}
 
 TEST_F(Shared_memory_tests,test_memory_overflow){
 

@@ -38,6 +38,7 @@ namespace shared_memory_test {
     set_string_double_map,
     set_double_array,
     set_string_vector_double_map,
+    set_string_vector_eigen_map,
     concurrent_1,
     concurrent_2,
   };

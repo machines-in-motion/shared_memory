@@ -236,6 +236,17 @@ namespace shared_memory {
     }
 
   }
+
+  template<typename VALUE>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const std::map<std::string, Eigen::Matrix
+           <VALUE, Eigen::Dynamic, 1>> &set_){
+    for (const auto& key_value: set_){
+      std::string object_id_ = object_id+std::string("_")+key_value.first;
+      set(segment_id,object_id_,key_value.second);
+    }
+  }
   
   void get(const std::string &segment_id,
            const std::string &object_id,

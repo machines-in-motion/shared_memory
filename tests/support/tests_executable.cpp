@@ -82,6 +82,20 @@ int main(int argc, char *argv[]){
       shared_memory::set(segment,object,
 			 m);
   }
+
+  if(command==shared_memory_test::Actions::set_string_vector_eigen_map){
+      std::map<std::string, Eigen::VectorXd> m;
+      Eigen::VectorXd v1(2);
+      v1[0]=shared_memory_test::map_value_1;
+      v1[1]=shared_memory_test::map_value_2;
+      Eigen::VectorXd v2(2);
+      v2[0]=shared_memory_test::map_value_2;
+      v2[1]=shared_memory_test::map_value_1;
+      m[shared_memory_test::map_string_keys1]=v1;
+      m[shared_memory_test::map_string_keys2]=v2;
+      shared_memory::set(segment,object,
+       m);
+  }
     
   if(command==shared_memory_test::Actions::concurrent_1){
     double d[shared_memory_test::test_array_size];

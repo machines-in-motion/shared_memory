@@ -27,14 +27,14 @@ namespace shared_memory {
 
   
   void clear(const std::string &segment_id,
-	     const std::vector<std::string> &mutexes){
+             const std::vector<std::string> &mutexes){
     clear_mutexes(mutexes);
     clear_segment(segment_id);
   }
 
   void clear(const std::string &segment_id,
-	     const std::vector<std::string> &mutexes,
-	     const std::map<std::string,std::vector<std::string>> &map_keys){
+             const std::vector<std::string> &mutexes,
+             const std::map<std::string,std::vector<std::string>> &map_keys){
 
     clear_mutexes(mutexes);
 
@@ -42,8 +42,8 @@ namespace shared_memory {
     
     for(auto& key_values: map_keys){
       for(std::string key: key_values.second){
-	std::string object_id = key_values.first+"_"+key;
-	mutexes_.push_back(object_id);
+        std::string object_id = key_values.first+"_"+key;
+        mutexes_.push_back(object_id);
       }
     }
 
@@ -55,30 +55,37 @@ namespace shared_memory {
   
   
   void set(const std::string &segment_id,
-	   const std::string &object_id,
-	   const std::string &set_){
+           const std::string &object_id,
+           const std::string &set_){
 
     set<char>(segment_id,
-	      object_id,
-	      set_.c_str(),
-	      set_.size());
+              object_id,
+              set_.c_str(),
+              set_.size());
   }
 
 
   void get(const std::string &segment_id,
-	   const std::string &object_id,
-	   std::string &get_){
+           const std::string &object_id,
+           std::string &get_){
     
     get_.clear();
     
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
-      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+      boost::interprocess::managed_shared_memory segment{
+        boost::interprocess::open_or_create,
+        segment_id.c_str(),
+        _SHARED_MEMORY_SIZE
+      };
+      boost::interprocess::named_mutex mutex{
+        boost::interprocess::open_or_create,
+        object_id.c_str()
+      };
 
       mutex.lock();
       std::pair<char*, std::size_t> object = segment.find<char>(object_id.c_str());
-      for(int i=0;i<object.second;i++) get_+= (object.first)[i];
+      for(unsigned i=0; i < object.second ; i++) get_+= (object.first)[i];
       mutex.unlock();
 
     } catch (const boost::interprocess::bad_alloc& e){
@@ -91,5 +98,5 @@ namespace shared_memory {
     
   }
 
-    
+
 }

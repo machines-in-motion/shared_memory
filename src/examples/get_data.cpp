@@ -6,9 +6,6 @@
 
 static bool RUNNING = true;
 
-// the shared memory does not keep track of what
-// segment and objects it created (to be realtime compatible),
-// so cleaning has to be "manual"
 
 void exiting_memory(int){
 

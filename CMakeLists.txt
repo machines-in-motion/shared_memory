@@ -3,25 +3,29 @@ project(shared_memory)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+include(cmake/pkg-config.cmake)
+include(cmake/eigen.cmake)
+
 find_package(catkin)
+SEARCH_FOR_EIGEN()
+find_package(Boost COMPONENTS thread system REQUIRED)
 
 catkin_package(
     INCLUDE_DIRS include
-    CATKIN_DEPENDS 
+    CATKIN_DEPENDS
     LIBRARIES shared_memory
 )
-
-find_package(Boost COMPONENTS thread system REQUIRED)
 
 include_directories(
     include
     ${Boost_INCLUDE_DIRS}
+    ${Eigen_INCLUDE_DIRS}
 )
 
 add_library(shared_memory 
   src/shared_memory.cpp
   src/exceptions.cpp)
-target_link_libraries(shared_memory ${Boost_LIBRARY_DIRS} -lrt -pthread)
+target_link_libraries(shared_memory ${Boost_LIBRARIES} -lrt -pthread)
 
 add_executable(set_data src/examples/set_data.cpp)
 target_link_libraries(set_data shared_memory)
@@ -31,7 +35,9 @@ target_link_libraries(get_data shared_memory)
 
 add_executable(tests_executable tests/support/tests_executable.cpp)
 target_link_libraries(tests_executable shared_memory)
-install(TARGETS tests_executable RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/tests/bin)
+set_target_properties(tests_executable PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
+
 catkin_add_gtest(shared_memory_unit_tests
   tests/main.cpp
   tests/unit_tests.cpp)

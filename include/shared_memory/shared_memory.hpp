@@ -9,7 +9,8 @@
 
 #include "shared_memory/exceptions.h"
 
-
+#ifndef SHARED_MEMORY_HPP
+#define SHARED_MEMORY_HPP
 
 #define _SHARED_MEMORY_SIZE 65536
 #define _MAP_STRING_KEY_SEPARATOR ';'
@@ -355,3 +356,5 @@ namespace shared_memory {
 
   
 }
+
+#endif // SHARED_MEMORY_HPP

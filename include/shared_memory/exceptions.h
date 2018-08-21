@@ -5,6 +5,9 @@
 #include <sstream>
 #include <string>
 
+#ifndef SHARED_MEMORY_EXCEPTION_HPP
+#define SHARED_MEMORY_EXCEPTION_HPP
+
 namespace shared_memory {
 
 
@@ -43,3 +46,5 @@ namespace shared_memory {
 
 
 }
+
+#endif // SHARED_MEMORY_EXCEPTION_HPP

@@ -27,18 +27,18 @@ namespace shared_memory_test {
   
   const int test_map_size = 2;
 
-  const int set_double = 1;
-  const int set_int = 2;
-  const int set_float = 3;
-  const int set_string = 4;
-  const int set_vector = 5;
-  const int set_int_double_map = 6;
-  const int set_string_double_map = 7;
-  const int set_double_array = 8;
-  const int set_string_vector_double_map = 9;
-  const int concurrent_1 = 10;
-  const int concurrent_2 = 11;
-  
-  
- 
+  enum Actions{
+    set_double = 1,
+    set_int,
+    set_float,
+    set_string,
+    set_vector,
+    set_eigen_vector,
+    set_int_double_map,
+    set_string_double_map,
+    set_double_array,
+    set_string_vector_double_map,
+    concurrent_1,
+    concurrent_2,
+  };
 }

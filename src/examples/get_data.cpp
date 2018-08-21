@@ -50,6 +50,7 @@ int main(){
   v4[0]=0.0;
   m3["value_1"]=v3;
   m3["value_2"]=v4;
+  Eigen::VectorXd v5(4);
   
   while (RUNNING){
 
@@ -57,6 +58,7 @@ int main(){
     shared_memory::get("main_memory","d2",d2);
     shared_memory::get("main_memory","v1",v1,2);
     shared_memory::get("main_memory","v2",v2);
+    shared_memory::get("main_memory","v5",v5);
     shared_memory::get("main_memory","m1",m1);
     shared_memory::get("main_memory","m2",m2);
     shared_memory::get("main_memory","m3",m3);
@@ -64,6 +66,7 @@ int main(){
     std::cout << "values: " << d1 << "\t" << d2 << "\t";
     std::cout << v1[0] << "\t" << v1[1] << "\t";
     std::cout << v2[0] << "\t" << v2[1] << "\t";
+    std::cout << v5.transpose() << "\t";
     std::cout << m1[0] << "\t" << m1[1] << "\t";
     std::cout << m2["value_1"] << "\t" << m2["value_2"] << "\t";
     std::cout << m3["value_1"][0] << "\t" << m3["value_2"][0] << "\n";

@@ -25,6 +25,7 @@ void cleaning_memory(int){
   objects.push_back("d2");
   objects.push_back("v1");
   objects.push_back("v2");
+  objects.push_back("v5");
   objects.push_back("m1");
 
   // maps (and their relative keys) that have been set to
@@ -43,13 +44,15 @@ void cleaning_memory(int){
 
 int main(){
 
+  cleaning_memory(0);
+  RUNNING = true;
 
   // cleaning on ctrl+c 
   struct sigaction cleaning;
   cleaning.sa_handler = cleaning_memory;
   sigemptyset(&cleaning.sa_mask);
   cleaning.sa_flags = 0;
-  sigaction(SIGINT, &cleaning, NULL);
+  sigaction(SIGINT, &cleaning, nullptr);
 
   double d1=0.0;
   double d2=0.0;
@@ -73,12 +76,15 @@ int main(){
   v4[0]=0.0;
   m3["value_1"]=v3;
   m3["value_2"]=v4;
+
+  Eigen::VectorXd v5 = Eigen::VectorXd::Random(4);
   
-  
+  unsigned count = 0;
   while (RUNNING){
 
     d1+=0.01;
     d2+=0.001;
+    v5 += Eigen::VectorXd::Ones(4) * 0.001;
 
     v1[0]=(d1+1);
     v1[1]=(d2+1);
@@ -99,12 +105,17 @@ int main(){
     shared_memory::set("main_memory","d2",d2);
     shared_memory::set("main_memory","v1",v1,2);
     shared_memory::set("main_memory","v2",v2);
+    shared_memory::set("main_memory","v5",v5);
     shared_memory::set("main_memory","m1",m1);
     shared_memory::set("main_memory","m2",m2);
     shared_memory::set("main_memory","m3",m3);
-    
-    std::cout << ".\n";
-    
+
+    ++count;
+    std::cout << ".";
+    if(count % 100 == 0)
+    {
+      std::cout << std::endl;
+    }
     usleep(1000);
 
   }

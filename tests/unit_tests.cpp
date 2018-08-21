@@ -162,6 +162,23 @@ TEST_F(Shared_memory_tests,test_vector){
 
 }
 
+TEST_F(Shared_memory_tests,test_eigen_vector){
+
+  _call_executable(shared_memory_test::set_vector);
+
+  usleep(TIME_SLEEP);
+
+  Eigen::VectorXd v(shared_memory_test::test_array_size);
+  shared_memory::get(shared_memory_test::segment_id,
+         shared_memory_test::object_id,
+         v);
+
+  ASSERT_EQ(v.size(),shared_memory_test::test_array_size);
+  for(int i=0;i<shared_memory_test::test_array_size;i++){
+    ASSERT_EQ(v(i),shared_memory_test::test_array[i]);
+  }
+
+}
 
 TEST_F(Shared_memory_tests,test_int_double_map){
 

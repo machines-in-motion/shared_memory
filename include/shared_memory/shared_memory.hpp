@@ -4,6 +4,7 @@
 #include <memory>
 #include <iostream>
 
+#include <eigen3/Eigen/Core>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 
@@ -77,8 +78,15 @@ namespace shared_memory {
 
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
-      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+      boost::interprocess::managed_shared_memory segment{
+        boost::interprocess::open_or_create,
+        segment_id.c_str(),
+        _SHARED_MEMORY_SIZE
+      };
+      boost::interprocess::named_mutex mutex{
+        boost::interprocess::open_or_create,
+        object_id.c_str()
+      };
       
       mutex.lock();
       T* object = segment.find_or_construct<T>(object_id.c_str())[size]();
@@ -100,8 +108,15 @@ namespace shared_memory {
 
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
-      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+      boost::interprocess::managed_shared_memory segment{
+        boost::interprocess::open_or_create,
+        segment_id.c_str(),
+        _SHARED_MEMORY_SIZE
+      };
+      boost::interprocess::named_mutex mutex{
+        boost::interprocess::open_or_create,
+        object_id.c_str()
+      };
       
       mutex.lock();
       T* object = segment.find_or_construct<T>(object_id.c_str())[set_.size()]();
@@ -111,10 +126,7 @@ namespace shared_memory {
     } catch (const boost::interprocess::bad_alloc& e){
       throw shared_memory::Allocation_exception(segment_id,object_id);
     }
-
-    
   }
-
 
   template<typename T>
   void set(const std::string &segment_id,
@@ -139,7 +151,35 @@ namespace shared_memory {
 
   }
 
+  template<typename T>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const Eigen::Matrix<T, Eigen::Dynamic, 1> &set_)
+  {
+    try {
 
+      boost::interprocess::managed_shared_memory segment{
+        boost::interprocess::open_or_create,
+        segment_id.c_str(),
+        _SHARED_MEMORY_SIZE
+      };
+      boost::interprocess::named_mutex mutex{
+        boost::interprocess::open_or_create,
+        object_id.c_str()
+      };
+
+      mutex.lock();
+      T* object = segment.find_or_construct<T>(object_id.c_str())[set_.size()]();
+      for(int i=0;i<set_.size();i++)
+      {
+        object[i] = set_(i);
+      }
+      mutex.unlock();
+
+    } catch (const boost::interprocess::bad_alloc& e){
+      throw shared_memory::Allocation_exception(segment_id,object_id);
+    }
+  }
   
   template<typename KEY, typename VALUE>
   void set(const std::string &segment_id,
@@ -196,7 +236,6 @@ namespace shared_memory {
     }
 
   }
-
   
   void get(const std::string &segment_id,
            const std::string &object_id,
@@ -299,10 +338,38 @@ namespace shared_memory {
     } catch (const boost::interprocess::interprocess_exception &e){
       return;
     }
-
-
   }
 
+  template<typename T>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           Eigen::Matrix<T, Eigen::Dynamic, 1> &get_) {
+    try {
+
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
+      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
+
+      mutex.lock();
+      std::pair<T*, std::size_t> object = segment.find<T>(object_id.c_str());
+      if(object.second != get_.size()){
+        throw shared_memory::Unexpected_size_exception(segment_id,
+                                                       object_id,
+                                                       object.second,
+                                                       get_.size());
+      }
+
+      for(int i=0;i<object.second;i++) {
+        get_(i)=(object.first)[i];
+      }
+      mutex.unlock();
+
+    } catch (const boost::interprocess::bad_alloc& e){
+      throw shared_memory::Allocation_exception(segment_id,object_id);
+
+    } catch (const boost::interprocess::interprocess_exception &e){
+      return;
+    }
+  }
 
   template<typename VALUE>
   void get(const std::string &segment_id,

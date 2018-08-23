@@ -27,10 +27,10 @@ add_library(shared_memory
   src/exceptions.cpp)
 target_link_libraries(shared_memory ${Boost_LIBRARIES} -lrt -pthread)
 
-add_executable(set_data src/examples/set_data.cpp)
+add_executable(set_data demos/set_data.cpp)
 target_link_libraries(set_data shared_memory)
 
-add_executable(get_data src/examples/get_data.cpp)
+add_executable(get_data demos/get_data.cpp)
 target_link_libraries(get_data shared_memory)
 
 add_executable(tests_executable tests/support/tests_executable.cpp)
@@ -38,18 +38,19 @@ target_link_libraries(tests_executable shared_memory)
 set_target_properties(tests_executable PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
 
-add_executable(stress_set_benchmark src/stress_tests/stress_set_1.cpp)
-target_link_libraries(stress_set_benchmark ${Boost_LIBRARIES} -lrt -pthread)
+# benchmarks on the raw boost api
+add_executable(stress_set_raw_boost benchmarks/stress_set_raw_boost.cpp)
+target_link_libraries(stress_set_raw_boost ${Boost_LIBRARIES} -lrt -pthread)
 
-add_executable(stress_set_api src/stress_tests/stress_set_2.cpp)
+add_executable(stress_get_raw_boost benchmarks/stress_get_raw_boost.cpp)
+target_link_libraries(stress_get_raw_boost ${Boost_LIBRARIES} -lrt -pthread)
+
+# benchmark using the current api
+add_executable(stress_set_api benchmarks/stress_set_api.cpp)
 target_link_libraries(stress_set_api ${Boost_LIBRARIES} -lrt -pthread)
 
-add_executable(stress_get_benchmark src/stress_tests/stress_get_1.cpp)
-target_link_libraries(stress_get_benchmark ${Boost_LIBRARIES} -lrt -pthread)
-
-add_executable(stress_get_api src/stress_tests/stress_get_2.cpp)
+add_executable(stress_get_api benchmarks/stress_get_api.cpp)
 target_link_libraries(stress_get_api ${Boost_LIBRARIES} -lrt -pthread)
-
 
 catkin_add_gtest(shared_memory_unit_tests
   tests/main.cpp

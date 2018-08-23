@@ -1,8 +1,8 @@
 #include "shared_memory/shared_memory.hpp"
 
+namespace bi=boost::interprocess;
 
 namespace shared_memory {
-
 
   void clear_segment(const std::string &segment_id){
     boost::interprocess::shared_memory_object::remove(segment_id.c_str());

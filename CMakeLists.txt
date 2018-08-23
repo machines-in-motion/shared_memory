@@ -23,7 +23,7 @@ include_directories(
 )
 
 add_library(shared_memory 
-  src/shared_memory.cpp
+  #src/shared_memory.cpp
   src/exceptions.cpp)
 target_link_libraries(shared_memory ${Boost_LIBRARIES} -lrt -pthread)
 
@@ -62,3 +62,19 @@ set_target_properties(shared_memory_unit_tests PROPERTIES
 
 
 
+###############################################
+# Add custom (non compiling) targets          #
+# so non cpp files show up in QT_CREATOR IDE. #
+###############################################
+set(USE_QTCREATOR_${PROJECT_NAME} OFF CACHE BOOL
+    "Set to ON if you want QtCreator to display all files in the project tree")
+if(USE_QTCREATOR_${PROJECT_NAME})
+    file(GLOB_RECURSE EXTRA_FILES
+        ../*.h ../*.hh ../*.hpp ../*hxx
+        ../*.cf  ../*.yaml ../*.txt ../*.xml
+        ../start ../*.launch ../*.urdf ../CATKIN_IGNORE ../*.in
+    )
+    list(FILTER EXTRA_FILES EXCLUDE REGEX "build")
+    add_custom_target(${PROJECT_NAME}_OTHER_FILES ALL WORKING_DIRECTORY
+        ${PROJECT_SOURCE_DIR} SOURCES ${EXTRA_FILES})
+endif()

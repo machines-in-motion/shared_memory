@@ -1,3 +1,7 @@
+/**
+  *
+  */
+
 #include <set>
 #include <string>
 #include <map>
@@ -13,19 +17,73 @@
 #ifndef SHARED_MEMORY_HPP
 #define SHARED_MEMORY_HPP
 
-#define _SHARED_MEMORY_SIZE 65536
-#define _MAP_STRING_KEY_SEPARATOR ';'
-
-
+#define SHARED_MEMORY_SIZE 65536
+#define MAP_STRING_KEY_SEPARATOR ';'
 
 // cool doc: https://theboostcpplibraries.com/boost.interprocess-managed-shared-memory
 //           https://www.boost.org/doc/libs/1_63_0/doc/html/interprocess/quick_guide.html
 
 
-
+/**
+ * All templated types in this namespaces are elementary types:
+ * int, double, float, char*, ...
+ */
 namespace shared_memory {
+  /**
+   * @brief SHMObjects typdef is a simple renaming that ease the for loop
+   * writting.
+   */
+  typedef  std::map<std::string, void*> SHMObjects;
 
-  void clear_segment(const std::string &segment_id);
+  /**
+   * @brief The SharedMemorySegment contains the pointers of the shared objects
+   * in on shared memrory segment
+   *
+   * We use unamed mutext (interprocess_mutex) and unamed condition variables
+   * (interprocess_condition) to be able to instanciate them with classic
+   * pointers
+   */
+  class SharedMemorySegment{
+  public:
+    /**
+     * @brief SharedMemorySegment constructor.
+     */
+    SharedMemorySegment(std::string name);
+
+    /**
+      * @brief SharedMemorySegment destructor.
+      */
+    ~SharedMemorySegment();
+
+    /**
+     * @brief objects_ all all the data stored in the segment. WARNING here we
+     * use void* so the use of the set and get functions is the RESPONSABILITY
+     * of the user.
+     *
+     * The user is to use the SAME type when calling set and get using the
+     * shared memory
+     */
+    SHMObjects objects_;
+
+    std::string name_;
+  };
+
+  /**
+   * @brief delete_segment deletes the segment of existing shared memory.
+   * it makes sure that all element created in it is destroyed first.
+   * (is this needed? I do not know.)
+   * @param segment_id is the name of the shared memory segment.
+   */
+  void delete_segment(const std::string &segment_id);
+
+  /**
+   * @brief delete_object deletes a particular object in the shared memory
+   * segment
+   * @param segment_id
+   */
+  void delete_object(const std::string &segment_id);
+
+
   void clear_mutex(const std::string &object_id);
   void clear_mutexes(const std::vector<std::string> &mutexes);
   void clear(const std::string &segment_id,
@@ -44,19 +102,18 @@ namespace shared_memory {
   void set(const std::string &segment_id,
            const std::string &object_id,
            const T &set_){
-
     // if T turns out to be a std::string,
     // calling specialized function
     if (std::is_same<T, std::string>::value){
       set(segment_id,object_id,set_);
       return;
-    }
-    
+    }    
     try {
-
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,
-            segment_id.c_str(),_SHARED_MEMORY_SIZE};
-      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create,object_id.c_str()};
+      boost::interprocess::managed_shared_memory segment{
+        boost::interprocess::open_or_create,
+        segment_id.c_str(),SHARED_MEMORY_SIZE};
+      boost::interprocess::named_mutex mutex{
+        boost::interprocess::open_or_create,object_id.c_str()};
 
       mutex.lock();
       T* object = segment.find_or_construct<T>(object_id.c_str())();
@@ -81,7 +138,7 @@ namespace shared_memory {
       boost::interprocess::managed_shared_memory segment{
         boost::interprocess::open_or_create,
         segment_id.c_str(),
-        _SHARED_MEMORY_SIZE
+        SHARED_MEMORY_SIZE
       };
       boost::interprocess::named_mutex mutex{
         boost::interprocess::open_or_create,
@@ -111,7 +168,7 @@ namespace shared_memory {
       boost::interprocess::managed_shared_memory segment{
         boost::interprocess::open_or_create,
         segment_id.c_str(),
-        _SHARED_MEMORY_SIZE
+        SHARED_MEMORY_SIZE
       };
       boost::interprocess::named_mutex mutex{
         boost::interprocess::open_or_create,
@@ -135,7 +192,7 @@ namespace shared_memory {
     
     try {
 
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_SIZE};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -161,7 +218,7 @@ namespace shared_memory {
       boost::interprocess::managed_shared_memory segment{
         boost::interprocess::open_or_create,
         segment_id.c_str(),
-        _SHARED_MEMORY_SIZE
+        SHARED_MEMORY_SIZE
       };
       boost::interprocess::named_mutex mutex{
         boost::interprocess::open_or_create,
@@ -191,7 +248,7 @@ namespace shared_memory {
       std::string keys_object_id = std::string("key_")+object_id;
       std::string values_object_id = std::string("values_")+object_id;
       
-      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),_SHARED_MEMORY_SIZE};
+      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_SIZE};
       boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
       
       mutex.lock();
@@ -432,7 +489,8 @@ namespace shared_memory {
 
   }
 
-  
 }
+
+#include<shared_memory/shared_memory.hxx>
 
 #endif // SHARED_MEMORY_HPP

@@ -38,6 +38,19 @@ target_link_libraries(tests_executable shared_memory)
 set_target_properties(tests_executable PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
 
+add_executable(stress_set_benchmark src/stress_tests/stress_set_1.cpp)
+target_link_libraries(stress_set_benchmark ${Boost_LIBRARIES} -lrt -pthread)
+
+add_executable(stress_set_api src/stress_tests/stress_set_2.cpp)
+target_link_libraries(stress_set_api ${Boost_LIBRARIES} -lrt -pthread)
+
+add_executable(stress_get_benchmark src/stress_tests/stress_get_1.cpp)
+target_link_libraries(stress_get_benchmark ${Boost_LIBRARIES} -lrt -pthread)
+
+add_executable(stress_get_api src/stress_tests/stress_get_2.cpp)
+target_link_libraries(stress_get_api ${Boost_LIBRARIES} -lrt -pthread)
+
+
 catkin_add_gtest(shared_memory_unit_tests
   tests/main.cpp
   tests/unit_tests.cpp)

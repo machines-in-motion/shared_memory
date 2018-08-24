@@ -13,20 +13,7 @@ static unsigned int TIME_SLEEP = 5000;  //microseconds
 
 
 static inline void clear_memory(){
-
-  std::vector<std::string> objects(1);
-  objects[0]=shared_memory_test::object_id;
-
-  std::map<std::string,std::vector<std::string>> map_keys;
-  std::vector<std::string> keys(2);
-  keys[0]=shared_memory_test::map_string_keys1;
-  keys[1]=shared_memory_test::map_string_keys2;
-  map_keys[shared_memory_test::object_id]=keys;
-
-  shared_memory::clear(shared_memory_test::segment_id,
-		       objects,
-		       map_keys);
-  
+  shared_memory::delete_segment("main_memory");
 }
 
 class Shared_memory_tests : public ::testing::Test {
@@ -285,7 +272,7 @@ TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
 
 TEST_F(Shared_memory_tests,test_memory_overflow){
 
-  unsigned int max_size = _SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
+  unsigned int max_size = SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
   for(int i=0;i<v.size();i++) v[i]=1;
 

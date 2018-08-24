@@ -10,23 +10,19 @@ int main(int argc, char *argv[]){
   std::string object = shared_memory_test::object_id;
   
   if (command==shared_memory_test::Actions::set_double){
-    shared_memory::set(segment,object,
-		       shared_memory_test::test_double);
+    shared_memory::set(segment,object, shared_memory_test::test_double);
   }
 
   if(command==shared_memory_test::Actions::set_int){
-    shared_memory::set(segment,object,
-		       shared_memory_test::test_int);
+    shared_memory::set(segment,object, shared_memory_test::test_int);
   }
 
   if(command==shared_memory_test::Actions::set_float){
-    shared_memory::set(segment,object,
-		       shared_memory_test::test_float);
+    shared_memory::set(segment,object, shared_memory_test::test_float);
   }
 
   if(command==shared_memory_test::Actions::set_string){
-    shared_memory::set(segment,object,
-		       shared_memory_test::test_string);
+    shared_memory::set(segment, object, shared_memory_test::test_string);
   }
 
   if(command==shared_memory_test::Actions::set_vector){
@@ -34,8 +30,7 @@ int main(int argc, char *argv[]){
     for(int i=0;i<shared_memory_test::test_array_size;i++){
       v.push_back(shared_memory_test::test_array[i]);
     }
-    shared_memory::set(segment,object,
-           v);
+    shared_memory::set(segment, object, v);
   }
 
   if(command==shared_memory_test::Actions::set_eigen_vector){
@@ -43,24 +38,21 @@ int main(int argc, char *argv[]){
     for(int i=0 ; i<v.size() ; i++){
       v(i) = shared_memory_test::test_array[i];
     }
-    shared_memory::set(segment,object,
-           v);
+    shared_memory::set(segment, object, v);
   }
 
   if(command==shared_memory_test::Actions::set_int_double_map){
     std::map<int,double> m;
     m[shared_memory_test::map_int_keys1]=shared_memory_test::map_value_1;
     m[shared_memory_test::map_int_keys2]=shared_memory_test::map_value_2;
-    shared_memory::set(segment,object,
-		       m);
+    shared_memory::set(segment, object, m);
   }
 
   if(command==shared_memory_test::Actions::set_string_double_map){
     std::map<std::string,double> m;
     m[shared_memory_test::map_string_keys1]=shared_memory_test::map_value_1;
     m[shared_memory_test::map_string_keys2]=shared_memory_test::map_value_2;
-    shared_memory::set(segment,object,
-           m);
+    shared_memory::set(segment, object, m);
   }
 
   if(command==shared_memory_test::Actions::set_double_array){

@@ -14,38 +14,14 @@ static bool RUNNING = true;
 // so cleaning has to be "manual"
 
 void cleaning_memory(int){
-
   RUNNING=false;
-
-  std::cout << "\n\n--cleaning shared memory --\n\n";
-
-  // objects that have been set to the shared memory
-  std::vector<std::string> objects;
-  objects.push_back("d1");
-  objects.push_back("d2");
-  objects.push_back("v1");
-  objects.push_back("v2");
-  objects.push_back("v3");
-  objects.push_back("m1");
-
-  // maps (and their relative keys) that have been set to
-  // the shared memory
-  std::map<std::string,std::vector<std::string>> map_keys;
-  std::vector<std::string> keys;
-  keys.push_back("value_1");
-  keys.push_back("value_2");
-  map_keys[std::string("m2")]=keys;
-  map_keys[std::string("m3")]=keys;
-  map_keys[std::string("m4")]=keys;
-
-  shared_memory::clear("main_memory",objects,map_keys);
-
+  shared_memory::delete_segment("main_memory");
 }
 
 
 int main(){
 
-  cleaning_memory(0);
+  //cleaning_memory(0);
   RUNNING = true;
 
   // cleaning on ctrl+c 

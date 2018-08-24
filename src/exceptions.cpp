@@ -21,16 +21,17 @@ namespace shared_memory {
 
 
 
-  Unexpected_size_exception::Unexpected_size_exception(const std::string &segment_id,
-						       const std::string &object_id,
-						       int expected_size,
-						       int size_given){
+  Unexpected_size_exception::Unexpected_size_exception(
+      const std::string &segment_id,
+      const std::string &object_id,
+      int expected_size,
+      int size_given)
+  {
     std::ostringstream s;
     s <<  "shared_memory : size error when setting/getting " <<
       segment_id << " ("<< object_id << "): expected size: " << expected_size <<
       " provided size: " << size_given; 
     this->error_message_ = s.str();
-
   }
 
 
@@ -40,8 +41,5 @@ namespace shared_memory {
   const char * Unexpected_size_exception::what () const throw () {
     return this->error_message_.c_str();
   }
-
-  
-  
 }
 

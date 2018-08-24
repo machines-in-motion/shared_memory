@@ -44,7 +44,34 @@ namespace shared_memory {
 
   };
 
+  template <typename Key>
+  class Unexpected_map_key : public std::exception {
 
+  public :
+
+    Unexpected_map_key(const std::string& segment_id,
+            const std::string& object_id,
+            Key& expected_key)
+    {
+      std::ostringstream s;
+      s <<  "shared_memory : none existing key in map when setting/getting "
+        << segment_id << " ("<< object_id << "): "
+        << "expected key: " << expected_key;
+      this->error_message_ = s.str();
+    }
+
+    ~Unexpected_map_key() throw (){}
+
+    const char * what () const throw ()
+    {
+      return this->error_message_.c_str();
+    }
+
+  private:
+
+    std::string error_message_;
+
+  };
 }
 
 #endif // SHARED_MEMORY_EXCEPTION_HPP

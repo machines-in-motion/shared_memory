@@ -28,11 +28,15 @@
  * int, double, float, char*, ...
  */
 namespace shared_memory {
+  /***********************
+   * Typdef declarations *
+   ***********************/
+
   /**
-   * @brief SHMObjects typedef is a simple renaming that ease the for loop
+   * @brief ShmObjects typedef is a simple renaming that ease the for loop
    * writting.
    */
-  typedef  std::map<std::string, void*> SHMObjects;
+  typedef  std::map<std::string, std::pair<void*, std::size_t>> ShmObjects;
 
   /**
    * @brief ShmTypeHelper is a small struct that allow the definition of
@@ -54,6 +58,10 @@ namespace shared_memory {
      */
     typedef std::vector<ElemType, ElemTypeAllocator> Vector;
   };
+
+  /************************************************
+   * Declaration of the SharedMemorySegment class *
+   ************************************************/
 
   /**
    * @brief The SharedMemorySegment contains the pointers of the shared objects
@@ -77,22 +85,114 @@ namespace shared_memory {
     ~SharedMemorySegment();
 
     /**
-     * @brief objects_ all all the data stored in the segment. WARNING here we
+     * @brief get_object registers the object in the current struc and in the
+     * shared memory once only. And returns the pointer to the object and its
+     * size. The size will be 1 for simple type and could greater to one for
+     * arrays.
+     * @param[in] object_id: the name of the object in the shared memory.
+     * @param[in][out] get_: the reference to the fetched object.
+     */
+    template<typename ElemType>
+    void get_object(const std::string& object_id,
+                    std::pair<ElemType*, std::size_t>& get_);
+
+    /**
+     * @brief set_object registers the object in the current struc and in the
+     * shared memory once only. And returns the pointer to the object and its
+     * size. The size will be 1 for simple type and could greater to one for
+     * arrays.
+     * @param[in] object_id: the name of the object in the shared memory.
+     * @param[in] set_: the reference to the fetched object.
+     */
+    template<typename ElemType>
+    void set_object(const std::string& object_id,
+                    const std::pair<const ElemType*, std::size_t>& set_);
+
+    /**
+     * @brief delete_object delete and object from the shared memory.
+     * @param[in] object_id: the name of the object in the shared memory.
+     */
+    template<typename ElemType>
+    void delete_object(const std::string& object_id);
+
+    /**
+     * @brief mutex_ this mutex secure ALL the shared memory.
+     */
+    boost::interprocess::interprocess_mutex* mutex_;
+
+    /**
+     * @brief create_mutex small factory that allow to make sure that the mutex
+     * is created.
+     */
+    void create_mutex()
+    {
+      if(!mutex_)
+      {
+        mutex_ = segment_manager_.find_or_construct<
+                 boost::interprocess::interprocess_mutex>("mtx")();
+      }
+    }
+
+    /**
+     * @brief destroy_mutex small destructor of the mutext to make sure that it
+     * is unlock at critical time.
+     */
+    void destroy_mutex()
+    {
+      if(mutex_)
+      {
+        segment_manager_.destroy<boost::interprocess::interprocess_mutex>(
+              "mtx");
+        mutex_ = nullptr ;
+      }
+    }
+
+    /**
+     * @brief is_object_registered used to check if the object has been registered or not.
+     * @param[in] object_id: the name of the object in the shared memory.
+     * @return true if it has been registered
+     */
+    bool is_object_registered(const std::string& object_id)
+    {
+      return !(objects_.count(object_id) == 0 ||
+               objects_[object_id].first == nullptr);
+    }
+
+    /**
+     * @brief set_clear_upon_destruction is a standard setter
+     * @param[in] clear_upon_destruction is the value to set
+     */
+    void set_clear_upon_destruction(const bool clear_upon_destruction)
+    {
+      clear_upon_destruction_ = clear_upon_destruction;
+    }
+
+    /**
+     * @brief get_segment_id is a standard getter
+     * @return the segment name
+     */
+    const std::string& get_segment_id()
+    {
+      return segment_id_;
+    }
+
+  private:
+
+    /**
+     * @brief shm_segment is the boost object that manages the shared memory
+     * segment
+     */
+    boost::interprocess::managed_shared_memory segment_manager_;
+
+    /**
+     * @brief objects_ are all the data stored in the segment. WARNING here we
      * use void* so the use of the set and get functions is the RESPONSABILITY
      * of the user.
      *
      * The user is to use the SAME type when calling set and get using the
      * shared memory
      */
-    SHMObjects objects_;
-
-    /**
-     * @brief shm_segment is the boost object that manages the shared memory
-     * segment
-     */
-    boost::interprocess::managed_shared_memory shm_segment_;
-
-  private:
+    ShmObjects objects_;
 
     /**
      * @brief segment_id_ is the name of the segment inside the shared memory
@@ -108,14 +208,9 @@ namespace shared_memory {
     bool clear_upon_destruction_;
   };
 
-  /**
-   * @brief get_segment creates or give back a pointer to a shared memory
-   * segment manager.
-   * @param segment_id is the name of the shared memory segment.
-   */
-  const boost::interprocess::managed_shared_memory& get_segment_manager(
-      const std::string &segment_id,
-      const bool clear_upon_destruction=false);
+  /**************************************************
+   * Declaration of all segment management function *
+   **************************************************/
 
   /**
    * @brief get_segment creates or give back a pointer to a SharedMemorySegment
@@ -151,407 +246,188 @@ namespace shared_memory {
                      const std::string &object_id);
 
   /**
-   * @brief delete_object deletes a list of particular objects in the shared
-   * memory segment. All objects must be of the same type
-   * @param[in] segment_id is the name of the shared memory segment.
-   * @return true if everything went fine.
-   */
-  template <typename ElemType>
-  bool delete_object(const std::string& segment_id,
-                     const std::vector<std::string>& object_id);
-
-  /**
    * @brief get_sgement_mutex aquiere a reference to the semgent global mutex.
    * @param[in] segment_id is the name of the shared memory segment.
    * @return a reference to a boost mutex
    */
-  boost::interprocess::interprocess_mutex* get_segment_mutex(
+  boost::interprocess::interprocess_mutex& get_segment_mutex(
       const std::string segment_id);
 
+  /************************************
+   * Declaration of all set functions *
+   ************************************/
+
   /**
-   * @brief this set function instanciates or get pointer to a fixed sized
-   * array of the templated type "T" in the shared memory.
-   * [in] segment_id is the name of the shared memory segment.
-   * [in] object_id is the name of the shared memory object to set.
-   * [in] object is the pointer to the array of objects to set in the memory.
-   * [in] size is the array size.
+   * @brief set instanciates or get pointer to any elementary types in the
+   * shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
    */
-  template<typename T>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const T* object,
+  template<typename ElemType>
+  void set(const std::string& segment_id,
+           const std::string& object_id,
+           const ElemType& set_);
+
+  /**
+   * @brief set instanciates or get pointer to a fixed sized
+   * array of the templated type "T" in the shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the pointer to the array of objects to set in the
+   * memory.
+   * @param[in] size is the array size.
+   */
+  template<typename ElemType>
+  void set(const std::string& segment_id,
+           const std::string& object_id,
+           const ElemType* set_,
            const std::size_t size);
 
-
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const std::string &set_);
+  /**
+   * @brief set instanciates or get pointer to a string in the shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  void set(const std::string& segment_id,
+           const std::string& object_id,
+           const std::string& set_);
   
-  template<typename T>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const T &set_);
-  {
-    // if T turns out to be a std::string,
-    // calling specialized function
-//    if (std::is_same<T, std::string>::value){
-//      set(segment_id,object_id,set_);
-//      return;
-//    }
-//    try {
-//      boost::interprocess::managed_shared_memory segment{
-//        boost::interprocess::open_or_create,
-//        segment_id.c_str(),SHARED_MEMORY_SIZE};
-//      boost::interprocess::named_mutex mutex{
-//        boost::interprocess::open_or_create,object_id.c_str()};
-
-//      mutex.lock();
-//      T* object = segment.find_or_construct<T>(object_id.c_str())();
-//      *object = set_;
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-//    }
-
-  }
-
-
-
-
-  
-  template<typename T>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const std::vector<T> &set_){
-
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{
-//        boost::interprocess::open_or_create,
-//        segment_id.c_str(),
-//        SHARED_MEMORY_SIZE
-//      };
-//      boost::interprocess::named_mutex mutex{
-//        boost::interprocess::open_or_create,
-//        object_id.c_str()
-//      };
-      
-//      mutex.lock();
-//      T* object = segment.find_or_construct<T>(object_id.c_str())[set_.size()]();
-//      for(int i=0;i<set_.size();i++) object[i]=set_[i];
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-//    }
-  }
-
-  template<typename T>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const std::vector<T*> &set_){
-    
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_SIZE};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-//      mutex.lock();
-//      T* object = segment.find_or_construct<T>(object_id.c_str())[set_.size()]();
-//      for(int i=0;i<set_.size();i++) {
-//        object[i]=*(set_[i]);
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-//    }
-
-  }
-
-  template<typename T>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const Eigen::Matrix<T, Eigen::Dynamic, 1> &set_)
-  {
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{
-//        boost::interprocess::open_or_create,
-//        segment_id.c_str(),
-//        SHARED_MEMORY_SIZE
-//      };
-//      boost::interprocess::named_mutex mutex{
-//        boost::interprocess::open_or_create,
-//        object_id.c_str()
-//      };
-
-//      mutex.lock();
-//      T* object = segment.find_or_construct<T>(object_id.c_str())[set_.size()]();
-//      for(int i=0;i<set_.size();i++)
-//      {
-//        object[i] = set_(i);
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-//    }
-  }
-  
-  template<typename KEY, typename VALUE>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           std::map<KEY,VALUE> &set_){
-
-//    try {
-
-//      std::string keys_object_id = std::string("key_")+object_id;
-//      std::string values_object_id = std::string("values_")+object_id;
-      
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_or_create,segment_id.c_str(),SHARED_MEMORY_SIZE};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-//      mutex.lock();
-//      KEY* keys = segment.find_or_construct<KEY>(keys_object_id.c_str())[set_.size()]();
-//      VALUE* values = segment.find_or_construct<VALUE>(values_object_id.c_str())[set_.size()]();
-//      int i=0;
-//      for (const auto& key_value: set_){
-//        keys[i]=key_value.first;
-//        values[i]=key_value.second;
-//        i++;
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-//    }
-
-  }
-
-
-  template<typename VALUE>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           std::map<std::string,VALUE> &set_){
-
-//    for (const auto& key_value: set_){
-//      std::string object_id_ = object_id+std::string("_")+key_value.first;
-//      set(segment_id,object_id_,key_value.second);
-//    }
-
-  }
-
-
-  template<typename VALUE>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const std::map<std::string,std::vector<VALUE>> &set_){
-
-//    for (const auto& key_value: set_){
-//      std::string object_id_ = object_id+std::string("_")+key_value.first;
-//      set(segment_id,object_id_,key_value.second);
-//    }
-
-  }
-
-  template<typename VALUE>
-  void set(const std::string &segment_id,
-           const std::string &object_id,
-           const std::map<std::string, Eigen::Matrix
-           <VALUE, Eigen::Dynamic, 1>> &set_){
-//    for (const auto& key_value: set_){
-//      std::string object_id_ = object_id+std::string("_")+key_value.first;
-//      set(segment_id,object_id_,key_value.second);
-//    }
-  }
-  
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           std::string &get_);
-
-
-  template<typename T>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           T &get_) {
-
-
-    // if T turns out to be std::string,
-    // calling specialized function
-//    if (std::is_same<T, std::string>::value){
-//      get(segment_id,object_id,get_);
-//      return;
-//    }
-    
-//    try {
-      
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-      
-//      mutex.lock();
-//      get_ = * ( segment.find_or_construct<T>(object_id.c_str())() );
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-      
-//    } catch (const boost::interprocess::interprocess_exception &e){
-//      return;
-//    }
-
-  }
-  
-  
-  template<typename T>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           T *get_,
-           std::size_t expected_size){
-
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-//      mutex.lock();
-//      std::pair<T*, std::size_t> object = segment.find<T>(object_id.c_str());
-//      if(object.second != expected_size){
-//        throw shared_memory::Unexpected_size_exception(segment_id,
-//                                                       object_id,
-//                                                       object.second,
-//                                                       expected_size);
-//      }
-//      for(int i=0;i<object.second;i++) get_[i]=(object.first)[i];
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-
-//    } catch (const boost::interprocess::interprocess_exception &e){
-//      return;
-//    }
-
-
-  }
-
-
-  template<typename T>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           std::vector<T> &get_) {
-
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-//      mutex.lock();
-//      std::pair<T*, std::size_t> object = segment.find<T>(object_id.c_str());
-//      if(object.second != get_.size()){
-//        throw shared_memory::Unexpected_size_exception(segment_id,
-//                                                       object_id,
-//                                                       object.second,
-//                                                       get_.size());
-//      }
-      
-//      for(int i=0;i<object.second;i++) {
-//        get_[i]=(object.first)[i];
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-
-//    } catch (const boost::interprocess::interprocess_exception &e){
-//      return;
-//    }
-  }
-
-  template<typename T>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           Eigen::Matrix<T, Eigen::Dynamic, 1> &get_) {
-//    try {
-
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-
-//      mutex.lock();
-//      std::pair<T*, std::size_t> object = segment.find<T>(object_id.c_str());
-//      if(object.second != get_.size()){
-//        throw shared_memory::Unexpected_size_exception(segment_id,
-//                                                       object_id,
-//                                                       object.second,
-//                                                       get_.size());
-//      }
-
-//      for(int i=0;i<object.second;i++) {
-//        get_(i)=(object.first)[i];
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-
-//    } catch (const boost::interprocess::interprocess_exception &e){
-//      return;
-//    }
-  }
-
-  template<typename VALUE>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           std::map<std::string,VALUE> &get_){
-
-//    for (const auto& key_value: get_){
-//      std::string object_id_ = object_id + std::string("_")+key_value.first;
-//      get(segment_id,object_id_,get_[key_value.first]);
-//    }
-
-  }
-
-  
-  template<typename KEY, typename VALUE>
-  void get(const std::string &segment_id,
-           const std::string &object_id,
-           std::map<KEY,VALUE> &get_){
-
-//    try {
-      
-//      std::string keys_object_id = std::string("key_")+object_id;
-//      std::string values_object_id = std::string("values_")+object_id;
-      
-//      boost::interprocess::managed_shared_memory segment{boost::interprocess::open_only,segment_id.c_str()};
-//      boost::interprocess::named_mutex mutex{boost::interprocess::open_or_create, object_id.c_str()};
-      
-//      mutex.lock();
-//      std::pair<KEY*, std::size_t> keys = segment.find<KEY>(keys_object_id.c_str());
-//      std::pair<VALUE*, std::size_t> values = segment.find<VALUE>(values_object_id.c_str());
-//      if(keys.second != get_.size()){
-//        throw shared_memory::Unexpected_size_exception(segment_id,
-//                                                       object_id,
-//                                                       keys.second,
-//                                                       get_.size());
-//      }
-//      for(int i=0;i<keys.second;i++){
-//        get_[(keys.first)[i]]=(values.first)[i];
-//      }
-//      mutex.unlock();
-
-//    } catch (const boost::interprocess::bad_alloc& e){
-//      throw shared_memory::Allocation_exception(segment_id,object_id);
-
-//    } catch (const boost::interprocess::interprocess_exception &e){
-//      return;
-//    }
-
-
-  }
-
-}
+  /**
+   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
+   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename VectorType, typename ElemType>
+  void set(const std::string& segment_id,
+           const std::string& object_id,
+           const VectorType& set_);
+
+  /**
+   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
+   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename KeyType, typename ValueType>
+  void set(const std::string& segment_id,
+           const std::string& object_id,
+           const std::map<KeyType, ValueType>& set_);
+
+  /************************************
+   * Declaration of all get functions *
+   ************************************/
+
+  /**
+   * @brief set instanciates or get pointer to any elementary types in the
+   * shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] get_ is the string to be created in the shared memory
+   */
+  template<typename ElemType>
+  void get(const std::string& segment_id,
+           const std::string& object_id,
+           ElemType& get_);
+
+  /**
+   * @brief set instanciates or get pointer to a fixed sized
+   * array of the templated type "T" in the shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] get_ is the pointer to the array of objects to set in the
+   * memory.
+   * @param[in] size is the array size.
+   */
+  template<typename ElemType>
+  void get(const std::string& segment_id,
+           const std::string& object_id,
+           ElemType* get_,
+           const std::size_t expected_size);
+
+  /**
+   * @brief set instanciates or get pointer to a string in the shared memory.
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] get_ is the string to be created in the shared memory
+   */
+  void get(const std::string& segment_id,
+           const std::string& object_id,
+           std::string& get_);
+
+  /**
+   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
+   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] get_ is the string to be created in the shared memory
+   */
+  template<typename VectorType, typename ElemType>
+  void get(const std::string& segment_id,
+           const std::string& object_id,
+           VectorType& get_);
+
+  /**
+   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
+   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] get_ is the string to be created in the shared memory
+   */
+  template<typename KeyType, typename ValueType>
+  void get(const std::string& segment_id,
+           const std::string& object_id,
+           std::map<KeyType, ValueType>& get_);
+
+} // namespace shared_memory
 
 #include<shared_memory/shared_memory.hxx>
 

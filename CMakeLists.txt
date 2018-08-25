@@ -39,11 +39,21 @@ set_target_properties(tests_executable PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
 
 # benchmarks on the raw boost api
-add_executable(stress_set_raw_boost benchmarks/stress_set_raw_boost.cpp)
-target_link_libraries(stress_set_raw_boost ${Boost_LIBRARIES} -lrt -pthread)
+add_executable(stress_set_raw_boost_efficient
+  benchmarks/stress_set_raw_boost_efficient.cpp)
+target_link_libraries(stress_set_raw_boost_efficient ${Boost_LIBRARIES} -lrt -pthread)
 
-add_executable(stress_get_raw_boost benchmarks/stress_get_raw_boost.cpp)
-target_link_libraries(stress_get_raw_boost ${Boost_LIBRARIES} -lrt -pthread)
+add_executable(stress_get_raw_boost_efficient
+  benchmarks/stress_get_raw_boost_efficient.cpp)
+target_link_libraries(stress_get_raw_boost_efficient ${Boost_LIBRARIES} -lrt -pthread)
+
+add_executable(stress_set_raw_boost_inefficient
+  benchmarks/stress_set_raw_boost_inefficient.cpp)
+target_link_libraries(stress_set_raw_boost_inefficient ${Boost_LIBRARIES} -lrt -pthread)
+
+add_executable(stress_get_raw_boost_inefficient
+  benchmarks/stress_get_raw_boost_inefficient.cpp)
+target_link_libraries(stress_get_raw_boost_inefficient ${Boost_LIBRARIES} -lrt -pthread)
 
 # benchmark using the current api
 add_executable(stress_set_api benchmarks/stress_set_api.cpp)

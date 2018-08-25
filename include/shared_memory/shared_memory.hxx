@@ -109,7 +109,6 @@ namespace shared_memory {
     {
       return;
     }
-
     std::size_t obj_size = 0;
     typename std::remove_const<ElemType>::type * obj_ptr = nullptr;
 
@@ -121,6 +120,9 @@ namespace shared_memory {
     objects_[object_id] = std::pair<void*, std::size_t>();
     objects_[object_id].first = static_cast<void*>(obj_ptr);
     objects_[object_id].second = obj_size;
+
+    std::cout << "registration of " << object_id
+              << "of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>
@@ -145,6 +147,9 @@ namespace shared_memory {
     objects_[object_id] = std::pair<void*, std::size_t>();
     objects_[object_id].first = static_cast<void*>(obj_ptr);
     objects_[object_id].second = obj_size;
+
+    std::cout << "registration of " << object_id
+              << "of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>

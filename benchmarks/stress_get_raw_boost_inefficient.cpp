@@ -41,8 +41,7 @@ int main(){
   
   while(RUNNING){
 
-    if (count == 0)
-    {
+    if(count==0){
       t = std::chrono::high_resolution_clock::now();
     }
     
@@ -57,9 +56,11 @@ int main(){
       object_id.c_str()
     };
 
+    double get[SIZE];
+    
     mutex.lock();
-    double* object = segment.find_or_construct<double>(object_id.c_str())[SIZE]();
-    for(int i=0;i<SIZE;i++) object[i]=2.0;
+    std::pair<double*, std::size_t> object = segment.find<double>(object_id.c_str());
+    for(int i=0;i<object.second;i++) get[i]=(object.first)[i];
     mutex.unlock();
 
     count++;
@@ -67,7 +68,7 @@ int main(){
       auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t-previous_t).count();
       float frequency = static_cast<float>(1000) / ( pow(10.0,-9.0) * static_cast<float>(nanos) );
       previous_t = t;
-      std::cout << "frequency: " << frequency << "\n";
+      std::cout << "frequency: " << frequency << " | "<< get[10] << "\n";
       count = 0;
     }
   }

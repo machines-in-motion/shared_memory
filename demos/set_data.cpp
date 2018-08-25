@@ -15,13 +15,14 @@ static bool RUNNING = true;
 
 void cleaning_memory(int){
   RUNNING=false;
+  boost::interprocess::named_mutex::remove("main_memory_mutex");
   shared_memory::delete_segment("main_memory");
 }
 
 
 int main(){
 
-  //cleaning_memory(0);
+  cleaning_memory(0);
   RUNNING = true;
 
   // cleaning on ctrl+c 
@@ -38,7 +39,7 @@ int main(){
   
   std::vector<double> v2(2, 0.0);
 
-  Eigen::VectorXd v3 = Eigen::VectorXd::Random(4);
+  Eigen::VectorXd v3 = Eigen::VectorXd(4);
 
   std::map<int,double> m1;
   m1[0]=d1;
@@ -49,39 +50,83 @@ int main(){
   m2["value_2"]=d2;
 
   std::map<std::string,std::vector<double>> m3;
-  m3["value_1"]=std::vector<double>(1, 0.0);
-  m3["value_2"]=std::vector<double>(1, 0.0);
+  m3["value_1"]=std::vector<double>(2, 0.0);
+  m3["value_2"]=std::vector<double>(2, 0.0);
 
   std::map<std::string, Eigen::VectorXd> m4;
-  m4["value_1"]=Eigen::VectorXd::Random(4);
-  m4["value_2"]=Eigen::VectorXd::Random(4);
+//  std::map < std::string, Eigen::VectorXd,
+//      std::less<std::string>,
+//      Eigen::aligned_allocator<std::pair<const std::string, Eigen::VectorXd> > >
+//      m4;
+  m4["value_1"]=Eigen::VectorXd(4);
+  m4["value_2"]=Eigen::VectorXd(4);
   
+  const std::string s1("my string");
+
   unsigned count = 0;
   while (RUNNING){
 
     d1+=0.01;
     d2+=0.001;
 
-    v1[0]=(d1+1);
-    v1[1]=(d2+1);
+    int offset = 0 ;
+    v1[0]=(d1+offset);
+    ++offset;
+    v1[1]=(d1+offset);
+    ++offset;
 
-    v2[0]=(d1+2);
-    v2[1]=(d2+2);
+    v2[0]=(d1+offset);
+    ++offset;
+    v2[1]=(d1+offset);
+    ++offset;
 
-    v3+=Eigen::VectorXd::Ones(4)*0.001;
+    v3[0]=(d1+offset);
+    ++offset;
+    v3[1]=(d1+offset);
+    ++offset;
+    v3[2]=(d1+offset);
+    ++offset;
+    v3[3]=(d1+offset);
+    ++offset;
 
-    m1[0]=(d1+3);
-    m1[1]=(d2+3);
+    m1[0]=(d1+offset);
+    ++offset;
+    m1[1]=(d1+offset);
+    ++offset;
 
-    m2["value_1"]=(d1+4);
-    m2["value_2"]=(d2+4);
+    m2["value_1"]=(d1+offset);
+    ++offset;
+    m2["value_2"]=(d1+offset);
+    ++offset;
 
-    m3["value_1"][0]=(d1+5);
-    m3["value_2"][0]=(d2+5);
+    m3["value_1"][0]=(d1+offset);
+    ++offset;
+    m3["value_2"][0]=(d1+offset);
+    ++offset;
 
-    m4["value_1"]+=Eigen::VectorXd::Ones(4)*0.05;
-    m4["value_2"]+=Eigen::VectorXd::Ones(4)*0.02;
+    m3["value_1"][1]=(d1+offset);
+    ++offset;
+    m3["value_2"][1]=(d1+offset);
+    ++offset;
+
+    m4["value_1"][0]=(d1+offset);
+    ++offset;
+    m4["value_1"][1]=(d1+offset);
+    ++offset;
+    m4["value_1"][2]=(d1+offset);
+    ++offset;
+    m4["value_1"][3]=(d1+offset);
+    ++offset;
+    m4["value_2"][0]=(d1+offset);
+    ++offset;
+    m4["value_2"][1]=(d1+offset);
+    ++offset;
+    m4["value_2"][2]=(d1+offset);
+    ++offset;
+    m4["value_2"][3]=(d1+offset);
+    ++offset;
     
+
     shared_memory::set("main_memory","d1",d1);
     shared_memory::set("main_memory","d2",d2);
     shared_memory::set("main_memory","v1",v1,2);
@@ -91,6 +136,7 @@ int main(){
     shared_memory::set("main_memory","m2",m2);
     shared_memory::set("main_memory","m3",m3);
     shared_memory::set("main_memory","m4",m4);
+    shared_memory::set("main_memory","s1",s1);
 
     ++count;
     std::cout << ".";

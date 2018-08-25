@@ -10,15 +10,15 @@ int main(int argc, char *argv[]){
   std::string object = shared_memory_test::object_id;
   
   if (command==shared_memory_test::Actions::set_double){
-    shared_memory::set(segment,object, shared_memory_test::test_double);
+    shared_memory::set(segment, object, shared_memory_test::test_double);
   }
 
   if(command==shared_memory_test::Actions::set_int){
-    shared_memory::set(segment,object, shared_memory_test::test_int);
+    shared_memory::set(segment, object, shared_memory_test::test_int);
   }
 
   if(command==shared_memory_test::Actions::set_float){
-    shared_memory::set(segment,object, shared_memory_test::test_float);
+    shared_memory::set(segment, object, shared_memory_test::test_float);
   }
 
   if(command==shared_memory_test::Actions::set_string){

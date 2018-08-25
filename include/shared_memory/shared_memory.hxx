@@ -1,4 +1,4 @@
-#include <shared_memory/shared_memory.hpp>
+﻿#include <shared_memory/shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 
 namespace shared_memory {
@@ -21,10 +21,16 @@ namespace shared_memory {
                     segment_id.c_str(),
                     SHARED_MEMORY_SIZE);
 
+    boost::interprocess::named_mutex named_mtx{
+      boost::interprocess::open_or_create, (segment_id_ + "_mutex").c_str()
+    };
+    named_mtx.unlock();
+    boost::interprocess::named_mutex::remove((segment_id_ + "_mutex").c_str());
   }
 
   SharedMemorySegment::~SharedMemorySegment()
   {
+    destroy_mutex();
     if(clear_upon_destruction_)
     {
       boost::interprocess::shared_memory_object::remove(segment_id_.c_str());
@@ -35,55 +41,110 @@ namespace shared_memory {
   void SharedMemorySegment::get_object(const std::string& object_id,
                                        std::pair<ElemType*, std::size_t>& get_)
   {
-    if(!is_object_registered(object_id))
-    {
-      std::pair<ElemType*, std::size_t> shared_object;
-      shared_object = segment_manager_.find<ElemType>(object_id.c_str());
-      if(shared_object.second != get_.second)
-      {
-        throw shared_memory::Unexpected_size_exception(
-              segment_id_, object_id, static_cast<int>(shared_object.second),
-              static_cast<int>(get_.second));
-      }
-      objects_[object_id] = std::pair<void*, std::size_t>();
-      objects_[object_id].first = static_cast<void*>(shared_object.first);
-      objects_[object_id].second = shared_object.second;
-    }
     boost::interprocess::named_mutex named_mtx{
-      boost::interprocess::open_or_create, "mtx"
+      boost::interprocess::open_or_create, (segment_id_ + "_mutex").c_str()
     };
     named_mtx.lock();
+
+    //register_object(object_id, get_);
+
+    register_object_read_only<ElemType>(object_id);
+    if(objects_[object_id].second != get_.second){
+      throw shared_memory::Unexpected_size_exception(segment_id_,
+                                                     object_id,
+                                                     objects_[object_id].second,
+                                                     get_.second);
+    }
+
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     for(std::size_t i = 0 ; i < objects_[object_id].second ; ++i)
     {
       get_.first[i] = shared_data[i];
     }
+
     named_mtx.unlock();
-    destroy_mutex();
+  }
+
+  void SharedMemorySegment::get_object(const std::string& object_id,
+                                       std::string& get_)
+  {
+    boost::interprocess::named_mutex named_mtx{
+      boost::interprocess::open_or_create, (segment_id_ + "_mutex").c_str()
+    };
+    named_mtx.lock();
+
+    register_object_read_only<char>(object_id);
+
+    get_ = std::string(static_cast<char*>(objects_[object_id].first),
+                       objects_[object_id].second);
+
+    named_mtx.unlock();
   }
 
   template<typename ElemType>
   void SharedMemorySegment::set_object(const std::string& object_id,
       const std::pair<const ElemType*, std::size_t>& set_)
   {
-    if(!is_object_registered(object_id))
-    {
-      ElemType* shared_object = segment_manager_.find_or_construct<ElemType>(
-                                  object_id.c_str())[set_.second]();
-      objects_[object_id] = std::pair<void*, std::size_t>();
-      objects_[object_id].first = static_cast<void*>(shared_object);
-      objects_[object_id].second = set_.second;
-    }
     boost::interprocess::named_mutex named_mtx{
-      boost::interprocess::open_or_create, "mtx"
+      boost::interprocess::open_or_create, (segment_id_ + "_mutex").c_str()
     };
     named_mtx.lock();
+
+    register_object(object_id, set_);
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     for(std::size_t i = 0 ; i < objects_[object_id].second ; ++i)
     {
       shared_data[i] = set_.first[i];
     }
+
     named_mtx.unlock();
+  }
+
+  template<typename ElemType>
+  void SharedMemorySegment::register_object(
+      const std::string& object_id,
+      const std::pair<ElemType*, std::size_t>& obj_)
+  {
+    if(is_object_registered(object_id))
+    {
+      return;
+    }
+
+    std::size_t obj_size = 0;
+    typename std::remove_const<ElemType>::type * obj_ptr = nullptr;
+
+    obj_ptr = segment_manager_.find_or_construct<
+              typename std::remove_const<ElemType>::type>(
+                object_id.c_str())[obj_.second]();
+    obj_size = obj_.second;
+
+    objects_[object_id] = std::pair<void*, std::size_t>();
+    objects_[object_id].first = static_cast<void*>(obj_ptr);
+    objects_[object_id].second = obj_size;
+  }
+
+  template<typename ElemType>
+  void SharedMemorySegment::register_object_read_only(
+      const std::string& object_id)
+  {
+    if(is_object_registered(object_id))
+    {
+      return;
+    }
+
+    std::size_t obj_size = 0;
+    typename std::remove_const<ElemType>::type * obj_ptr = nullptr;
+
+    std::pair<typename std::remove_const<ElemType>::type*, std::size_t>
+        obj_pair = segment_manager_.find<
+                   typename std::remove_const<ElemType>::type>(
+                     object_id.c_str());
+    obj_ptr = obj_pair.first;
+    obj_size = obj_pair.second;
+
+    objects_[object_id] = std::pair<void*, std::size_t>();
+    objects_[object_id].first = static_cast<void*>(obj_ptr);
+    objects_[object_id].second = obj_size;
   }
 
   template<typename ElemType>
@@ -223,32 +284,46 @@ namespace shared_memory {
     set<ElemType>(segment_id, object_id, set_.data(), set_.size());
   }
 
+  template<typename ElemType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const std::vector<ElemType>& set_)
+  {
+    set<ElemType>(segment_id, object_id, set_.data(), set_.size());
+  }
+
+  template<typename ElemType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& set_)
+  {
+    set<ElemType>(segment_id, object_id, set_.data(), set_.size());
+  }
+
+  template<typename FirstType, typename SecondType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const std::pair<FirstType, SecondType>& set_)
+  {
+    set<FirstType>(segment_id, object_id + "_first", set_.first);
+    set<SecondType>(segment_id, object_id + "_second", set_.second);
+  }
+
   template<typename KeyType, typename ValueType>
   void set(const std::string& segment_id,
            const std::string& object_id,
            const std::map<KeyType, ValueType>& set_)
   {
     try {
-      SharedMemorySegment& segment = get_segment(segment_id);
-
-      std::string keys_object_id = object_id + "_keys";
-      std::pair<KeyType*, std::size_t> keys;
-      segment.get_object<KeyType>(object_id, keys);
-
-      std::string values_object_id = object_id + "_values";
-      std::pair<ValueType*, std::size_t> values;
-      segment.get_object<ValueType>(object_id, values);
-
-      segment.mutex_->lock();
       int i = 0;
       for(typename std::map<KeyType, ValueType>::const_iterator
-          map_it = set_.begin() ; map_it != set_.end() ; ++map_it)
+          map_it=set_.begin() ; map_it!=set_.end() ; ++map_it)
       {
-        keys.first[i] = map_it->first;
-        values.first[i] = map_it->second;
+        set(segment_id,
+            object_id + "_" + std::to_string(i),
+            map_it->second);
         ++i;
       }
-      segment.mutex_->unlock();
     } catch (const boost::interprocess::bad_alloc&){
       throw shared_memory::Allocation_exception(segment_id,object_id);
     }
@@ -298,19 +373,39 @@ namespace shared_memory {
   void get(const std::string &segment_id,
            const std::string &object_id,
            std::string &get_){
-    char* new_string = new char[get_.size()];
-    std::size_t size = get_.size();
-    get_.clear();
-    get<char>(segment_id, object_id, new_string, size);
-    get_= std::string(new_string, size);
+    try {
+      SharedMemorySegment& segment = get_segment(segment_id);
+      segment.get_object(object_id, get_);
+    } catch (const boost::interprocess::bad_alloc&){
+      throw shared_memory::Allocation_exception(segment_id,object_id);
+    }catch (const boost::interprocess::interprocess_exception&){
+      return;
+    }
   }
 
-  template<typename VectorType, typename ElemType>
+  template<typename ElemType>
   void get(const std::string &segment_id,
            const std::string &object_id,
-           VectorType& get_)
+           std::vector<ElemType>& get_)
   {
-    get<ElemType>(segment_id, object_id, get_.data(), get_.size());
+    get<ElemType>(segment_id, object_id, &(get_[0]), get_.size());
+  }
+
+  template<typename ElemType>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_)
+  {
+    get(segment_id, object_id, get_.data(), get_.size());
+  }
+
+  template<typename FirstType, typename SecondType>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           std::pair<FirstType, SecondType>& get_)
+  {
+    get<FirstType>(segment_id, object_id + "_first", get_.first);
+    get<SecondType>(segment_id, object_id + "_second", get_.second);
   }
 
   template<typename KeyType, typename ValueType>
@@ -319,26 +414,15 @@ namespace shared_memory {
            std::map<KeyType, ValueType>& get_)
   {
     try {
-      SharedMemorySegment& segment = get_segment(segment_id);
-
-      std::string keys_object_id = object_id + "_keys";
-      std::pair<KeyType*, std::size_t> keys;
-      segment.get_object<KeyType>(object_id, keys);
-
-      std::string values_object_id = object_id + "_values";
-      std::pair<ValueType*, std::size_t> values;
-      segment.get_object<ValueType>(object_id, values);
-
-      segment.mutex_->lock();
-      for(int i=0;i<keys.second;i++){
-        if(get_.count((keys.first)[i]) == 0)
-        {
-          throw Unexpected_map_key<KeyType>(
-                segment_id, object_id, (keys.first)[i]);
-        }
-        get_[(keys.first)[i]]=(values.first)[i];
+      int i = 0;
+      for(typename std::map<KeyType, ValueType>::iterator
+          map_it=get_.begin() ; map_it!=get_.end() ; ++map_it)
+      {
+        get(segment_id,
+            object_id + "_" + std::to_string(i),
+            map_it->second);
+        ++i;
       }
-      segment.mutex_->unlock();
     } catch (const boost::interprocess::bad_alloc&){
       throw shared_memory::Allocation_exception(segment_id,object_id);
     }

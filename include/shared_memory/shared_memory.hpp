@@ -97,6 +97,17 @@ namespace shared_memory {
                     std::pair<ElemType*, std::size_t>& get_);
 
     /**
+     * @brief get_object registers the object in the current struc and in the
+     * shared memory once only. And returns the pointer to the object and its
+     * size. The size will be 1 for simple type and could greater to one for
+     * arrays.
+     * @param[in] object_id: the name of the object in the shared memory.
+     * @param[in][out] get_: the reference to the fetched object.
+     */
+    void get_object(const std::string& object_id,
+                    std::string& get_);
+
+    /**
      * @brief set_object registers the object in the current struc and in the
      * shared memory once only. And returns the pointer to the object and its
      * size. The size will be 1 for simple type and could greater to one for
@@ -107,6 +118,24 @@ namespace shared_memory {
     template<typename ElemType>
     void set_object(const std::string& object_id,
                     const std::pair<const ElemType*, std::size_t>& set_);
+
+    /**
+     * @brief register_object registers the object in the segment uniquely.
+     * @param object_id is the name of the object to register.
+     * @param obj_ is the object to be registered.
+     */
+    template<typename ElemType>
+    void register_object(const std::string& object_id,
+                         const std::pair<ElemType*, std::size_t>& obj_);
+
+    /**
+     * @brief register_object_read_only registers the object in the segment
+     * uniquely.
+     * @param object_id is the name of the object to register
+     * @param obj_ is the object to be registered
+     */
+    template<typename ElemType>
+    void register_object_read_only(const std::string& object_id);
 
     /**
      * @brief delete_object delete and object from the shared memory.
@@ -307,8 +336,8 @@ namespace shared_memory {
            const std::string& set_);
   
   /**
-   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
-   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * @brief set instanciates or get pointer to a std::vector<ElemType>
+   * in the shared memory.
    * This will translated as a fixed sized array in the shared memory
    *
    * All set functions make sure that the pointer is uniquely created to avoid
@@ -318,10 +347,44 @@ namespace shared_memory {
    * @param[in] object_id is the name of the shared memory object to set.
    * @param[in] set_ is the string to be created in the shared memory
    */
-  template<typename VectorType, typename ElemType>
-  void set(const std::string& segment_id,
-           const std::string& object_id,
-           const VectorType& set_);
+  template<typename ElemType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const std::vector<ElemType>& set_);
+
+  /**
+   * @brief set instanciates or get pointer to a
+   * Eigen::Matrix<ElemType, Eigen::Dynamic, 1> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename ElemType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& set_);
+
+  /**
+   * @brief set instanciates or get pointer to a
+   * std::pair<FirstType, SecondType> in the shared memory.
+   * This is very usefull to dump maps in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename FirstType, typename SecondType>
+  void set(const std::string &segment_id,
+           const std::string &object_id,
+           const std::pair<FirstType, SecondType>& set_);
 
   /**
    * @brief set instanciates or get pointer to a std::vector<ElemType> or an
@@ -345,7 +408,7 @@ namespace shared_memory {
    ************************************/
 
   /**
-   * @brief set instanciates or get pointer to any elementary types in the
+   * @brief get gets a pointer to any elementary types in the
    * shared memory.
    *
    * All set functions make sure that the pointer is uniquely created to avoid
@@ -361,7 +424,7 @@ namespace shared_memory {
            ElemType& get_);
 
   /**
-   * @brief set instanciates or get pointer to a fixed sized
+   * @brief get gets a pointer to a fixed sized
    * array of the templated type "T" in the shared memory.
    *
    * All set functions make sure that the pointer is uniquely created to avoid
@@ -380,7 +443,7 @@ namespace shared_memory {
            const std::size_t expected_size);
 
   /**
-   * @brief set instanciates or get pointer to a string in the shared memory.
+   * @brief get gets a pointer to a string in the shared memory.
    *
    * All set functions make sure that the pointer is uniquely created to avoid
    * useless computation time consumption.
@@ -394,9 +457,43 @@ namespace shared_memory {
            std::string& get_);
 
   /**
-   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
-   * Eigen::Matrix<ElemType, any, any> in the shared memory.
+   * @brief get gets a pointer to a std::vector<ElemType>
+   * in the shared memory.
    * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename ElemType>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           std::vector<ElemType>& get_);
+
+  /**
+   * @brief get gets a pointer to a
+   * Eigen::Matrix<ElemType, Eigen::Dynamic, 1> in the shared memory.
+   * This will translated as a fixed sized array in the shared memory
+   *
+   * All set functions make sure that the pointer is uniquely created to avoid
+   * useless computation time consumption.
+   *
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] set_ is the string to be created in the shared memory
+   */
+  template<typename ElemType>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_);
+
+  /**
+   * @brief get instanciates or get pointer to a
+   * std::pair<FirstType, SecondType> in the shared memory.
+   * This is very usefull to dump maps in the shared memory
    *
    * All set functions make sure that the pointer is uniquely created to avoid
    * useless computation time consumption.
@@ -405,13 +502,13 @@ namespace shared_memory {
    * @param[in] object_id is the name of the shared memory object to set.
    * @param[in] get_ is the string to be created in the shared memory
    */
-  template<typename VectorType, typename ElemType>
-  void get(const std::string& segment_id,
-           const std::string& object_id,
-           VectorType& get_);
+  template<typename FirstType, typename SecondType>
+  void get(const std::string &segment_id,
+           const std::string &object_id,
+           std::pair<FirstType, SecondType>& get_);
 
   /**
-   * @brief set instanciates or get pointer to a std::vector<ElemType> or an
+   * @brief get gets a pointer to a std::vector<ElemType> or an
    * Eigen::Matrix<ElemType, any, any> in the shared memory.
    * This will translated as a fixed sized array in the shared memory
    *

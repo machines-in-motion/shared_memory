@@ -13,7 +13,7 @@ static unsigned int TIME_SLEEP = 5000;  //microseconds
 
 
 static inline void clear_memory(){
-  shared_memory::delete_segment("main_memory");
+  shared_memory::delete_segment(shared_memory_test::segment_id);
 }
 
 class Shared_memory_tests : public ::testing::Test {

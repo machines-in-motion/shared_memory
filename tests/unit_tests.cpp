@@ -13,13 +13,14 @@ static unsigned int TIME_SLEEP = 5000;  //microseconds
 
 
 static inline void clear_memory(){
-  shared_memory::delete_segment(shared_memory_test::segment_id);
+  shared_memory::clear_shared_memory(shared_memory_test::segment_id);
 }
 
 class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
+    shared_memory::get_segment_mutex(shared_memory_test::segment_id).unlock();
   }
   void TearDown() {
     clear_memory();

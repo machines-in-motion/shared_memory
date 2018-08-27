@@ -36,7 +36,7 @@ int main(){
   int count = 0;
   RUNNING=true;
   MeasureTime meas_time;
-  while(RUNNING){
+  while(RUNNING && count<MAX_NUNMBER_OF_ITERATION){
 
     mutex.lock();
     for(int i=0;i<SIZE;i++)
@@ -46,10 +46,9 @@ int main(){
     mutex.unlock();
 
     ++count;
-    if(count == SIZE){
+    if(count % NUMBER_OR_MEASURED_ITERATIONS == 0){
       meas_time.update();
       std::cout << meas_time << std::endl;
-      count = 0;
     }
   }
 }

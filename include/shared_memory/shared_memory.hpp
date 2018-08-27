@@ -10,6 +10,7 @@
 
 #include <eigen3/Eigen/Core>
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
 
 #include "shared_memory/exceptions.h"
 
@@ -82,7 +83,12 @@ namespace shared_memory {
     /**
       * @brief SharedMemorySegment destructor.
       */
-    ~SharedMemorySegment();
+    ~SharedMemorySegment(){}
+
+    /**
+     * @brief clear_memory free the shared memory
+     */
+    void clear_memory();
 
     /**
      * @brief get_object registers the object in the current struc and in the
@@ -148,6 +154,7 @@ namespace shared_memory {
      * @brief mutex_ this mutex secure ALL the shared memory.
      */
     boost::interprocess::interprocess_mutex* mutex_;
+    //boost::interprocess::named_mutex named_mtx_;
 
     /**
      * @brief create_mutex small factory that allow to make sure that the mutex
@@ -155,11 +162,8 @@ namespace shared_memory {
      */
     void create_mutex()
     {
-      if(!mutex_)
-      {
-        mutex_ = segment_manager_.find_or_construct<
-                 boost::interprocess::interprocess_mutex>("mtx")();
-      }
+      mutex_ = segment_manager_.find_or_construct
+               <boost::interprocess::interprocess_mutex> ("mutex_") ();
     }
 
     /**
@@ -168,12 +172,9 @@ namespace shared_memory {
      */
     void destroy_mutex()
     {
-      if(mutex_)
-      {
-        segment_manager_.destroy<boost::interprocess::interprocess_mutex>(
-              "mtx");
-        mutex_ = nullptr ;
-      }
+      segment_manager_.destroy
+          <boost::interprocess::interprocess_mutex> ("mutex_");
+      mutex_ = nullptr ;
     }
 
     /**
@@ -281,6 +282,12 @@ namespace shared_memory {
    */
   boost::interprocess::interprocess_mutex& get_segment_mutex(
       const std::string segment_id);
+
+  /**
+   * @brief clear_shared_memory_segment destroys the shared memory
+   * @param[in] segment_id is the name of the shared memory segment.
+   */
+  void clear_shared_memory(const std::string& segment_id);
 
   /************************************
    * Declaration of all set functions *

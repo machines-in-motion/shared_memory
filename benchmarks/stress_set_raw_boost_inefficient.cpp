@@ -12,7 +12,7 @@ int main(){
 
   boost::interprocess::named_mutex::remove(SHM_NAME.c_str());
 
-  // exiting on ctrl+c 
+  // exiting on ctrl+c
   struct sigaction exiting;
   exiting.sa_handler = cleaning_memory;
   sigemptyset(&exiting.sa_mask);
@@ -22,7 +22,7 @@ int main(){
   int count = 0;
   RUNNING=true;
   MeasureTime meas_time;
-  while(RUNNING){
+  while(RUNNING && count<MAX_NUNMBER_OF_ITERATION){
     
     boost::interprocess::managed_shared_memory segment{
       boost::interprocess::open_or_create,
@@ -45,10 +45,9 @@ int main(){
     mutex.unlock();
 
     ++count;
-    if(count == SIZE){
+    if(count % NUMBER_OR_MEASURED_ITERATIONS == 0){
       meas_time.update();
       std::cout << meas_time << std::endl;
-      count = 0;
     }
   }
 }

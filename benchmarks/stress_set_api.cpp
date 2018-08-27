@@ -4,10 +4,7 @@
 
 void cleaning_memory(int){
   RUNNING=false;
-  //shared_memory::delete_segment(SHM_NAME);
-  shared_memory::SharedMemorySegment & segment =
-      shared_memory::get_segment(SHM_NAME);
-  segment.destroy_mutex();
+  shared_memory::get_segment_mutex(SHM_NAME).unlock();
 }
 
 int main(){
@@ -19,18 +16,20 @@ int main(){
   cleaning.sa_flags = 0;
   sigaction(SIGINT, &cleaning, nullptr);
 
+  shared_memory::clear_shared_memory(SHM_NAME);
+  shared_memory::get_segment_mutex(SHM_NAME).unlock();
+
   int count = 0;
-  RUNNING = true;
+  RUNNING=true;
   MeasureTime meas_time;
-  while(RUNNING){
+  while(RUNNING && count<MAX_NUNMBER_OF_ITERATION){
 
     shared_memory::set(SHM_NAME, SHM_OBJECT_NAME, DATA);
 
     ++count;
-    if(count == SIZE){
+    if(count % NUMBER_OR_MEASURED_ITERATIONS == 0){
       meas_time.update();
       std::cout << meas_time << std::endl;
-      count = 0;
     }
   }
 

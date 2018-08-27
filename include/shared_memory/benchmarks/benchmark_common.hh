@@ -10,6 +10,8 @@
 
 #define SHARED_MEMORY_SIZE 65536
 #define SIZE 1000
+#define NUMBER_OR_MEASURED_ITERATIONS 1000
+#define MAX_NUNMBER_OF_ITERATION 10000
 
 typedef std::chrono::high_resolution_clock::time_point TimeType;
 
@@ -53,5 +55,11 @@ std::ostream& operator<<(std::ostream& os, const MeasureTime& time)
      << "Period = " << time.period_ ;
   return os;
 }
+
+void init_benchmark();
+
+void code_to_benchamrk();
+
+void end_benchmark();
 
 #endif // BENCHMARK_COMMON_HH

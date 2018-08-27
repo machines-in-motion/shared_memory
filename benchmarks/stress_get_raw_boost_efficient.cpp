@@ -35,9 +35,9 @@ int main(){
       segment.find<double>(SHM_OBJECT_NAME.c_str());
 
   int count = 0;
-  RUNNING = true;
+  RUNNING=true;
   MeasureTime meas_time;
-  while(RUNNING){
+  while(RUNNING && count<MAX_NUNMBER_OF_ITERATION){
 
     mutex.lock();
     for(size_t i=0;i<object.second;i++)
@@ -47,10 +47,9 @@ int main(){
     mutex.unlock();
 
     ++count;
-    if(count == SIZE){
+    if(count % NUMBER_OR_MEASURED_ITERATIONS == 0){
       meas_time.update();
       std::cout << meas_time << std::endl;
-      count = 0;
     }
   }
 }

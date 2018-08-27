@@ -15,7 +15,6 @@ static bool RUNNING = true;
 
 void cleaning_memory(int){
   RUNNING=false;
-  boost::interprocess::named_mutex::remove("main_memory_mutex");
   shared_memory::delete_segment("main_memory");
 }
 

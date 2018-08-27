@@ -57,10 +57,14 @@ target_link_libraries(stress_get_raw_boost_inefficient ${Boost_LIBRARIES} -lrt -
 
 # benchmark using the current api
 add_executable(stress_set_api benchmarks/stress_set_api.cpp)
-target_link_libraries(stress_set_api ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_set_api shared_memory ${Boost_LIBRARIES} -lrt -pthread)
 
 add_executable(stress_get_api benchmarks/stress_get_api.cpp)
-target_link_libraries(stress_get_api ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_get_api shared_memory ${Boost_LIBRARIES} -lrt -pthread)
+
+# simple executable the clean the benchmarks shared memory
+add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
+target_link_libraries(clean_shared_memory ${Boost_LIBRARIES} -lrt -pthread)
 
 catkin_add_gtest(shared_memory_unit_tests
   tests/main.cpp

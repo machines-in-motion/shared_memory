@@ -1,79 +1,38 @@
-#include <iostream>
-#include <unistd.h>
-#include <signal.h>
-#include <chrono>
-
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp>
+#include "shared_memory/benchmarks/benchmark_common.hh"
+#include "shared_memory/shared_memory.hpp"
 
 
-#define _SHARED_MEMORY_SIZE 65536
-#define SIZE 1000
-
-
-static bool RUNNING; 
-
-void exit_(int){
+void cleaning_memory(int){
   RUNNING=false;
+  //shared_memory::delete_segment(SHM_NAME);
+  shared_memory::SharedMemorySegment & segment =
+      shared_memory::get_segment(SHM_NAME);
+  segment.destroy_mutex();
 }
-
 
 int main(){
 
-  // exiting on ctrl+c 
-  struct sigaction exiting;
-  exiting.sa_handler = exit_;
-  sigemptyset(&exiting.sa_mask);
-  exiting.sa_flags = 0;
-  sigaction(SIGINT, &exiting, NULL);
-  
-  
-  std::string segment_id("stress_test");
-  std::string object_id("stress_object");
-    
-  int count = 0;
-  
-  std::chrono::high_resolution_clock::time_point previous_t = std::chrono::high_resolution_clock::now();
-  
-  RUNNING=true;
+  // cleaning on ctrl+c
+  struct sigaction cleaning;
+  cleaning.sa_handler = cleaning_memory;
+  sigemptyset(&cleaning.sa_mask);
+  cleaning.sa_flags = 0;
+  sigaction(SIGINT, &cleaning, nullptr);
 
-  std::chrono::high_resolution_clock::time_point t;
-  
+  int count = 0;
+  RUNNING = true;
+  MeasureTime meas_time;
   while(RUNNING){
 
-    if (count == 0)
-    {
-      t = std::chrono::high_resolution_clock::now();
-    }
-    
-    boost::interprocess::managed_shared_memory segment{
-      boost::interprocess::open_or_create,
-      segment_id.c_str(),
-      _SHARED_MEMORY_SIZE
-    };
-  
-    boost::interprocess::named_mutex mutex{
-      boost::interprocess::open_or_create,
-      object_id.c_str()
-    };
+    shared_memory::set(SHM_NAME, SHM_OBJECT_NAME, DATA);
 
-    mutex.lock();
-    double* object = segment.find_or_construct<double>(object_id.c_str())[SIZE]();
-    for(int i=0;i<SIZE;i++) object[i]=2.0;
-    mutex.unlock();
-
-    count++;
-    if(count == 1000){
-      auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t-previous_t).count();
-      float frequency = static_cast<float>(1000) / ( pow(10.0,-9.0) * static_cast<float>(nanos) );
-      previous_t = t;
-      std::cout << "frequency: " << frequency << "\n";
+    ++count;
+    if(count == SIZE){
+      meas_time.update();
+      std::cout << meas_time << std::endl;
       count = 0;
     }
   }
 
-  boost::interprocess::named_mutex::remove(object_id.c_str());
-  boost::interprocess::shared_memory_object::remove(segment_id.c_str());
-
-
+  cleaning_memory(0);
 }

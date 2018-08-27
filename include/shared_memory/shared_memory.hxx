@@ -122,7 +122,7 @@ namespace shared_memory {
     objects_[object_id].second = obj_size;
 
     std::cout << "registration of " << object_id
-              << "of size " << obj_size << std:: endl;
+              << " of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>
@@ -149,7 +149,7 @@ namespace shared_memory {
     objects_[object_id].second = obj_size;
 
     std::cout << "registration of " << object_id
-              << "of size " << obj_size << std:: endl;
+              << " of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>

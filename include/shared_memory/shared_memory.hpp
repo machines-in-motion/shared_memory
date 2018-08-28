@@ -2,15 +2,12 @@
   *
   */
 
-#include <set>
 #include <string>
 #include <map>
-#include <memory>
 #include <iostream>
 
 #include <eigen3/Eigen/Core>
 #include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp>
 
 #include "shared_memory/exceptions.h"
 

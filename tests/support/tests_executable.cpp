@@ -1,4 +1,5 @@
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/thread_synchronisation.hpp"
 #include "shared_memory/tests/tests.h"
 #include <iostream>
 
@@ -121,6 +122,43 @@ int main(int argc, char *argv[]){
     }
     shared_memory::set(segment,object,
 		       d,shared_memory_test::test_array_size);
+  }
+
+  if(command==shared_memory_test::Actions::sync){
+    // create a data vector
+    double d[shared_memory_test::test_array_size];
+
+    // get a condition variable
+    shared_memory::ConditionVariable cond_var (segment,
+                                               shared_memory_test::cond_var_id);
+
+    // we wait that the client fetch its own condition variable
+    usleep(500000);
+
+    // fill d with a starting value
+    for(int i=0;i<shared_memory_test::test_array_size;i++){
+      d[i]=shared_memory_test::concurrent_value_2;
+    }
+
+    // write d in the shared memory
+    shared_memory::set(segment, object,
+       d,shared_memory_test::test_array_size);
+
+    // we wait that the value are read
+    cond_var.notify_all();
+    cond_var.wait();
+
+    // fill d with an end value
+    for(int i=0;i<shared_memory_test::test_array_size;i++){
+      d[i]=shared_memory_test::concurrent_stop_value;
+    }
+    shared_memory::set(segment,object,
+           d,shared_memory_test::test_array_size);
+
+    // we wake the clients and finish
+    cond_var.notify_all();
+    cond_var.wait();
+
   }
     
 }

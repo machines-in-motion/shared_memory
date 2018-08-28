@@ -8,6 +8,7 @@ namespace shared_memory_test {
 
   const std::string segment_id("unit_test_segment");
   const std::string object_id("unit_test_object");
+  const std::string cond_var_id("unit_test_cond_var");
   
   const double test_double = 4.4;
   const float test_float = 4.4;
@@ -41,5 +42,6 @@ namespace shared_memory_test {
     set_string_vector_eigen_map,
     concurrent_1,
     concurrent_2,
+    sync,
   };
 }

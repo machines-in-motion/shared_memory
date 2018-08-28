@@ -1,4 +1,5 @@
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/thread_synchronisation.hpp"
 #include "shared_memory/tests/tests.h"
 #include "gtest/gtest.h"
 #include <cstdlib>
@@ -27,6 +28,8 @@ protected:
   }
 };
 
+class DISABLED_Shared_memory_tests: public ::testing::Test
+{};
 
 static bool _call_executable(int action,bool blocking=false);
 
@@ -324,8 +327,7 @@ TEST_F(Shared_memory_tests,test_concurrency){
   
   double a[shared_memory_test::test_array_size];
   
-  bool end = false;
-  while (!end){
+  while (true){
 
     shared_memory::get(shared_memory_test::segment_id,
 		       shared_memory_test::object_id,
@@ -333,7 +335,7 @@ TEST_F(Shared_memory_tests,test_concurrency){
 		       shared_memory_test::test_array_size);
 
     if(a[0]==shared_memory_test::concurrent_stop_value){
-      break;
+      break; // the loop stops here.
     }
 
     if(a[0]==shared_memory_test::concurrent_value_1){
@@ -362,4 +364,57 @@ TEST_F(Shared_memory_tests,test_concurrency){
   ASSERT_EQ(set_1_observed,true);
   ASSERT_EQ(set_2_observed,true);
   
+}
+
+TEST_F(Shared_memory_tests,test_synchronisation){
+
+  usleep(TIME_SLEEP);
+
+  // create a data vector
+  double d[shared_memory_test::test_array_size];
+
+  // get a condition variable
+  shared_memory::ConditionVariable cond_var (shared_memory_test::segment_id,
+                                             shared_memory_test::cond_var_id);
+
+  _call_executable(shared_memory_test::sync);
+
+  cond_var.wait();
+
+  shared_memory::get(shared_memory_test::segment_id,
+           shared_memory_test::object_id,
+           d,
+           shared_memory_test::test_array_size);
+
+  ASSERT_EQ(d[0], shared_memory_test::concurrent_value_2);
+  for(int i=1;i<shared_memory_test::test_array_size;i++){
+    ASSERT_EQ(d[0],d[i]);
+  }
+
+  cond_var.notify_all();
+  cond_var.wait();
+
+  shared_memory::get(shared_memory_test::segment_id,
+           shared_memory_test::object_id,
+           d,
+           shared_memory_test::test_array_size);
+
+  ASSERT_EQ(d[0], shared_memory_test::concurrent_stop_value);
+  for(int i=1;i<shared_memory_test::test_array_size;i++){
+    ASSERT_EQ(d[0],d[i]);
+  }
+
+  cond_var.notify_all();
+}
+
+TEST_F(DISABLED_Shared_memory_tests,test_timed_wait){
+
+  usleep(500000);
+
+  // get a condition variable
+  shared_memory::ConditionVariable cond_var (
+        shared_memory_test::segment_id,
+        shared_memory_test::cond_var_id);
+
+  ASSERT_FALSE(cond_var.timed_wait(5000));
 }

@@ -5,4 +5,5 @@
 int main(){
   boost::interprocess::named_mutex::remove(SHM_NAME.c_str());
   boost::interprocess::shared_memory_object::remove(SHM_OBJECT_NAME.c_str());
+  boost::interprocess::shared_memory_object::remove("main_memory");
 }

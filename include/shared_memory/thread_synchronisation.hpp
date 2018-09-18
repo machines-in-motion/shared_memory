@@ -16,6 +16,11 @@ namespace shared_memory {
   typedef boost::interprocess::named_condition SHMCondition;
   typedef boost::interprocess::scoped_lock<SHMMutex> SHMScopeLock;
 
+  typedef boost::interprocess::interprocess_mutex UnamedSHMMutex;
+  typedef boost::interprocess::interprocess_condition UnamedSHMCondition;
+  typedef boost::interprocess::scoped_lock<UnamedSHMMutex> UnamedSHMLock;
+
+
 
   struct Mutex{
     Mutex(std::string mutex_id):mutex_{
@@ -49,17 +54,19 @@ namespace shared_memory {
   public:
     ConditionVariable(const std::string segment_id,
                        const std::string object_id):
-      segment_id_(segment_id),
-      mutex_id_(object_id + "_mtx"),
-      condition_id_(object_id + "_cond"),
-      mutex_{
+      segment_id_(segment_id)
+      ,mutex_id_(object_id + "_mtx")
+      ,condition_id_(object_id + "_cond")
+      ,mutex_{
         boost::interprocess::open_or_create,
-        mutex_id_.c_str()},
-      condition_variable_{
+        mutex_id_.c_str()
+      }
+      ,condition_variable_{
         boost::interprocess::open_or_create,
-        condition_id_.c_str()},
-      lock_{mutex_}
+        condition_id_.c_str()
+      }
     {
+      lock_ = SHMScopeLock(mutex_);
     }
 
     ~ConditionVariable()
@@ -91,7 +98,7 @@ namespace shared_memory {
     bool timed_wait(unsigned wait_micro_seconds)
     {
       boost::posix_time::ptime current_time =
-          boost::posix_time::microsec_clock::local_time();
+          boost::posix_time::microsec_clock::universal_time();
       boost::posix_time::time_duration waiting_time =
           boost::posix_time::microseconds(wait_micro_seconds);
       return condition_variable_.timed_wait(lock_, current_time + waiting_time);
@@ -129,6 +136,8 @@ namespace shared_memory {
      * @brief condition_variable_ is the boost condition variable that is used
      */
     SHMCondition condition_variable_;
+
+    UnamedSHMCondition cond_var_;
 
     SHMScopeLock lock_;
   };

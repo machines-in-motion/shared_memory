@@ -41,6 +41,9 @@ target_link_libraries(set_data shared_memory)
 add_executable(get_data demos/get_data.cpp)
 target_link_libraries(get_data shared_memory)
 
+add_executable(cond_var_timeout demos/cond_var_timeout.cpp)
+target_link_libraries(cond_var_timeout shared_memory)
+
 ##############
 # Unit tests #
 ##############

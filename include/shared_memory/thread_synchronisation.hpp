@@ -66,6 +66,7 @@ namespace shared_memory {
         condition_id_.c_str()
       }
     {
+      mutex_.unlock();
       lock_ = SHMScopeLock(mutex_);
     }
 

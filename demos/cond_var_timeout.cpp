@@ -9,6 +9,7 @@ static int thread_callback()
   // get a condition variable
   shared_memory::ConditionVariable cond_var ("main_memory", "cond_var");
 
+  cond_var.lock_scope();
   std::cout << "THREAD: wait" << std::endl;
   cond_var.wait();
   std::cout << "THREAD: sleep(11)" << std::endl;

@@ -379,6 +379,7 @@ TEST_F(Shared_memory_tests,test_synchronisation){
 
   _call_executable(shared_memory_test::sync);
 
+  cond_var.lock_scope();
   cond_var.wait();
 
   shared_memory::get(shared_memory_test::segment_id,
@@ -405,6 +406,7 @@ TEST_F(Shared_memory_tests,test_synchronisation){
   }
 
   cond_var.notify_all();
+  cond_var.unlock_scope();
 }
 
 TEST_F(Shared_memory_tests,test_timed_wait){
@@ -413,6 +415,7 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   shared_memory::ConditionVariable cond_var (
         shared_memory_test::segment_id,
         shared_memory_test::cond_var_id);
-
+  cond_var.lock_scope();
   ASSERT_FALSE(cond_var.timed_wait(10));
+  cond_var.unlock_scope();
 }

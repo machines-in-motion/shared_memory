@@ -49,6 +49,11 @@ namespace shared_memory {
     SHMMutex mutex_;
   };
 
+  /**
+   * @brief The ConditionVariable class is here as a anonymous layer on top
+   * of the boost intersprocess condition variable labrary.
+   * It creates a condition variable in a shared memory automatically.
+   */
   class ConditionVariable
   {
   public:
@@ -66,43 +71,90 @@ namespace shared_memory {
         condition_id_.c_str()
       }
     {
-      mutex_.unlock();
-      lock_ = SHMScopeLock(mutex_);
     }
 
+    /**
+      * @brief ~ConditionVariable is the destructor of the class, his job is to
+      * remove the condition variable from the shared memory
+      */
     ~ConditionVariable()
     {
+      unlock_scope();
       boost::interprocess::named_mutex::remove(mutex_id_.c_str());
       boost::interprocess::named_condition::remove(condition_id_.c_str());
     }
 
+    /**
+     * @brief notify_all is notifying all condition variables with the same
+     * mutex
+     */
     void notify_all()
     {
       condition_variable_.notify_all();
     }
 
+    /**
+     * @brief notify_one notifies one condition variable with the same mutex
+     */
     void notify_one()
     {
       condition_variable_.notify_one();
     }
 
+    /**
+     * @brief wait waits until another thread notifies this object
+     */
     void wait()
     {
-      condition_variable_.wait(lock_);
+      if(lock_)
+      {
+        condition_variable_.wait(*lock_);
+      }else{
+        std::cout << "ConditionVariable::wait(): "
+                  << "WARNING, undefined behavior, the scope has not been locked"
+                  << std::endl;
+      }
     }
 
     /**
      * @brief timed_wait wait a notify during a certain certain time and then
      * wake up
      * @param wait_duration in microsecond
+     * @return true: the condition variable has been notified, false otherwize
      */
     bool timed_wait(unsigned wait_micro_seconds)
     {
-      boost::posix_time::ptime current_time =
-          boost::posix_time::microsec_clock::universal_time();
-      boost::posix_time::time_duration waiting_time =
-          boost::posix_time::microseconds(wait_micro_seconds);
-      return condition_variable_.timed_wait(lock_, current_time + waiting_time);
+      if(lock_)
+      {
+        boost::posix_time::ptime current_time =
+            boost::posix_time::microsec_clock::universal_time();
+        boost::posix_time::time_duration waiting_time =
+            boost::posix_time::microseconds(wait_micro_seconds);
+        return condition_variable_.timed_wait(*lock_,
+                                              current_time + waiting_time);
+      }
+      std::cout << "ConditionVariable::timed_wait(): "
+                << "WARNING, undefined behavior, the scope has not been locked"
+                << std::endl;
+      return false;
+    }
+
+    /**
+     * @brief lock_scope this functino is used to lock the part of the code
+     * that needs protection. It locks the mutex until unlock_scope is used
+     */
+    void lock_scope()
+    {
+      lock_.reset(new SHMScopeLock(mutex_));
+    }
+
+    /**
+     * @brief unlock_scope this function unlock the mutex so remove the
+     * protection of the code
+     */
+    void unlock_scope()
+    {
+      lock_.reset(nullptr);
     }
 
   private:
@@ -138,9 +190,11 @@ namespace shared_memory {
      */
     SHMCondition condition_variable_;
 
-    UnamedSHMCondition cond_var_;
-
-    SHMScopeLock lock_;
+    /**
+     * @brief lock_ is a object that protects the codes with a mutex, see the
+     * boost documentation about "boost::interprocess::scoped_lock"
+     */
+    std::unique_ptr<SHMScopeLock> lock_;
   };
 }
 

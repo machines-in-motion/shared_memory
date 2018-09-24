@@ -132,6 +132,9 @@ int main(int argc, char *argv[]){
     shared_memory::ConditionVariable cond_var (segment,
                                                shared_memory_test::cond_var_id);
 
+    // from here all varaibles are protected
+    cond_var.lock_scope();
+
     // we wait that the client fetch its own condition variable
     usleep(500000);
 
@@ -158,7 +161,7 @@ int main(int argc, char *argv[]){
     // we wake the clients and finish
     cond_var.notify_all();
     cond_var.wait();
-
+    cond_var.unlock_scope();
   }
     
 }

@@ -122,14 +122,15 @@ namespace shared_memory {
      * @param wait_duration in microsecond
      * @return true: the condition variable has been notified, false otherwize
      */
-    bool timed_wait(unsigned wait_micro_seconds)
+    bool timed_wait(long wait_nano_seconds)
     {
       if(lock_)
       {
         boost::posix_time::ptime current_time =
             boost::posix_time::microsec_clock::universal_time();
         boost::posix_time::time_duration waiting_time =
-            boost::posix_time::microseconds(wait_micro_seconds);
+            boost::posix_time::microseconds(static_cast<long>(
+              static_cast<double>(wait_nano_seconds)*0.001));
         return condition_variable_.timed_wait(*lock_,
                                               current_time + waiting_time);
       }

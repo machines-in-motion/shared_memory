@@ -1,24 +1,35 @@
 /**
-  *
-  */
+ * \file shared_memory.hpp
+ * \brief Shared memory encapsulation
+ * \author Vincent Berenz
+ * \author Maximilien Naveau
+ * \date 2018
+ *
+ * This file declares some function that encapsulate the use of the shared
+ * memory using the boost::interprocess package.
+ * usage: see demos and unit tests and documentation
+ */
+
+#pragma once
+#ifndef SHARED_MEMORY_HPP
+#define SHARED_MEMORY_HPP
 
 #include <string>
 #include <map>
 #include <iostream>
 
 #include <eigen3/Eigen/Core>
+
 #include <boost/interprocess/managed_shared_memory.hpp>
 
 #include "shared_memory/exceptions.h"
 
-#ifndef SHARED_MEMORY_HPP
-#define SHARED_MEMORY_HPP
-
 #define SHARED_MEMORY_SIZE 65536
 #define MAP_STRING_KEY_SEPARATOR ';'
 
-// cool doc: https://theboostcpplibraries.com/boost.interprocess-managed-shared-memory
-//           https://www.boost.org/doc/libs/1_63_0/doc/html/interprocess/quick_guide.html
+// cool doc:
+// https://theboostcpplibraries.com/boost.interprocess-managed-shared-memory
+// https://www.boost.org/doc/libs/1_63_0/doc/html/interprocess/quick_guide.html
 
 
 /**

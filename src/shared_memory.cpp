@@ -4,99 +4,116 @@ namespace bi=boost::interprocess;
 
 namespace shared_memory {
 
-  void clear_segment(const std::string &segment_id){
+  /***********************************************
+   * Definition of the SharedMemorySegment class *
+   ***********************************************/
+
+  SharedMemorySegment::SharedMemorySegment(std::string segment_id,
+                                           bool clear_upon_destruction)
+//    : named_mtx_{boost::interprocess::open_or_create,
+//                 (segment_id_ + "_mutex").c_str()}
+  {
+    // save the id the of the segment
+    segment_id_ = segment_id;
+
+    // check if we should delete the memory upon destruction.
+    clear_upon_destruction_ = clear_upon_destruction;
+
+    // create and/or map the memory segment
+    segment_manager_ = boost::interprocess::managed_shared_memory(
+                    boost::interprocess::open_or_create,
+                    segment_id.c_str(),
+                    SHARED_MEMORY_SIZE);
+    create_mutex();
+  }
+
+  void SharedMemorySegment::clear_memory()
+  {
+    boost::interprocess::shared_memory_object::remove(segment_id_.c_str());
+  }
+
+  void SharedMemorySegment::get_object(const std::string& object_id,
+                                       std::string& get_)
+  {
+    mutex_->lock();
+
+    register_object_read_only<char>(object_id);
+
+    get_ = std::string(static_cast<char*>(objects_[object_id].first),
+                       objects_[object_id].second);
+
+    mutex_->unlock();
+  }
+
+  SharedMemorySegment& get_segment(
+      const std::string &segment_id,
+      const bool clear_upon_destruction)
+  {
+    if(GLOBAL_SHM_SEGMENTS.count(segment_id) == 0)
+    {
+      GLOBAL_SHM_SEGMENTS[segment_id].reset(
+            new SharedMemorySegment(segment_id, clear_upon_destruction));
+    }
+    GLOBAL_SHM_SEGMENTS[segment_id]->set_clear_upon_destruction(
+          clear_upon_destruction);
+    return *GLOBAL_SHM_SEGMENTS[segment_id];
+  }
+
+  boost::interprocess::interprocess_mutex& get_segment_mutex(
+      const std::string segment_id)
+  {
+    SharedMemorySegment& segment = get_segment(segment_id);
+    return *segment.mutex_;
+  }
+
+  void delete_segment(const std::string &segment_id){
+    // here the unique pointer destroy the object for us.
+    GLOBAL_SHM_SEGMENTS.erase(segment_id);
+  }
+
+  void delete_all_segment(){
+    for(SegmentMap::iterator seg_it=GLOBAL_SHM_SEGMENTS.begin() ;
+        seg_it!=GLOBAL_SHM_SEGMENTS.end() ; seg_it=GLOBAL_SHM_SEGMENTS.begin())
+    {
+      get_segment(seg_it->second->get_segment_id(), true);
+      GLOBAL_SHM_SEGMENTS.erase(seg_it);
+    }
+  }
+
+  void clear_shared_memory(const std::string& segment_id)
+  {
     boost::interprocess::shared_memory_object::remove(segment_id.c_str());
+    delete_segment(segment_id);
   }
 
-  
-  void clear_mutex(const std::string &object_id){
-    boost::interprocess::named_mutex::remove(object_id.c_str());
-  }
+  /***********************************
+   * Definition of all set functions *
+   ***********************************/
 
-  
-  void clear_mutexes(const std::vector<std::string> &mutexes){
-    for(const std::string& str: mutexes){
-      boost::interprocess::named_mutex::remove(str.c_str());
-      std::string keys_object_id = std::string("key_")+str;
-      std::string values_object_id = std::string("values_")+str;
-      std::string sizes_object_id = std::string("sizes_")+str;
-      boost::interprocess::named_mutex::remove(keys_object_id.c_str());
-      boost::interprocess::named_mutex::remove(values_object_id.c_str());
-    }
-  }
-
-  
-  void clear(const std::string &segment_id,
-             const std::vector<std::string> &mutexes){
-    clear_mutexes(mutexes);
-    clear_segment(segment_id);
-  }
-
-  void clear(const std::string &segment_id,
-             const std::vector<std::string> &mutexes,
-             const std::map<std::string,std::vector<std::string>> &map_keys){
-
-    clear_mutexes(mutexes);
-
-    std::vector<std::string> mutexes_;
-    
-    for(auto& key_values: map_keys){
-      for(std::string key: key_values.second){
-        std::string object_id = key_values.first+"_"+key;
-        mutexes_.push_back(object_id);
-      }
-    }
-
-    clear_mutexes(mutexes_);
-
-    clear_segment(segment_id);
-    
-  }
-  
-  
   void set(const std::string &segment_id,
            const std::string &object_id,
            const std::string &set_){
-
     set<char>(segment_id,
               object_id,
               set_.c_str(),
               set_.size());
   }
 
+  /***********************************
+   * Definition of all get functions *
+   ***********************************/
 
   void get(const std::string &segment_id,
            const std::string &object_id,
            std::string &get_){
-    
-    get_.clear();
-    
     try {
-
-      boost::interprocess::managed_shared_memory segment{
-        boost::interprocess::open_or_create,
-        segment_id.c_str(),
-        _SHARED_MEMORY_SIZE
-      };
-      boost::interprocess::named_mutex mutex{
-        boost::interprocess::open_or_create,
-        object_id.c_str()
-      };
-
-      mutex.lock();
-      std::pair<char*, std::size_t> object = segment.find<char>(object_id.c_str());
-      for(unsigned i=0; i < object.second ; i++) get_+= (object.first)[i];
-      mutex.unlock();
-
-    } catch (const boost::interprocess::bad_alloc& e){
+      SharedMemorySegment& segment = get_segment(segment_id);
+      segment.get_object(object_id, get_);
+    } catch (const boost::interprocess::bad_alloc&){
       throw shared_memory::Allocation_exception(segment_id,object_id);
-
-    } catch (const boost::interprocess::interprocess_exception &e){
+    }catch (const boost::interprocess::interprocess_exception&){
       return;
     }
-
-    
   }
 
-
-}
+} // namespace shared_memory

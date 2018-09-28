@@ -1,12 +1,10 @@
-#pragma once
+#ifndef SHARED_MEMORY_EXCEPTION_HPP
+#define SHARED_MEMORY_EXCEPTION_HPP
 
 #include <iostream>
 #include <exception>
 #include <sstream>
 #include <string>
-
-#ifndef SHARED_MEMORY_EXCEPTION_HPP
-#define SHARED_MEMORY_EXCEPTION_HPP
 
 namespace shared_memory {
 

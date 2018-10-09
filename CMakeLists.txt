@@ -31,9 +31,14 @@ add_library(shared_memory
   src/exceptions.cpp)
 target_link_libraries(shared_memory
   ${Boost_LIBRARIES}
-  #-lrt
-  #-pthread
 )
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries(shared_memory
+  -lrt
+  -pthread
+)  
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 
 #########
 # demos #
@@ -71,9 +76,14 @@ set_target_properties(shared_memory_unit_tests PROPERTIES
 
 set(BENCHMARK_DEPENDENCIES
   ${Boost_LIBRARIES}
-  #-lrt
-  #-pthread
 )
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(BENCHMARK_DEPENDENCIES
+  ${BENCHMARK_DEPENDENCIES}
+  -lrt
+  -pthread
+)
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #find_package(benchmark REQUIRED)
 

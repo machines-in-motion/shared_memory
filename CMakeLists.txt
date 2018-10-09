@@ -29,7 +29,11 @@ include_directories(
 add_library(shared_memory 
   src/shared_memory.cpp
   src/exceptions.cpp)
-target_link_libraries(shared_memory ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(shared_memory
+  ${Boost_LIBRARIES}
+  #-lrt
+  #-pthread
+)
 
 #########
 # demos #
@@ -65,40 +69,46 @@ set_target_properties(shared_memory_unit_tests PROPERTIES
 # BENCHMARKS #
 ##############
 
+set(BENCHMARK_DEPENDENCIES
+  ${Boost_LIBRARIES}
+  #-lrt
+  #-pthread
+)
+
 #find_package(benchmark REQUIRED)
 
 # benchmarks on the raw boost api
 add_executable(stress_set_raw_boost_efficient
 #  benchmarks/main.cpp
   benchmarks/stress_set_raw_boost_efficient.cpp)
-target_link_libraries(stress_set_raw_boost_efficient ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_set_raw_boost_efficient ${BENCHMARK_DEPENDENCIES})
 
 add_executable(stress_get_raw_boost_efficient
 #  benchmarks/main.cpp
   benchmarks/stress_get_raw_boost_efficient.cpp)
-target_link_libraries(stress_get_raw_boost_efficient ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_get_raw_boost_efficient ${BENCHMARK_DEPENDENCIES})
 
 add_executable(stress_set_raw_boost_inefficient
 #  benchmarks/main.cpp
   benchmarks/stress_set_raw_boost_inefficient.cpp)
-target_link_libraries(stress_set_raw_boost_inefficient ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_set_raw_boost_inefficient ${BENCHMARK_DEPENDENCIES})
 
 add_executable(stress_get_raw_boost_inefficient
 #  benchmarks/main.cpp
   benchmarks/stress_get_raw_boost_inefficient.cpp)
-target_link_libraries(stress_get_raw_boost_inefficient ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_get_raw_boost_inefficient ${BENCHMARK_DEPENDENCIES})
 
 # benchmark using the current api
 add_executable(stress_set_api benchmarks/stress_set_api.cpp)
-target_link_libraries(stress_set_api shared_memory ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(stress_set_api shared_memory ${BENCHMARK_DEPENDENCIES})
 
 add_executable(stress_get_api benchmarks/stress_get_api.cpp)
 target_link_libraries(stress_get_api
-  shared_memory ${Boost_LIBRARIES} -lrt -pthread)
+  shared_memory ${Boost_LIBRARIES} ${BENCHMARK_DEPENDENCIES})
 
 # simple executable the clean the benchmarks shared memory
 add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
-target_link_libraries(clean_shared_memory ${Boost_LIBRARIES} -lrt -pthread)
+target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
 
 ###############################################
 # Add custom (non compiling) targets          #

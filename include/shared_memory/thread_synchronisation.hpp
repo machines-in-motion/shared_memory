@@ -6,7 +6,6 @@
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/chrono.hpp>
 
 #include <shared_memory/shared_memory.hpp>
 
@@ -127,7 +126,7 @@ namespace shared_memory {
       if(lock_)
       {
         boost::posix_time::ptime current_time =
-            boost::posix_time::microsec_clock::universal_time();
+            boost::interprocess::microsec_clock::universal_time();
         boost::posix_time::time_duration waiting_time =
             boost::posix_time::microseconds(static_cast<long>(
               static_cast<double>(wait_nano_seconds)*0.001));

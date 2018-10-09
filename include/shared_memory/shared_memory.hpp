@@ -15,6 +15,7 @@
 #define SHARED_MEMORY_HPP
 
 #include <string>
+#include <vector>
 #include <map>
 #include <iostream>
 

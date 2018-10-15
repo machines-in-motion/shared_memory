@@ -23,33 +23,34 @@ namespace shared_memory {
   void SharedMemorySegment::get_object(const std::string& object_id,
                                        std::pair<ElemType*, std::size_t>& get_)
   {
-    mutex_->lock();
+
+    boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(*mutex_);
 
     //register_object(object_id, get_);
 
     register_object_read_only<ElemType>(object_id);
     if(objects_[object_id].second != get_.second){
       throw shared_memory::Unexpected_size_exception(segment_id_,
-                                                     object_id,
-                                                     objects_[object_id].second,
-                                                     get_.second);
+						     object_id,
+						     objects_[object_id].second,
+						     get_.second);
     }
 
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     std::size_t shared_data_size = objects_[object_id].second;
     for(std::size_t i = 0 ; i < shared_data_size ; ++i)
-    {
-      get_.first[i] = shared_data[i];
-    }
+      {
+	get_.first[i] = shared_data[i];
+      }
 
-    mutex_->unlock();
   }
 
   template<typename ElemType>
   void SharedMemorySegment::set_object(const std::string& object_id,
       const std::pair<const ElemType*, std::size_t>& set_)
   {
-    mutex_->lock();
+
+    boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(*mutex_);
 
     register_object(object_id, set_);
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
@@ -59,7 +60,6 @@ namespace shared_memory {
       shared_data[i] = set_.first[i];
     }
 
-    mutex_->unlock();
   }
 
   template<typename ElemType>

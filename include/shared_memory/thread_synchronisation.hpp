@@ -140,7 +140,53 @@ namespace shared_memory {
     }
 
     /**
-     * @brief lock_scope this functino is used to lock the part of the code
+     * @brief try_lock Tries to acquire the lock without waiting.
+     * @return true if manages to acquire the lock, false otherwise.
+     * @throws: Exception if the lock is already locked.
+     */
+    bool try_lock()
+    {
+      if(lock_)
+      {
+        return lock_->try_lock();
+      } else {
+        std::cout << "ConditionVariable::try_lock(): "
+                  << "WARNING, undefined behavior, the scope has not been locked"
+                  << std::endl;
+        return false;
+      }
+    }
+
+    /**
+     * @brief unlock Unlocks the lock.
+     * @throws: Throws an exception if the lock is not locked.
+     */
+    void unlock()
+    {
+      if(lock_)
+      {
+        lock_->unlock();
+      } else {
+        std::cout << "ConditionVariable::try_lock(): "
+                  << "WARNING, undefined behavior, the scope has not been locked"
+                  << std::endl;
+      }
+    }
+
+    bool owns()
+    {
+      if (lock_)  {
+        return lock_->owns();
+      } else {
+        std::cout << "ConditionVariable::owns(): "
+                  << "WARNING, undefined behavior, the scope has not been locked"
+                  << std::endl;
+        return false;
+      }
+    }
+
+    /**
+     * @brief lock_scope this function is used to lock the part of the code
      * that needs protection. It locks the mutex until unlock_scope is used
      */
     void lock_scope()

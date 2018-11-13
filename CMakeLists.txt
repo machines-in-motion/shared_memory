@@ -7,13 +7,14 @@ include(cmake/pkg-config.cmake)
 include(cmake/eigen.cmake)
 
 find_package(catkin)
-SEARCH_FOR_EIGEN()
+search_for_eigen()
 find_package(Boost COMPONENTS thread system REQUIRED)
 
 catkin_package(
     INCLUDE_DIRS include
     CATKIN_DEPENDS
     LIBRARIES shared_memory
+    CFG_EXTRAS pkg-config.cmake eigen.cmake
 )
 
 include_directories(

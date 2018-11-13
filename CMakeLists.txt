@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 include(cmake/pkg-config.cmake)
 include(cmake/eigen.cmake)
 
-find_package(catkin)
+find_package(catkin REQUIRED)
 search_for_eigen()
 find_package(Boost COMPONENTS thread system REQUIRED)
 

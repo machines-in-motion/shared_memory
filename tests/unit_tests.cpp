@@ -419,3 +419,4 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   ASSERT_FALSE(cond_var.timed_wait(10));
   cond_var.unlock_scope();
 }
+

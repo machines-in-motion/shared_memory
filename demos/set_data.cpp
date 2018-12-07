@@ -15,7 +15,7 @@ static bool RUNNING = true;
 
 void cleaning_memory(int){
   RUNNING=false;
-  shared_memory::delete_segment("main_memory");
+  shared_memory::clear_shared_memory("main_memory");
 }
 
 

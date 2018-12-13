@@ -28,14 +28,20 @@ namespace shared_memory {
 
     //register_object(object_id, get_);
 
-    register_object_read_only<ElemType>(object_id);
+    bool registered = register_object_read_only<ElemType>(object_id);
     if(objects_[object_id].second != get_.second){
+      delete_object<ElemType>(object_id);
       throw shared_memory::Unexpected_size_exception(segment_id_,
 						     object_id,
 						     objects_[object_id].second,
 						     get_.second);
     }
 
+    if (registered){
+      std::cout << "registration of " << object_id
+		<< " of size " << get_.second << std:: endl;
+    }
+    
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     std::size_t shared_data_size = objects_[object_id].second;
     for(std::size_t i = 0 ; i < shared_data_size ; ++i)
@@ -52,7 +58,13 @@ namespace shared_memory {
 
     boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(*mutex_);
 
-    register_object(object_id, set_);
+    bool registered = register_object(object_id, set_);
+
+    if (registered){
+      std::cout << "registration of " << object_id
+		<< " of size " << objects_[object_id].second << std:: endl;
+    }
+
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     std::size_t shared_data_size = objects_[object_id].second;
     for(std::size_t i = 0 ; i < shared_data_size ; ++i)
@@ -63,13 +75,13 @@ namespace shared_memory {
   }
 
   template<typename ElemType>
-  void SharedMemorySegment::register_object(
+  bool SharedMemorySegment::register_object(
       const std::string& object_id,
       const std::pair<ElemType*, std::size_t>& obj_)
   {
     if(is_object_registered(object_id))
     {
-      return;
+      return false;
     }
     std::size_t obj_size = 0;
     typename std::remove_const<ElemType>::type * obj_ptr = nullptr;
@@ -83,17 +95,18 @@ namespace shared_memory {
     objects_[object_id].first = static_cast<void*>(obj_ptr);
     objects_[object_id].second = obj_size;
 
+    return true;
     std::cout << "registration of " << object_id
               << " of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>
-  void SharedMemorySegment::register_object_read_only(
+  bool SharedMemorySegment::register_object_read_only(
       const std::string& object_id)
   {
     if(is_object_registered(object_id))
     {
-      return;
+      return false;
     }
 
     std::size_t obj_size = 0;
@@ -110,6 +123,8 @@ namespace shared_memory {
     objects_[object_id].first = static_cast<void*>(obj_ptr);
     objects_[object_id].second = obj_size;
 
+    return true;
+    
     std::cout << "registration of " << object_id
               << " of size " << obj_size << std:: endl;
   }

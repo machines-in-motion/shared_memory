@@ -138,9 +138,10 @@ namespace shared_memory {
      * @brief register_object registers the object in the segment uniquely.
      * @param object_id is the name of the object to register.
      * @param obj_ is the object to be registered.
+     * @return true of a new object has been registered
      */
     template<typename ElemType>
-    void register_object(const std::string& object_id,
+    bool register_object(const std::string& object_id,
                          const std::pair<ElemType*, std::size_t>& obj_);
 
     /**
@@ -148,9 +149,10 @@ namespace shared_memory {
      * uniquely.
      * @param object_id is the name of the object to register
      * @param obj_ is the object to be registered
+     * @return true of a new object has been registered
      */
     template<typename ElemType>
-    void register_object_read_only(const std::string& object_id);
+    bool register_object_read_only(const std::string& object_id);
 
     /**
      * @brief delete_object delete and object from the shared memory.

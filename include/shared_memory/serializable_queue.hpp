@@ -1,5 +1,5 @@
-#ifndef SERIALIZABLE_STACK_HPP
-#define SERIALIZABLE_STACK_HPP
+#ifndef SERIALIZABLE_QUEUE_HPP
+#define SERIALIZABLE_QUEUE_HPP
 
 #include "shared_memory/serializable.hpp"
 #include <deque>
@@ -10,12 +10,12 @@
 namespace shared_memory {
 
   template <class Serializable>
-  class Serializable_stack {
+  class Serializable_queue {
 
   public:
 
-    Serializable_stack(int max_items);
-    ~Serializable_stack();
+    Serializable_queue(int max_items);
+    ~Serializable_queue();
 
     bool add(const Serializable &serializable);
 
@@ -27,7 +27,7 @@ namespace shared_memory {
 
     double * const get_data();
     int get_data_size();
-    
+
   private:
 
     bool external_;
@@ -37,16 +37,16 @@ namespace shared_memory {
     int nb_items_;
     int items_max_numbers_;
     int id_;
-    
+
   };
 
   template <class Serializable>
-  class Serializable_stack_reader {
+  class Serializable_queue_reader {
 
   public:
 
-    Serializable_stack_reader(int max_items);
-    ~Serializable_stack_reader();
+    Serializable_queue_reader(int max_items);
+    ~Serializable_queue_reader();
     void reset(double *data);
     double * const get_data_and_reset();
     double * const get_data();
@@ -60,17 +60,17 @@ namespace shared_memory {
   public:
 
     int get_data_size();
-    
+
   private:
     int array_size_;
     int index_;
     double *data_;
 
   };
-  
-  
 
-  #include "serializable_stack.hxx"
+
+
+  #include "serializable_queue.hxx"
 
 }
 

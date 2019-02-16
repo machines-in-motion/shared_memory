@@ -61,7 +61,7 @@ TEST_F(Shared_memory_tests,double_test){
   _call_executable(shared_memory_test::set_double);
 
   usleep(TIME_SLEEP);
-  
+
   double value;
   shared_memory::get(shared_memory_test::segment_id,
            shared_memory_test::object_id,
@@ -76,7 +76,7 @@ TEST_F(Shared_memory_tests,int_test){
   _call_executable(shared_memory_test::set_int);
 
   usleep(TIME_SLEEP);
-  
+
   int value;
   shared_memory::get(shared_memory_test::segment_id,
            shared_memory_test::object_id,
@@ -91,7 +91,7 @@ TEST_F(Shared_memory_tests,test_float){
   _call_executable(shared_memory_test::set_float);
 
   usleep(TIME_SLEEP);
-  
+
   float value;
   shared_memory::get(shared_memory_test::segment_id,
            shared_memory_test::object_id,
@@ -112,7 +112,7 @@ TEST_F(Shared_memory_tests,test_string){
          shared_memory_test::object_id,
          str);
   ASSERT_EQ(str,shared_memory_test::test_string);
-  
+
 }
 
 
@@ -121,7 +121,7 @@ TEST_F(Shared_memory_tests,test_array){
   _call_executable(shared_memory_test::set_double_array);
 
   usleep(TIME_SLEEP);
-  
+
   double a[shared_memory_test::test_array_size];
   shared_memory::get(shared_memory_test::segment_id,
          shared_memory_test::object_id,
@@ -226,7 +226,7 @@ TEST_F(Shared_memory_tests,test_string_vector_double_map){
   std::vector<double> v2(2);
   v2[0]=0.0;
   v2[1]=0.0;
-  
+
   m[shared_memory_test::map_string_keys1]=v1;
   m[shared_memory_test::map_string_keys2]=v2;
 
@@ -243,7 +243,7 @@ TEST_F(Shared_memory_tests,test_string_vector_double_map){
 
   ASSERT_EQ(m[shared_memory_test::map_string_keys2][0],shared_memory_test::map_value_2);
   ASSERT_EQ(m[shared_memory_test::map_string_keys2][1],shared_memory_test::map_value_1);
-  
+
 }
 
 TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
@@ -294,7 +294,7 @@ TEST_F(Shared_memory_tests,test_wrong_size_vector){
   _call_executable(shared_memory_test::set_vector);
 
   usleep(TIME_SLEEP);
-  
+
   std::vector<double> v(shared_memory_test::test_array_size + 1); // !
 
   ASSERT_THROW (
@@ -324,9 +324,9 @@ TEST_F(Shared_memory_tests,test_concurrency){
 
   int nb_1 = 0;
   int nb_2 = 0;
-  
+
   double a[shared_memory_test::test_array_size];
-  
+
   while (true){
 
     shared_memory::get(shared_memory_test::segment_id,
@@ -347,7 +347,7 @@ TEST_F(Shared_memory_tests,test_concurrency){
       set_2_observed=true;
       nb_2++;
     }
-    
+
     ASSERT_EQ(is_one_of(a[0],
       shared_memory_test::concurrent_value_1,
       shared_memory_test::concurrent_value_2),
@@ -358,12 +358,12 @@ TEST_F(Shared_memory_tests,test_concurrency){
     }
 
     usleep(50);
-    
+
   }
 
   ASSERT_EQ(set_1_observed,true);
   ASSERT_EQ(set_2_observed,true);
-  
+
 }
 
 TEST_F(Shared_memory_tests,test_synchronisation){

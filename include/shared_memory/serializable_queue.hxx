@@ -1,7 +1,7 @@
 
 
 template <class Serializable>
-Serializable_stack<Serializable>::Serializable_stack(int nb_max_items){
+Serializable_queue<Serializable>::Serializable_queue(int nb_max_items){
 
   // nb of doubles required to serialize an item
   items_serialization_size_ = Serializable::serialization_size;
@@ -9,7 +9,7 @@ Serializable_stack<Serializable>::Serializable_stack(int nb_max_items){
   // number of items this container will be able to hold without memory overflow
   items_max_numbers_ = nb_max_items;
 
-  // total number of doubles the memory buffer should have 
+  // total number of doubles the memory buffer should have
   array_size_ = 2 + nb_max_items*items_serialization_size_;
   data_ = new double[array_size_];
 
@@ -29,25 +29,25 @@ Serializable_stack<Serializable>::Serializable_stack(int nb_max_items){
 
 
 template <class Serializable>
-Serializable_stack<Serializable>::~Serializable_stack(){
+Serializable_queue<Serializable>::~Serializable_queue(){
   delete[] data_;
 }
 
 
 // return true if full after addition
 template <class Serializable>
-bool Serializable_stack<Serializable>::add(const Serializable &serializable){
+bool Serializable_queue<Serializable>::add(const Serializable &serializable){
 
   if (nb_items_>=items_max_numbers_){
     throw std::overflow_error("serializable stack: memory overflow when setting a new item");
   }
-  
+
   int data_index = 2+nb_items_*items_serialization_size_;
 
   serializable.serialize(&(data_[data_index]));
 
   nb_items_++;
-  
+
   data_[0]++;
   data_[1]=nb_items_;
 
@@ -60,13 +60,13 @@ bool Serializable_stack<Serializable>::add(const Serializable &serializable){
 
 
 template <class Serializable>
-void Serializable_stack<Serializable>::remove(int nb_items, std::deque<int> *get_removed_ids){
+void Serializable_queue<Serializable>::remove(int nb_items, std::deque<int> *get_removed_ids){
 
   // we can not remove more items than currently contained
   if(nb_items>nb_items_) nb_items = nb_items_;
 
   if(nb_items==0) return;
-  
+
   // saving ids of items that will be removed
   for(int i=0;i<nb_items;i++){
     int id_index = 2+i*items_serialization_size_+Serializable::serialization_id_index;
@@ -87,29 +87,29 @@ void Serializable_stack<Serializable>::remove(int nb_items, std::deque<int> *get
   // updating data with new current number of items
   data_[0]++;
   data_[1] = nb_items_;
-  
+
 }
 
 
 template <class Serializable>
-void Serializable_stack<Serializable>::remove(int nb_items, std::deque<int> &get_removed_ids){
+void Serializable_queue<Serializable>::remove(int nb_items, std::deque<int> &get_removed_ids){
   this->remove(nb_items,&get_removed_ids);
-  
+
 }
 
 template <class Serializable>
-void Serializable_stack<Serializable>::remove(int nb_items){
+void Serializable_queue<Serializable>::remove(int nb_items){
   this->remove(nb_items,NULL);
 }
 
 
 template <class Serializable>
-double * const Serializable_stack<Serializable>::get_data(){
+double * const Serializable_queue<Serializable>::get_data(){
   return data_;
 }
 
 template <class Serializable>
-int Serializable_stack<Serializable>::get_data_size(){
+int Serializable_queue<Serializable>::get_data_size(){
   return array_size_;
 }
 
@@ -121,51 +121,51 @@ int Serializable_stack<Serializable>::get_data_size(){
 
 
 template <class Serializable>
-Serializable_stack_reader<Serializable>::Serializable_stack_reader(int max_items){
+Serializable_queue_reader<Serializable>::Serializable_queue_reader(int max_items){
   array_size_ = 2+Serializable::serialization_size*max_items;
   data_ = new double[array_size_];
   index_ = 0;
 }
 
 template <class Serializable>
-Serializable_stack_reader<Serializable>::~Serializable_stack_reader(){
+Serializable_queue_reader<Serializable>::~Serializable_queue_reader(){
   delete[] data_;
 }
 
 template <class Serializable>
-double * const Serializable_stack_reader<Serializable>::get_data_and_reset(){
+double * const Serializable_queue_reader<Serializable>::get_data_and_reset(){
   this->reset();
   return data_;
 }
 
 template <class Serializable>
-double * const Serializable_stack_reader<Serializable>::get_data(){
+double * const Serializable_queue_reader<Serializable>::get_data(){
   return data_;
 }
 
 template <class Serializable>
-void Serializable_stack_reader<Serializable>::reset(){
+void Serializable_queue_reader<Serializable>::reset(){
   index_ = 0;
 }
 
 template <class Serializable>
-void Serializable_stack_reader<Serializable>::reset(int nb_removed){
+void Serializable_queue_reader<Serializable>::reset(int nb_removed){
   index_ -= nb_removed;
 }
 
 
 template <class Serializable>
-int Serializable_stack_reader<Serializable>::get_id(){
+int Serializable_queue_reader<Serializable>::get_id(){
   return data_[0];
 }
 
 template <class Serializable>
-int Serializable_stack_reader<Serializable>::get_index(){
+int Serializable_queue_reader<Serializable>::get_index(){
   return index_;
 }
 
 template <class Serializable>
-bool Serializable_stack_reader<Serializable>::empty(){
+bool Serializable_queue_reader<Serializable>::empty(){
   int nb_items = data_[1];
   if(index_>=nb_items){
     return true;
@@ -174,7 +174,7 @@ bool Serializable_stack_reader<Serializable>::empty(){
 }
 
 template <class Serializable>
-void Serializable_stack_reader<Serializable>::read(Serializable &get){
+void Serializable_queue_reader<Serializable>::read(Serializable &get){
   // ! assumes not empty
   int index_read = 2+Serializable::serialization_size * index_ ;
   get.create(&(data_[index_read]));
@@ -182,7 +182,7 @@ void Serializable_stack_reader<Serializable>::read(Serializable &get){
 }
 
 template <class Serializable>
-int Serializable_stack_reader<Serializable>::get_data_size(){
+int Serializable_queue_reader<Serializable>::get_data_size(){
   return array_size_;
 }
 

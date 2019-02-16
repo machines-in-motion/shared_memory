@@ -1,4 +1,4 @@
-#include "shared_memory/serializable_stack.hpp"
+#include "shared_memory/serializable_queue.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include "gtest/gtest.h"
@@ -12,7 +12,7 @@
 using namespace shared_memory;
 
 
-class Serializable_stack_tests : public ::testing::Test {
+class Serializable_queue_tests : public ::testing::Test {
 protected:
   void SetUp() {}
   void TearDown() {}
@@ -32,16 +32,16 @@ static void print_data(double *d, int size){
 }
 
 
-TEST_F(Serializable_stack_tests,size_array){
-  Serializable_stack<Four_int_values> stack(BUFFER_SIZE);
-  Serializable_stack_reader<Four_int_values> stack_reader(BUFFER_SIZE);
+TEST_F(Serializable_queue_tests,size_array){
+  Serializable_queue<Four_int_values> stack(BUFFER_SIZE);
+  Serializable_queue_reader<Four_int_values> stack_reader(BUFFER_SIZE);
   ASSERT_EQ(stack.get_data_size(),stack_reader.get_data_size());
 }
 
 
-TEST_F(Serializable_stack_tests,write_and_read){
-  Serializable_stack<Four_int_values> stack(BUFFER_SIZE);
-  Serializable_stack_reader<Four_int_values> stack_reader(BUFFER_SIZE);
+TEST_F(Serializable_queue_tests,write_and_read){
+  Serializable_queue<Four_int_values> stack(BUFFER_SIZE);
+  Serializable_queue_reader<Four_int_values> stack_reader(BUFFER_SIZE);
   Four_int_values p1(1,2,3,4);
   Four_int_values p2(5,6,7,8);
   stack.add(p1);
@@ -60,8 +60,8 @@ TEST_F(Serializable_stack_tests,write_and_read){
 }
 
 
-TEST_F(Serializable_stack_tests,exception_thrown){
-  Serializable_stack<Four_int_values> stack(BUFFER_SIZE);
+TEST_F(Serializable_queue_tests,exception_thrown){
+  Serializable_queue<Four_int_values> stack(BUFFER_SIZE);
   Four_int_values p1(1,2,3,4);
   Four_int_values p2(5,6,7,8);
   Four_int_values p3(1,2,3,4);
@@ -75,9 +75,9 @@ TEST_F(Serializable_stack_tests,exception_thrown){
 }
 
 
-TEST_F(Serializable_stack_tests,items_removals){
-  Serializable_stack<Four_int_values> stack(BUFFER_SIZE);
-  Serializable_stack_reader<Four_int_values> stack_reader(BUFFER_SIZE);
+TEST_F(Serializable_queue_tests,items_removals){
+  Serializable_queue<Four_int_values> stack(BUFFER_SIZE);
+  Serializable_queue_reader<Four_int_values> stack_reader(BUFFER_SIZE);
   Four_int_values p1(1,2,3,4);
   Four_int_values p2(5,6,7,8);
   stack.add(p1);

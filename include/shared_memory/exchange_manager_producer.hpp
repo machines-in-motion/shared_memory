@@ -4,10 +4,10 @@
 #include <string>
 #include <deque>
 #include <stdexcept>
-#include <cstring>	
+#include <cstring>
 
 #include "shared_memory/shared_memory.hpp"
-#include "shared_memory/serializable_stack.hpp"
+#include "shared_memory/serializable_queue.hpp"
 
 namespace shared_memory {
 
@@ -19,7 +19,7 @@ namespace shared_memory {
     Exchange_manager_producer(std::string segment_id,
 			      std::string object_id,
 			      int max_exhange_size);
-    
+
     ~Exchange_manager_producer();
 
     bool set(const Serializable &serializable);
@@ -27,7 +27,7 @@ namespace shared_memory {
     bool consumer_started() const;
 
     void clean_memory();
-    
+
     void update_memory(std::deque<int> &get_consumed_ids);
     void update_memory();
     void update_memory(std::deque<int> *get_consumed_ids);
@@ -40,14 +40,14 @@ namespace shared_memory {
     std::string object_id_consumer_;
     std::string object_id_reset_;
     int previous_consumer_id_;
-    Serializable_stack<Serializable> items_;
+    Serializable_queue<Serializable> items_;
     bool consumer_started_;
 
   };
 
 
   #include "exchange_manager_producer.hxx"
-  
+
 
 }
 

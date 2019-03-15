@@ -82,11 +82,15 @@ catkin_add_gtest(shared_memory_unit_tests
   tests/unit_tests_serializable_stack.cpp
   tests/unit_tests_exchange_manager.cpp
   demos/four_int_values.cpp)
-target_link_libraries(shared_memory_unit_tests shared_memory)
-set_target_properties(shared_memory_unit_tests PROPERTIES
-  COMPILE_DEFINITIONS
-  SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable")
 
+if (TARGET shared_memory_unit_tests)
+
+    target_link_libraries(shared_memory_unit_tests shared_memory)
+    set_target_properties(shared_memory_unit_tests PROPERTIES
+                          COMPILE_DEFINITIONS
+                          SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable")
+
+endif()
 
 ##############
 # BENCHMARKS #

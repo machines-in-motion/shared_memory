@@ -48,10 +48,10 @@ void execute(){
       // ready_to_consume is used to make sure producer and
       // consumer are in sync
       if (exchange.ready_to_consume() && !exchange.empty()){
-	exchange.consume(fiv);
-	fiv.print();
-	id = fiv.get_id();
-	previous_id=id;
+        exchange.consume(fiv);
+        fiv.print();
+        id = fiv.get_id();
+        previous_id=id;
       }
 
     }

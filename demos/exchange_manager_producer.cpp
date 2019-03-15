@@ -45,22 +45,22 @@ void execute(){
 
       for(int item=0;item<nb_items;item++){
 
-	/*
-	  int v1 = _get_int(10);
-	  int v2 = _get_int(10);
-	  int v3 = _get_int(10);
-	  int v4 = _get_int(10);
-	*/
+        /*
+          int v1 = _get_int(10);
+          int v2 = _get_int(10);
+          int v3 = _get_int(10);
+          int v4 = _get_int(10);
+        */
 
-	shared_memory::Four_int_values fiv(c,c,c,c);
+        shared_memory::Four_int_values fiv(c,c,c,c);
 
-	// serializing fiv and writing it to shared memory
-	exchange.set(fiv);
+        // serializing fiv and writing it to shared memory
+        exchange.set(fiv);
 
-	std::cout << "produced: " << fiv.get_id() << " | ";
-	//std::cout << v1 << " " << v2 << " " << v3 << " " << v4 << "\n";
-	std::cout << c << " " << c << " " << c << " " << c << "\n";
-	c++;
+        std::cout << "produced: " << fiv.get_id() << " | ";
+        //std::cout << v1 << " " << v2 << " " << v3 << " " << v4 << "\n";
+        std::cout << c << " " << c << " " << c << " " << c << "\n";
+        c++;
       
       }
 
@@ -72,17 +72,17 @@ void execute(){
       // printing consumed item ids to console
       std::cout << "\n";
       while (!consumed_ids.empty()){
-	int id = consumed_ids.front();
-	consumed_ids.pop_front();
-	std::cout << "\t\tconsumed: " << id << "\n";
+        int id = consumed_ids.front();
+        consumed_ids.pop_front();
+        std::cout << "\t\tconsumed: " << id << "\n";
       }
       std::cout << "\n";
 
     } else {
       static bool printed=false;
       if(!printed){
-	std::cout << "\nwaiting for consumer to start ...\n";
-	printed=true;
+        std::cout << "\nwaiting for consumer to start ...\n";
+        printed=true;
       }
       exchange.update_memory();
     }

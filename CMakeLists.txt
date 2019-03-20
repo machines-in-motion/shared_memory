@@ -37,6 +37,10 @@ target_link_libraries(shared_memory
 )  
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+##########################################################
+# Generate the protobuf messages for the tests and demos #
+##########################################################
+protobuf_catkin_generate_lib()
 
 #########
 # demos #
@@ -66,6 +70,10 @@ add_executable(exchange_manager_consumer
   demos/four_int_values.cpp
   demos/exchange_manager_consumer.cpp)
 target_link_libraries(exchange_manager_consumer shared_memory)
+
+add_executable(std_string_vector
+  demos/std_string_vector.cpp)
+target_link_libraries(std_string_vector shared_memory)
 
 ##############
 # Unit tests #
@@ -142,19 +150,3 @@ target_link_libraries(stress_get_api
 add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
 target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
 
-###############################################
-# Add custom (non compiling) targets          #
-# so non cpp files show up in QT_CREATOR IDE. #
-###############################################
-set(USE_QTCREATOR_${PROJECT_NAME} OFF CACHE BOOL
-    "Set to ON if you want QtCreator to display all files in the project tree")
-if(USE_QTCREATOR_${PROJECT_NAME})
-    file(GLOB_RECURSE EXTRA_FILES
-        ../*.h ../*.hh ../*.hpp ../*hxx
-        ../*.cf  ../*.yaml ../*.txt ../*.xml
-        ../start ../*.launch ../*.urdf ../CATKIN_IGNORE ../*.in
-    )
-    list(FILTER EXTRA_FILES EXCLUDE REGEX "build")
-    add_custom_target(${PROJECT_NAME}_OTHER_FILES ALL WORKING_DIRECTORY
-        ${PROJECT_SOURCE_DIR} SOURCES ${EXTRA_FILES})
-endif()

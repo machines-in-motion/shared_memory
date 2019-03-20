@@ -22,6 +22,11 @@
 #include <eigen3/Eigen/Core>
 
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/containers/vector.hpp>
+#include <boost/interprocess/containers/deque.hpp>
+#include <boost/interprocess/containers/string.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+
 
 #include "shared_memory/exceptions.h"
 
@@ -58,16 +63,27 @@ namespace shared_memory {
      * @brief ShmemAllocator typedef allows to create std::allocator with the
      * boost interprocess library.
      */
-    typedef boost::interprocess::allocator
-    <ElemType, boost::interprocess::managed_shared_memory::segment_manager>
-    ElemTypeAllocator;
+    typedef boost::interprocess::allocator <ElemType, 
+    boost::interprocess::managed_shared_memory::segment_manager>
+        ElemTypeAllocator;
 
-    /**
-     * @brief Vector typedef allows to instanciate std::vector inside the shared
-     * memory
-     */
-    typedef std::vector<ElemType, ElemTypeAllocator> Vector;
+    typedef boost::container::deque<ElemType, ShmTypeHelper<ElemType>::ElemTypeAllocator>
+        ShmDeque;
+
+    typedef boost::container::vector<ElemType, ShmTypeHelper<ElemType>::ElemTypeAllocator>
+        ShmVector;
   };
+
+  /**
+   * @brief Create a char allocator to ease the creation of strings
+    */
+  typedef ShmTypeHelper<char>::ElemTypeAllocator ShmCharAllocator;
+
+  /**
+   * @brief Create a basic_string type for the Shared Memory
+    */
+  typedef std::basic_string <char, std::char_traits<char>, ShmCharAllocator> 
+      ShmString;
 
   /************************************************
    * Declaration of the SharedMemorySegment class *

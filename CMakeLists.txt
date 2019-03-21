@@ -7,12 +7,6 @@ find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules)
 search_for_eigen()
 search_for_boost()
 
-catkin_package(
-    INCLUDE_DIRS include
-    CATKIN_DEPENDS
-    LIBRARIES shared_memory
-)
-
 include_directories(
     include
     ${Boost_INCLUDE_DIRS}
@@ -40,17 +34,27 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ##########################################################
 # Generate the protobuf messages for the tests and demos #
 ##########################################################
-# protobuf_catkin_generate_lib()
+protobuf_catkin_generate_lib(protobuf_cmake_target)
+
+###################################
+# Declare the libraries to export #
+###################################
+
+catkin_package(
+    INCLUDE_DIRS include
+    CATKIN_DEPENDS
+    LIBRARIES shared_memory ${protobuf_cmake_target}
+)
 
 #########
 # demos #
 #########
 
 add_executable(set_data demos/set_data.cpp)
-target_link_libraries(set_data shared_memory)
+target_link_libraries(set_data shared_memory ${protobuf_cmake_target})
 
 add_executable(get_data demos/get_data.cpp)
-target_link_libraries(get_data shared_memory)
+target_link_libraries(get_data shared_memory ${protobuf_cmake_target})
 
 add_executable(cond_var_timeout demos/cond_var_timeout.cpp)
 target_link_libraries(cond_var_timeout shared_memory)

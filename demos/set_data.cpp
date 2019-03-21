@@ -1,4 +1,5 @@
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/elementary_messages.pb.h"
 #include <unistd.h>
 #include <vector>
 #include <iostream>
@@ -20,6 +21,10 @@ void cleaning_memory(int){
 
 
 int main(){
+  
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   cleaning_memory(0);
   RUNNING = true;
@@ -61,6 +66,16 @@ int main(){
   m4["value_2"]=Eigen::VectorXd(4);
   
   const std::string s1("my string");
+  
+  // shared_memory::Arguments arguments;
+  // shared_memory::Argument* an_arg = arguments.add_args();
+
+  // shared_memory::Argument* an_arg = arguments.add_args();
+
+  // shared_memory::Argument* an_arg = arguments.add_args();
+
+  // shared_memory::Argument* an_arg = arguments.add_args();
+  
 
   unsigned count = 0;
   while (RUNNING){

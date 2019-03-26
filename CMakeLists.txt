@@ -34,7 +34,7 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ##########################################################
 # Generate the protobuf messages for the tests and demos #
 ##########################################################
-protobuf_catkin_generate_lib(protobuf_cmake_target)
+# protobuf_catkin_generate_lib(protobuf_cmake_target)
 
 ###################################
 # Declare the libraries to export #

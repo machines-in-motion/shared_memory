@@ -1,4 +1,5 @@
 #include "shared_memory/shared_memory.hpp"
+// #include "shared_memory/elementary_messages.pb.h"
 #include <iostream>
 #include <unistd.h>
 #include <vector>
@@ -54,6 +55,9 @@ int main(){
 
   std::string s1;
 
+  // shared_memory::Arguments arguments;
+  // std::string arguments_serialized;
+
   while (RUNNING){
 
     shared_memory::get("main_memory","d1",d1);
@@ -66,6 +70,9 @@ int main(){
     shared_memory::get("main_memory","m3",m3);
     shared_memory::get("main_memory","m4",m4);
     shared_memory::get("main_memory","s1",s1);
+    // shared_memory::get("main_memory","protobuf_string",arguments_serialized);
+
+    // arguments.ParseFromString(arguments_serialized);
 
     std::cout << "values: "                                          ;
     std::cout << "d1=" << d1 << " ; "                                ;
@@ -86,6 +93,9 @@ int main(){
     std::cout << "m4[value1]=" << m4["value_1"].transpose() << " ; " ;
     std::cout << "m4[value2]=" << m4["value_2"].transpose() << " ; " ;
     std::cout << "s1=" << s1 << " ; " ;
+    // std::cout << "nb args=" << arguments.args_size() << " ; " ;
+    // std::cout << "args[" << 0 << "]=" << arguments.args(0).booleans(0) << " ; " ;
+    // std::cout << "args[" << 1 << "]=" << arguments.args(1).integers(0) << " ; " ;
     std::cout << std::endl;
     usleep(10000);
   }

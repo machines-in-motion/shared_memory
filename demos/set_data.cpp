@@ -67,15 +67,12 @@ int main(){
   
   const std::string s1("my string");
   
-  // shared_memory::Arguments arguments;
-  // shared_memory::Argument* an_arg = arguments.add_args();
-
-  // shared_memory::Argument* an_arg = arguments.add_args();
-
-  // shared_memory::Argument* an_arg = arguments.add_args();
-
-  // shared_memory::Argument* an_arg = arguments.add_args();
-  
+  shared_memory::Arguments arguments;
+  shared_memory::Argument* an_arg = nullptr;
+  an_arg = arguments.add_args();
+  an_arg->add_booleans(true);
+  an_arg = arguments.add_args();
+  an_arg->add_integers(500);
 
   unsigned count = 0;
   while (RUNNING){
@@ -139,6 +136,17 @@ int main(){
     ++offset;
     m4["value_2"][3]=(d1+offset);
     ++offset;
+
+    bool bool_arg = arguments.mutable_args(0)->booleans(0);
+    if(bool_arg)
+    {
+      arguments.mutable_args(0)->set_booleans(0, false);
+    }
+    else
+    {
+      arguments.mutable_args(0)->set_booleans(0, true);
+    }
+    arguments.mutable_args(1)->set_integers(0, arguments.args(1).integers(0) + 1);
     
 
     shared_memory::set("main_memory","d1",d1);
@@ -151,6 +159,7 @@ int main(){
     shared_memory::set("main_memory","m3",m3);
     shared_memory::set("main_memory","m4",m4);
     shared_memory::set("main_memory","s1",s1);
+    shared_memory::set("main_memory","protobuf_string", arguments.SerializeAsString());
 
     ++count;
     std::cout << ".";

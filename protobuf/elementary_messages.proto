@@ -2,14 +2,6 @@ syntax = "proto2";
 
 package shared_memory;
 
-message Vector {
-  repeated double data = 1;
-}
-
-message Matrix {
-  repeated Vector data = 1;
-}
-
 message Arguments {
   repeated Argument args = 1;
 }
@@ -23,4 +15,12 @@ message Argument {
   repeated float floats = 6;
   repeated double doubles = 7;
   repeated string strings = 8;
+}
+
+message Vector {
+  repeated double data = 1;
+}
+
+message Matrix {
+  repeated Vector row = 1;
 }

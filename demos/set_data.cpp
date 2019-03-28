@@ -1,5 +1,4 @@
 #include "shared_memory/shared_memory.hpp"
-// #include "shared_memory/elementary_messages.pb.h"
 #include <unistd.h>
 #include <vector>
 #include <iostream>
@@ -22,10 +21,6 @@ void cleaning_memory(int){
 
 int main(){
   
-  // Verify that the version of the library that we linked against is
-  // compatible with the version of the headers we compiled against.
-  // GOOGLE_PROTOBUF_VERIFY_VERSION;
-
   cleaning_memory(0);
   RUNNING = true;
 
@@ -58,22 +53,11 @@ int main(){
   m3["value_2"]=std::vector<double>(2, 0.0);
 
   std::map<std::string, Eigen::VectorXd> m4;
-//  std::map < std::string, Eigen::VectorXd,
-//      std::less<std::string>,
-//      Eigen::aligned_allocator<std::pair<const std::string, Eigen::VectorXd> > >
-//      m4;
   m4["value_1"]=Eigen::VectorXd(4);
   m4["value_2"]=Eigen::VectorXd(4);
   
   const std::string s1("my string");
   
-  // shared_memory::Arguments arguments;
-  // shared_memory::Argument* an_arg = nullptr;
-  // an_arg = arguments.add_args();
-  // an_arg->add_booleans(true);
-  // an_arg = arguments.add_args();
-  // an_arg->add_integers(500);
-
   unsigned count = 0;
   while (RUNNING){
 
@@ -136,18 +120,6 @@ int main(){
     ++offset;
     m4["value_2"][3]=(d1+offset);
     ++offset;
-
-    // bool bool_arg = arguments.mutable_args(0)->booleans(0);
-    // if(bool_arg)
-    // {
-    //   arguments.mutable_args(0)->set_booleans(0, false);
-    // }
-    // else
-    // {
-    //   arguments.mutable_args(0)->set_booleans(0, true);
-    // }
-    // arguments.mutable_args(1)->set_integers(0, arguments.args(1).integers(0) + 1);
-    
 
     shared_memory::set("main_memory","d1",d1);
     shared_memory::set("main_memory","d2",d2);

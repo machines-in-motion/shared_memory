@@ -420,3 +420,7 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   cond_var.unlock_scope();
 }
 
+// failing on purpose : for testing bamboo
+TEST_F(Shared_memory_tests,failing_test){
+  ASSERT_FALSE(true);
+}

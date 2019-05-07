@@ -149,3 +149,7 @@ target_link_libraries(stress_get_api
 add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
 target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
 
+##########################
+# building documentation #
+##########################
+build_doxygen_documentation()

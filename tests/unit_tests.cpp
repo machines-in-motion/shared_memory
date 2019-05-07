@@ -1,5 +1,7 @@
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include "gtest/gtest.h"
 #include <cstdlib>
@@ -10,7 +12,7 @@
 // see tests/support/tests_executable.cpp
 static std::string PATH_TO_EXECUTABLE = SHM_PATH_TO_SUPPORT_EXE;
 
-static unsigned int TIME_SLEEP = 5000;  //microseconds
+static unsigned int TIME_SLEEP = 20000;  //microseconds
 
 
 static inline void clear_memory(){
@@ -420,3 +422,35 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   cond_var.unlock_scope();
 }
 
+
+TEST_F(Shared_memory_tests,exchange_manager){
+
+  _call_executable(shared_memory_test::exchange_manager);
+
+  usleep(TIME_SLEEP);
+  
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values> producer(shared_memory_test::segment_id,
+										    shared_memory_test::object_id,
+										    true);
+
+  for(int i=0;i<shared_memory_test::nb_to_consume;i++){
+    shared_memory::Four_int_values p(1,1,1,1);
+    p.set_id(i);
+    producer.set(p);
+    usleep(800);
+  }
+
+  std::deque<int> consumed;
+  bool all_consumed = false;
+  while (!all_consumed){
+    all_consumed = producer.get(consumed);
+    usleep(100);
+  }
+  
+  for(int i=0;i<shared_memory_test::nb_to_consume;i++){
+    int value = consumed.front();
+    ASSERT_EQ(value,i);
+    consumed.pop_front();
+  }
+
+}

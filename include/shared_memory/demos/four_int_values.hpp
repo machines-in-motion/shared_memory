@@ -16,6 +16,7 @@ namespace shared_memory {
     void create(double *serialized_data);
     void serialize(double *serialized) const;
     int get_id() const;
+    void set_id(int id);
     
   public:
 

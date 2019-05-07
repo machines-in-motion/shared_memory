@@ -26,7 +26,8 @@ namespace shared_memory {
   public:
 
     Exchange_manager_consumer(std::string segment_id,
-			      std::string object_id);
+			      std::string object_id,
+			      bool clean_memory_on_destruction=false);
 
 
     ~Exchange_manager_consumer();
@@ -45,6 +46,7 @@ namespace shared_memory {
     consumer_ring *consumed_;
     double *values_;
     int previous_consumed_id_;
+    bool clean_memory_;
     
   };
 

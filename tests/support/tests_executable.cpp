@@ -1,10 +1,12 @@
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include <iostream>
 
 int main(int argc, char *argv[]){
-
+  
   int command = atoi(argv[1]);
 
   std::string segment = shared_memory_test::segment_id;
@@ -163,6 +165,27 @@ int main(int argc, char *argv[]){
     cond_var.wait();
     cond_var.unlock_scope();
   }
-    
+
+  if(command==shared_memory_test::Actions::exchange_manager){
+
+    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values> consumer(segment,
+										      object,
+										      false);
+    int nb_consumed = 0;
+    shared_memory::Four_int_values fiv;
+    int previous_id = -1;
+    while (nb_consumed<shared_memory_test::nb_to_consume){
+      bool received = consumer.consume(fiv);
+      if(received){
+	if (fiv.get_id()!=previous_id){
+	  nb_consumed++;
+	  previous_id = fiv.get_id();
+	}
+      }
+      usleep(1000);
+    }
+
+  }
+  
 }
 

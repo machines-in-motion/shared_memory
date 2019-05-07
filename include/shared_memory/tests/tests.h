@@ -28,6 +28,8 @@ namespace shared_memory_test {
   
   const int test_map_size = 2;
 
+  const int nb_to_consume = 300;
+  
   enum Actions{
     set_double = 1,
     set_int,
@@ -43,5 +45,6 @@ namespace shared_memory_test {
     concurrent_1,
     concurrent_2,
     sync,
+    exchange_manager,
   };
 }

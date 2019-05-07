@@ -39,8 +39,8 @@ namespace shared_memory {
     ~Exchange_manager_producer();
 
     void set(const Serializable &serializable);
-    void get(std::deque<int> &get_consumed_ids);
-
+    bool get(std::deque<int> &get_consumed_ids);
+    
   private:
 
     int get_last_consumed();

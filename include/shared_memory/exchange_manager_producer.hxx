@@ -29,6 +29,7 @@ Exchange_manager_producer<Serializable>::~Exchange_manager_producer(){
   }
 }
 
+
 template <class Serializable>
 void Exchange_manager_producer<Serializable>::set(const Serializable &serializable){
   serializable.serialize(values_);
@@ -57,7 +58,7 @@ int Exchange_manager_producer<Serializable>::get_last_consumed(){
 }
 
 template <class Serializable>
-void Exchange_manager_producer<Serializable>::get(std::deque<int> &get_consumed_ids){
+bool Exchange_manager_producer<Serializable>::get(std::deque<int> &get_consumed_ids){
 
   int last_consumed = get_last_consumed();
 
@@ -76,6 +77,8 @@ void Exchange_manager_producer<Serializable>::get(std::deque<int> &get_consumed_
     last_consumed = get_last_consumed();
     
   }
+
+  return produced_ids_->empty();
 
 }
     

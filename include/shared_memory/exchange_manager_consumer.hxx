@@ -3,7 +3,8 @@
 
 template <class Serializable>
 Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string segment_id,
-								   std::string object_id)
+								   std::string object_id,
+								   bool clean_memory)
 
 
   : segment_(bip::open_or_create, segment_id.c_str(), 40*65536) {
@@ -15,6 +16,7 @@ Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string s
   segment_id_ = segment_id;
   values_ = new double[Serializable::serialization_size];
   previous_consumed_id_=-1;
+  clean_memory_ = clean_memory;
   
 }
 
@@ -23,7 +25,9 @@ template <class Serializable>
 Exchange_manager_consumer<Serializable>::~Exchange_manager_consumer(){
 
   delete[] values_;
-  this->clean_memory();
+  if(clean_memory_){
+    this->clean_memory();
+  }
 
 }
 

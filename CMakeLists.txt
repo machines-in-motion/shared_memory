@@ -72,7 +72,9 @@ target_link_libraries(std_string_vector shared_memory)
 # Unit tests #
 ##############
 
-add_executable(tests_executable tests/support/tests_executable.cpp)
+add_executable(tests_executable
+  tests/support/tests_executable.cpp
+  demos/four_int_values.cpp)
 target_link_libraries(tests_executable shared_memory)
 set_target_properties(tests_executable PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
@@ -80,8 +82,6 @@ set_target_properties(tests_executable PROPERTIES
 catkin_add_gtest(shared_memory_unit_tests
   tests/main.cpp
   tests/unit_tests.cpp
-  tests/unit_tests_serializable_stack.cpp
-  tests/unit_tests_exchange_manager.cpp
   demos/four_int_values.cpp)
 
 if (TARGET shared_memory_unit_tests)
@@ -139,7 +139,7 @@ add_executable(stress_get_api benchmarks/stress_get_api.cpp)
 target_link_libraries(stress_get_api
   shared_memory ${Boost_LIBRARIES} ${BENCHMARK_DEPENDENCIES})
 
-# simple executable the clean the benchmarks shared memory
+# simple executable to clean the benchmarks shared memory
 add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
 target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
 

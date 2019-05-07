@@ -2,51 +2,50 @@
 #define EXCHANGE_MANAGER_CONSUMER_HPP
 
 #include <string>
-#include "shared_memory/shared_memory.hpp"
-#include "shared_memory/serializable_queue.hpp"
+#include <iostream>
+#include <boost/lockfree/spsc_queue.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/string.hpp>
+
+
+namespace bip = boost::interprocess;
 
 namespace shared_memory {
 
 
+  typedef boost::lockfree::spsc_queue< double,
+				       boost::lockfree::capacity<5000> > producer_ring;
+  typedef boost::lockfree::spsc_queue< int,
+				       boost::lockfree::capacity<5000> > consumer_ring;
+
+  
   template<class Serializable>
   class Exchange_manager_consumer {
 
   public:
 
     Exchange_manager_consumer(std::string segment_id,
-			      std::string object_id,
-			      int max_exhange_size);
+			      std::string object_id);
 
 
     ~Exchange_manager_consumer();
 
     void clean_memory();
+    bool consume(Serializable &serializable);
 
-    void update_memory(bool verbose=false);
-
-    bool empty();
-
-    bool ready_to_consume();
-
-    void consume(Serializable &serializable);
-
-
-  private:
-    void reset_if_producer_stopped();
 
   private:
 
     std::string segment_id_;
     std::string object_id_producer_;
     std::string object_id_consumer_;
-    std::string object_id_reset_;
-    Serializable_queue_reader<Serializable> items_;
-    int consumer_id_;
-    int previous_producer_id_;
-    int nb_elements_;
-    int nb_consumed_;
-    bool ready_to_consume_;
-
+    bip::managed_shared_memory segment_;
+    producer_ring *produced_;
+    consumer_ring *consumed_;
+    double *values_;
+    int previous_consumed_id_;
+    
   };
 
 

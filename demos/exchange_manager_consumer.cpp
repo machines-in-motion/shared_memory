@@ -9,7 +9,6 @@
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
-#define EXCHANGE_SIZE 200
 
 static bool RUNNING = true;
 
@@ -29,14 +28,9 @@ void execute(){
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
   shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values> exchange ( SEGMENT_ID,
-										      OBJECT_ID,
-										      EXCHANGE_SIZE );
+										      OBJECT_ID );
 
 
-  // for error detection
-  int previous_id = -1;
-  int id;
-  
   while(RUNNING){
 
     // values serialized in shared memory will be deserialized in this object
@@ -45,23 +39,18 @@ void execute(){
     // we arbitrary consider we can only consume 3 items per iteration
     for(int i=0;i<3;i++){
 
-      // ready_to_consume is used to make sure producer and
-      // consumer are in sync
-      if (exchange.ready_to_consume() && !exchange.empty()){
-        exchange.consume(fiv);
-        fiv.print();
-        id = fiv.get_id();
-        previous_id=id;
-      }
+      bool consuming = exchange.consume(fiv);
 
+      if(!consuming) break;
+
+      fiv.print();
+      
     }
-
-    // informing producer which items have been consumed
-    exchange.update_memory();
-
+    
     // note : faster than producer,
     //        as otherwise the buffer of the producer
     //        would end up overflowing
+
     usleep(1000);
 
   }

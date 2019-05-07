@@ -54,12 +54,6 @@ target_link_libraries(get_data shared_memory ${protobuf_cmake_target})
 add_executable(cond_var_timeout demos/cond_var_timeout.cpp)
 target_link_libraries(cond_var_timeout shared_memory)
 
-add_executable(exchange_manager_clean
-  demos/four_int_values.cpp
-  demos/exchange_manager_clean.cpp)
-target_link_libraries(exchange_manager_clean shared_memory)
-
-
 add_executable(exchange_manager_producer
   demos/four_int_values.cpp
   demos/exchange_manager_producer.cpp)

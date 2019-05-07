@@ -42,6 +42,22 @@ namespace shared_memory {
 
   };
 
+  class Not_consumed_exception : public std::exception {
+
+  public :
+
+    Not_consumed_exception(int missed_id);
+    ~Not_consumed_exception() throw ();
+    const char * what () const throw ();
+
+  private:
+
+    std::string error_message_;
+
+  };
+
+
+  
   template <typename Key>
   class Unexpected_map_key : public std::exception {
 

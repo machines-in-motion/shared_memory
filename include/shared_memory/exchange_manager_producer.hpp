@@ -3,14 +3,30 @@
 
 #include <string>
 #include <deque>
+#include <queue>
 #include <stdexcept>
 #include <cstring>
+#include <iostream>
 
-#include "shared_memory/shared_memory.hpp"
-#include "shared_memory/serializable_queue.hpp"
+#include "shared_memory/exceptions.h"
+
+#include <boost/lockfree/spsc_queue.hpp> // ring buffer
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/string.hpp>
+
+
+namespace bip = boost::interprocess;
 
 namespace shared_memory {
 
+  typedef boost::lockfree::spsc_queue< double,
+				       boost::lockfree::capacity<5000> > produced_ring;
+
+  typedef boost::lockfree::spsc_queue< int,
+				       boost::lockfree::capacity<5000> > consumed_ring;
+
+  
   template<class Serializable>
   class Exchange_manager_producer {
 
@@ -18,31 +34,31 @@ namespace shared_memory {
 
     Exchange_manager_producer(std::string segment_id,
 			      std::string object_id,
-			      int max_exhange_size);
+			      bool exception_if_not_consumed=false);
 
     ~Exchange_manager_producer();
 
-    bool set(const Serializable &serializable);
+    void set(const Serializable &serializable);
+    void get(std::deque<int> &get_consumed_ids);
 
-    bool consumer_started() const;
+  private:
 
-    void clean_memory();
-
-    void update_memory(std::deque<int> &get_consumed_ids);
-    void update_memory();
-    void update_memory(std::deque<int> *get_consumed_ids);
-
+    int get_last_consumed();
 
   private:
 
     std::string segment_id_;
     std::string object_id_producer_;
     std::string object_id_consumer_;
-    std::string object_id_reset_;
-    int previous_consumer_id_;
-    Serializable_queue<Serializable> items_;
+    bip::managed_shared_memory segment_;
+    produced_ring *produced_;
+    consumed_ring *consumed_;
     bool consumer_started_;
-
+    double *values_;
+    bool exception_if_not_consumed_;
+    std::queue<int>* produced_ids_;
+    
+    
   };
 
 

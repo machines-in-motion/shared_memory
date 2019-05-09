@@ -7,8 +7,8 @@ Exchange_manager_producer<Serializable>::Exchange_manager_producer(std::string s
 
   object_id_producer_ = object_id+"_producer";
   object_id_consumer_ = object_id+"_consumer";
-  produced_ = segment_.find_or_construct<produced_ring>(object_id_producer_.c_str())();
-  consumed_ = segment_.find_or_construct<consumed_ring>(object_id_consumer_.c_str())();
+  produced_ = segment_.find_or_construct<producer_queue>(object_id_producer_.c_str())();
+  consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
   consumer_started_ = false;
   values_ = new double[Serializable::serialization_size];

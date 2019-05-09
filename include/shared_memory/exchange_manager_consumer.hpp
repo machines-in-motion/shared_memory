@@ -3,22 +3,22 @@
 
 #include <string>
 #include <iostream>
-#include <boost/lockfree/spsc_queue.hpp>
+#include <boost/lockfree/queue.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/string.hpp>
 
+#include "shared_memory/shared_memory.hpp"
 
 namespace bip = boost::interprocess;
 
 namespace shared_memory {
 
 
-  typedef boost::lockfree::spsc_queue< double,
-				       boost::lockfree::capacity<5000> > producer_ring;
-  typedef boost::lockfree::spsc_queue< int,
-				       boost::lockfree::capacity<5000> > consumer_ring;
-
+  typedef boost::lockfree::queue<double,
+				 boost::lockfree::capacity<5000>> producer_queue;
+  typedef boost::lockfree::queue<int,
+				 boost::lockfree::capacity<5000>> consumer_queue;
   
   template<class Serializable>
   class Exchange_manager_consumer {
@@ -42,8 +42,8 @@ namespace shared_memory {
     std::string object_id_producer_;
     std::string object_id_consumer_;
     bip::managed_shared_memory segment_;
-    producer_ring *produced_;
-    consumer_ring *consumed_;
+    producer_queue *produced_;
+    consumer_queue *consumed_;
     double *values_;
     int previous_consumed_id_;
     bool clean_memory_;

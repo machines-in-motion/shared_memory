@@ -7,12 +7,12 @@ Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string s
 								   bool clean_memory)
 
 
-  : segment_(bip::open_or_create, segment_id.c_str(), 40*65536) {
+  : segment_(bip::open_or_create, segment_id.c_str(), 100*65536) {
 
   object_id_producer_ = object_id+"_producer";
   object_id_consumer_ = object_id+"_consumer";
-  produced_ = segment_.find_or_construct<producer_ring>(object_id_producer_.c_str())();
-  consumed_ = segment_.find_or_construct<consumer_ring>(object_id_consumer_.c_str())();
+  produced_ = segment_.find_or_construct<producer_queue>(object_id_producer_.c_str())();
+  consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
   values_ = new double[Serializable::serialization_size];
   previous_consumed_id_=-1;
@@ -34,7 +34,8 @@ Exchange_manager_consumer<Serializable>::~Exchange_manager_consumer(){
 
 template <class Serializable>  
 void Exchange_manager_consumer<Serializable>::clean_memory(){
-  boost::interprocess::shared_memory_object::remove(segment_id_.c_str());
+  shared_memory::clear_shared_memory(segment_id_);
+  shared_memory::delete_segment(segment_id_);
 }
 
 

@@ -64,6 +64,12 @@ add_executable(exchange_manager_consumer
   demos/exchange_manager_consumer.cpp)
 target_link_libraries(exchange_manager_consumer shared_memory)
 
+add_executable(exchange_manager_clean
+  demos/four_int_values.cpp
+  demos/exchange_manager_clean.cpp)
+target_link_libraries(exchange_manager_clean shared_memory)
+
+
 add_executable(std_string_vector
   demos/std_string_vector.cpp)
 target_link_libraries(std_string_vector shared_memory)

@@ -1,3 +1,12 @@
+/**
+ * @file serializable_exchange.hpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Interface to a serializable object
+ */
 #ifndef SERIALIZABLE_EXCHANGE_HPP
 #define SERIALIZABLE_EXCHANGE_HPP
 

@@ -1,4 +1,12 @@
-
+/**
+ * @file serializable_exchange.hxx
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Define the template method of the Serializable_exchange
+ */
 
 template<class Serializable>
 Serializable_exchange<Serializable>::Serializable_exchange(std::string segment_id,

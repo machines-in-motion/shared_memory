@@ -1,5 +1,12 @@
-
-
+/**
+ * @file serializable_queue.hxx
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Define the template method of the Serializable_queue
+ */
 template <class Serializable>
 Serializable_queue<Serializable>::Serializable_queue(int nb_max_items){
 

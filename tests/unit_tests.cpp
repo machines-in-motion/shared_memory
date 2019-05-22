@@ -1,3 +1,12 @@
+/**
+ * @file unit_tests.cpp
+ * @author Maximilien Naveau (maximilien.naveau@gmail.com)
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Shared memroy API unittests.
+ */
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
 #include "shared_memory/tests/tests.h"

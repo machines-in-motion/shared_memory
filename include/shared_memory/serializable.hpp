@@ -1,3 +1,13 @@
+/**
+ * @file serializable.hpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Defines an abstract interface to serializable objects.
+ */
+
 #ifndef SERIALIZABLE_HPP
 #define SERIALIZABLE_HPP
 

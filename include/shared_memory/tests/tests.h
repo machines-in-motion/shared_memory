@@ -1,3 +1,12 @@
+/**
+ * @file tests.h
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Header of the unittests of this package.
+ */
 #include <string>
 #include <map>
 #include <vector>

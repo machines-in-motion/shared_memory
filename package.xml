@@ -5,7 +5,7 @@
   <name>shared_memory</name>
   <version>1.0.0</version>
   <description>convenience functions using (boost) interprocess data exchange</description>
-  <license>TODO</license>
+  <license>BSD 3-Clause</license>
   <author email="vberenz@tuebingen.mpg.de">Vincent Berenz</author>
   <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
 

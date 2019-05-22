@@ -1,4 +1,12 @@
-
+/**
+ * @file exchange_manager_consumer.hxx
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Define the template method of the Exchange_manager_consumer
+ */
 template <class Serializable>
 Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string segment_id,
 								   std::string object_id,

@@ -1,3 +1,14 @@
+/**
+ * @file set_data.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Create a small app that set the data into a shared memory. This
+ * memory is read from the counter part of this app: get_data
+ */
+
 #include "shared_memory/shared_memory.hpp"
 #include <unistd.h>
 #include <vector>

@@ -1,3 +1,12 @@
+/**
+ * @file serializable_queue.hpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Define a queue or a pipe in the shared memory.
+ */
 #ifndef SERIALIZABLE_QUEUE_HPP
 #define SERIALIZABLE_QUEUE_HPP
 

@@ -15,14 +15,18 @@ namespace bip = boost::interprocess;
 namespace shared_memory {
 
 
-  typedef boost::lockfree::queue<double,
-				 boost::lockfree::capacity<5000>> producer_queue;
-  typedef boost::lockfree::queue<int,
-				 boost::lockfree::capacity<5000>> consumer_queue;
-  
-  template<class Serializable>
+  template<class Serializable, int QUEUE_SIZE>
   class Exchange_manager_consumer {
 
+    
+    typedef boost::lockfree::queue<double,
+				 boost::lockfree::fixed_sized<true>,
+				 boost::lockfree::capacity<QUEUE_SIZE>> producer_queue;
+    typedef boost::lockfree::queue<int,
+				   boost::lockfree::fixed_sized<true>,
+				   boost::lockfree::capacity<QUEUE_SIZE>> consumer_queue;
+
+    
   public:
 
     Exchange_manager_consumer(std::string segment_id,

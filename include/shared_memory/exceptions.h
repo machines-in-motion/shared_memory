@@ -25,6 +25,21 @@ namespace shared_memory {
   };
 
 
+  class Memory_overflow_exception : public std::exception {
+
+  public :
+
+    Memory_overflow_exception(const std::string error_message);
+    ~Memory_overflow_exception() throw ();
+    const char * what () const throw ();
+
+  private:
+
+    std::string error_message_;
+
+  };
+
+
   class Unexpected_size_exception : public std::exception {
 
   public :

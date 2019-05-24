@@ -9,6 +9,7 @@
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
+#define QUEUE_SIZE 2000
 
 static bool RUNNING = true;
 
@@ -26,10 +27,9 @@ void execute(){
   
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
-  bool exception_if_not_consumed = true;
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values> exchange ( SEGMENT_ID,
-										      OBJECT_ID,
-										      exception_if_not_consumed);
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
+												 OBJECT_ID);
+
 
 
   // will be used to track ids that has been consumed

@@ -1,8 +1,8 @@
 
 
 
-template <class Serializable>
-Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string segment_id,
+template <class Serializable, int QUEUE_SIZE>
+Exchange_manager_consumer<Serializable,QUEUE_SIZE>::Exchange_manager_consumer(std::string segment_id,
 								   std::string object_id,
 								   bool clean_memory)
 
@@ -21,8 +21,8 @@ Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string s
 }
 
 
-template <class Serializable>
-Exchange_manager_consumer<Serializable>::~Exchange_manager_consumer(){
+template <class Serializable, int QUEUE_SIZE>
+Exchange_manager_consumer<Serializable,QUEUE_SIZE>::~Exchange_manager_consumer(){
 
   delete[] values_;
   if(clean_memory_){
@@ -32,16 +32,16 @@ Exchange_manager_consumer<Serializable>::~Exchange_manager_consumer(){
 }
 
 
-template <class Serializable>  
-void Exchange_manager_consumer<Serializable>::clean_memory(){
+template <class Serializable, int QUEUE_SIZE>  
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::clean_memory(){
   shared_memory::clear_shared_memory(segment_id_);
   shared_memory::delete_segment(segment_id_);
 }
 
 
 
-template <class Serializable>
-bool Exchange_manager_consumer<Serializable>::consume(Serializable &serializable){
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &serializable){
 
   int index=0;
 

@@ -168,9 +168,9 @@ int main(int argc, char *argv[]){
 
   if(command==shared_memory_test::Actions::exchange_manager){
 
-    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values> consumer(segment,
-										      object,
-										      false);
+    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,2000> consumer(segment,
+											   object,
+											   false);
     int nb_consumed = 0;
     shared_memory::Four_int_values fiv;
     int previous_id = -1;

@@ -20,6 +20,20 @@ namespace shared_memory {
   }
 
 
+  Memory_overflow_exception::Memory_overflow_exception(const std::string error_message){
+    this->error_message_ = error_message;
+  }
+
+
+  Memory_overflow_exception::~Memory_overflow_exception() throw () {}
+
+
+  const char * Memory_overflow_exception::what () const throw () {
+    return this->error_message_.c_str();
+  }
+
+  
+
   
 
   Not_consumed_exception::Not_consumed_exception(int missed_id){

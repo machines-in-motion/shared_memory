@@ -1,3 +1,5 @@
+# Shared Memory
+
 ## what it is
 
 * This library is a convenient wrapper over boost:interprocess. It is meant to be trivial to use, and to make interprocess communication between processes trivial

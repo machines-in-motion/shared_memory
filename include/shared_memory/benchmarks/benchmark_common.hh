@@ -1,3 +1,12 @@
+/**
+ * @file benchmark_common.hh
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Common tools for benchmarking
+ */
 #ifndef BENCHMARK_COMMON_HH
 #define BENCHMARK_COMMON_HH
 

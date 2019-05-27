@@ -1,3 +1,12 @@
+/**
+ * @file tests_executable.cpp
+ * @author Maximilien Naveau (maximilien.naveau@gmail.com)
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Used to generate or read data from the shared memory.
+ */
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
 #include "shared_memory/tests/tests.h"

@@ -1,3 +1,12 @@
+/**
+ * @file four_int_values.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Demonstrate how to create a message with the exchange manager
+ */
 #include "shared_memory/demos/four_int_values.hpp"
 
 namespace shared_memory {

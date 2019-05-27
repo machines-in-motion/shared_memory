@@ -1,3 +1,13 @@
+/**
+ * @file get_data.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Create a small app that fetch the data from a shared memory. This
+ * memory is filled with the counter part of this app: set_data
+ */
 #include "shared_memory/shared_memory.hpp"
 #include <iostream>
 #include <unistd.h>

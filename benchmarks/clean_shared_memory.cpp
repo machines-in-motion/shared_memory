@@ -1,3 +1,13 @@
+/**
+ * @file clean_shared_memory.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Clean the shared memory of the benchmark, the unnittests, ...
+ */
+
 #include "shared_memory/benchmarks/benchmark_common.hh"
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>

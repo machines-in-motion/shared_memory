@@ -1,16 +1,17 @@
-﻿#pragma once
-
-/**
- * \file shared_memory.hpp
- * \brief Shared memory encapsulation
- * \author Vincent Berenz
- * \author Maximilien Naveau
- * \date 2018
- *
- * This file implements the functions from shared_memory.hpp that encapsulate
+﻿/**
+ * @file shared_memory.hxx
+ * @author Vincent Berenz
+ * @author Maximilien Naveau (maximilien.naveau@gmail.com)
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief This file implements the functions from shared_memory.hpp that encapsulate
  * the use of the shared memory using the boost::interprocess package.
  * usage: see demos and unit tests and documentation
  */
+
+#pragma once
 
 #include <shared_memory/shared_memory.hpp>
 

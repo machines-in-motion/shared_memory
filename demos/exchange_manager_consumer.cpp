@@ -1,3 +1,12 @@
+/**
+ * @file exchange_manager_consumer.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Demonstrate how to use the exchange manage consummer
+ */
 #include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include <stdlib.h>

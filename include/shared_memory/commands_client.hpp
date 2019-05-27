@@ -1,3 +1,13 @@
+/**
+ * @file commands_client.hpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Client that will execute some command upon reception of a message
+ * throw the shared memory
+ */
 #ifndef EXCHANGE_MANAGER_CONSUMER_HPP
 #define EXCHANGE_MANAGER_CONSUMER_HPP
 

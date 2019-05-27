@@ -1,3 +1,13 @@
+/**
+ * @file stress_set_raw_boost_efficient.cpp
+ * @author Vincent Berenz
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @date 2019-05-22
+ * 
+ * @brief Use the raw boost API in order to compare the efficiency of the new
+ * API compare to the standard boost API
+ */
 #include "shared_memory/benchmarks/benchmark_common.hh"
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>

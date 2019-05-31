@@ -21,12 +21,12 @@ namespace shared_memory {
   template<class Serializable, int QUEUE_SIZE>
   class Exchange_manager_producer {
 
-    typedef boost::lockfree::queue<double,
-				 boost::lockfree::fixed_sized<true>,
-				 boost::lockfree::capacity<QUEUE_SIZE>> producer_queue;
     typedef boost::lockfree::queue<int,
 				   boost::lockfree::fixed_sized<true>,
-				   boost::lockfree::capacity<QUEUE_SIZE>> consumer_queue;
+				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> producer_queue;
+    typedef boost::lockfree::queue<int,
+				   boost::lockfree::fixed_sized<true>,
+				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> consumer_queue;
 
   public:
 
@@ -53,9 +53,12 @@ namespace shared_memory {
     void set(const Serializable &serializable);
     void get(std::deque<int> &get_consumed_ids);
 
+    void purge();
+    
   public:
 
     static void clean_memory(std::string segment_id);
+    static void clean_mutex(std::string segment_id);
     
   private:
 

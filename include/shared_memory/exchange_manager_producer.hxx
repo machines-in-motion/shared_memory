@@ -21,11 +21,22 @@ Exchange_manager_producer<Serializable,QUEUE_SIZE>::Exchange_manager_producer(st
 
 template<class Serializable, int QUEUE_SIZE>
 void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_memory( std::string segment_id ) {
-
-    shared_memory::clear_shared_memory(segment_id);
-    shared_memory::delete_segment(segment_id);
+  
+  shared_memory::clear_shared_memory(segment_id);
+  shared_memory::delete_segment(segment_id);
     
 }
+
+
+// mutex should clean its own memory upon destruction, but this may not happen if there
+// have been a bug somewhere and the program crashed without proper cleanup
+template<class Serializable, int QUEUE_SIZE>
+void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_mutex( std::string segment_id ) {
+
+  shared_memory::Mutex m(segment_id+"_locker",true);
+    
+}
+
 
 template <class Serializable, int QUEUE_SIZE>  
 Exchange_manager_producer<Serializable,QUEUE_SIZE>::~Exchange_manager_producer(){
@@ -70,6 +81,16 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable 
 
     bool pushed = produced_->bounded_push(values_[i]);
 
+    if( (!pushed) && i!=0 ){
+
+      if(autolock_){
+	this->unlock();
+      }
+      
+      throw std::runtime_error(std::string("half pushed a serialized object !")+
+			       std::string(" This is a bug in shared_memory/exchange_manager_producer.hxx\n"));
+    }
+    
     // memory overflow in the queue
     if(!pushed){
 
@@ -134,11 +155,31 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::get(std::deque<int> &ge
   }
   
   return;
-
+ 
 }
     
-    
 
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_producer<Serializable,QUEUE_SIZE>::purge(){
+
+  int foo;
+
+  while (true){
+    bool poped = produced_->pop(foo);
+    if(!poped){
+      break;
+    }
+  }
+
+  while (true){
+    bool poped = consumed_->pop(foo);
+    if(!poped){
+      break;
+    }
+  }
+  
+}
 
 
 

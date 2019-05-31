@@ -20,12 +20,12 @@ namespace shared_memory {
   class Exchange_manager_consumer {
 
     
-    typedef boost::lockfree::queue<double,
-				 boost::lockfree::fixed_sized<true>,
-				 boost::lockfree::capacity<QUEUE_SIZE>> producer_queue;
     typedef boost::lockfree::queue<int,
 				   boost::lockfree::fixed_sized<true>,
-				   boost::lockfree::capacity<QUEUE_SIZE>> consumer_queue;
+				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> producer_queue;
+    typedef boost::lockfree::queue<int,
+				   boost::lockfree::fixed_sized<true>,
+				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> consumer_queue;
 
     
   public:
@@ -41,10 +41,13 @@ namespace shared_memory {
     void lock();
     void unlock();
 
-    bool consume(Serializable &serializable);
+    bool consume(Serializable &serializable,bool no_lock=true);
 
+    void purge();
+    
   public:
 
+    static void clean_mutex(std::string segment_id);
     static void clean_memory(std::string segment_id);
     
 

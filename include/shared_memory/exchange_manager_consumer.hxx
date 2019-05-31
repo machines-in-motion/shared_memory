@@ -34,6 +34,16 @@ Exchange_manager_consumer<Serializable,QUEUE_SIZE>::~Exchange_manager_consumer()
 
 }
 
+
+// mutex should clean its own memory upon destruction, but this may not happen if there
+// have been a bug somewhere and the program crashed without proper cleanup
+template<class Serializable, int QUEUE_SIZE>
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::clean_mutex( std::string segment_id ) {
+
+  shared_memory::Mutex m(segment_id+"_locker",true);
+    
+}
+
 template <class Serializable, int QUEUE_SIZE>
 void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::clean_memory( std::string segment_id ) {
 
@@ -58,9 +68,10 @@ void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::unlock(){
 
 
 template <class Serializable, int QUEUE_SIZE>
-bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &serializable){
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &serializable,
+								 bool lock){
 
-  if (autolock_){
+  if (lock && autolock_){
     locker_.lock();
   }
   
@@ -69,7 +80,19 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
   if ( produced_->pop(values_[index]) ) {
 
     for(index=1;index<Serializable::serialization_size;index++){
-      produced_->pop(values_[index]);
+
+      bool poped = produced_->pop(values_[index]);
+
+      if(!poped){
+
+	if(autolock_){
+	  this->unlock();
+	}
+
+	throw std::runtime_error(std::string("half poped a serialized object !")+
+				 std::string(" This is a bug in shared_memory/exchange_manager_consumer.hxx\n"));
+      }
+      
     }
     serializable.create(values_);
 
@@ -77,9 +100,9 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
 
     if(id==previous_consumed_id_){
 
-      bool r = this->consume(serializable);
+      bool r = this->consume(serializable,false); // false: already locked
       
-      if(autolock_){
+      if(lock && autolock_){
 	locker_.unlock();
       }
       
@@ -89,7 +112,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
     previous_consumed_id_ = id;
     consumed_->push(id);
 
-    if(autolock_){
+    if(lock && autolock_){
       locker_.unlock();
     }
 
@@ -97,7 +120,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
     
   } else {
 
-    if(autolock_){
+    if(lock && autolock_){
       locker_.unlock();
     }
     
@@ -105,8 +128,27 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
     
   }
 
-  if(autolock_){
-    locker_.unlock();
+  
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::purge(){
+
+  int foo;
+
+  while (true){
+    bool poped = produced_->pop(foo);
+    if(!poped){
+      break;
+    }
+  }
+
+  while (true){
+    bool poped = consumed_->pop(foo);
+    if(!poped){
+      break;
+    }
   }
   
 }

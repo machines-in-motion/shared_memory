@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "shared_memory/thread_synchronisation.hpp"
 #include "shared_memory/exceptions.h"
 #include "shared_memory/exchange_manager_consumer.hpp"
 
@@ -40,12 +41,21 @@ namespace shared_memory {
      * 
      */
     Exchange_manager_producer(std::string segment_id,
-			      std::string object_id);
+			      std::string object_id,
+			      bool autolock=true,
+			      bool clean_memory_on_exit=false);
 
     ~Exchange_manager_producer();
 
+    void lock();
+    void unlock();
+    
     void set(const Serializable &serializable);
     void get(std::deque<int> &get_consumed_ids);
+
+  public:
+
+    static void clean_memory(std::string segment_id);
     
   private:
 
@@ -68,6 +78,12 @@ namespace shared_memory {
     bool consumer_started_;
     double *values_;
 
+    bool clean_memory_on_exit_;
+
+    bool autolock_;
+    
+    shared_memory::Mutex locker_;
+    
   };
 
 

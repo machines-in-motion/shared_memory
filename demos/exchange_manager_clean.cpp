@@ -8,12 +8,12 @@
 
 
 #define SEGMENT_ID "exchange_demo_segment"
-#define OBJECT_ID "exchange_demo_object"
+#define QUEUE_SIZE 2000
 
 
 int main(){
 
-  shared_memory::clear_shared_memory(SEGMENT_ID);
-  shared_memory::delete_segment(SEGMENT_ID);
+  shared_memory::Mutex locker_(std::string(SEGMENT_ID)+"_locker",true);
+  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,QUEUE_SIZE>::clean_memory(SEGMENT_ID);
 
 }

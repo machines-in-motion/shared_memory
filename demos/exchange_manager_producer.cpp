@@ -27,8 +27,12 @@ void execute(){
   
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
+  bool autolock = false; // we need to "manually" call lock, in order to write several item in a single shot
+  bool clean_memory = true; // we clean the memory on destruction of exchange
   shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
-												 OBJECT_ID);
+												 OBJECT_ID,
+												 autolock,
+												 clean_memory);
 
 
 
@@ -37,40 +41,60 @@ void execute(){
   std::deque<int> consumed_ids;
 
   int c = 1;
-  
+
+  // to be used to inform user producer is waiting because
+  // memory is full
+    
+  bool waiting_warning_printed = false;
+
   while(RUNNING){
 
+    
     // pushing to memory a random number of instances of Four_int_values
 
     int nb_items = _get_int(5);
 
+    // necessary because autolock is false
+    exchange.lock();
+    
     for(int item=0;item<nb_items;item++){
 
       shared_memory::Four_int_values fiv(c,c,c,c);
 
       // serializing fiv and writing it to shared memory
-      exchange.set(fiv);
+      try {
+	
+	exchange.set(fiv);
+	waiting_warning_printed = false;
+	std::cout << "produced: " << fiv.get_id() << " | " << c << "\n";
+	c++;
+	
+      } catch (shared_memory::Memory_overflow_exception){
 
-      std::cout << "produced: " << fiv.get_id() << " | " << c << "\n";
-
-      c++;
+	if (!waiting_warning_printed){
+	  waiting_warning_printed = true;
+	  std::cout << "shared memory full, waiting for consumer ...\n";
+	}
+      } 
       
     }
+
+    exchange.unlock();
 
     // reading from shared_memory which
     // items have been consumed
 
+    exchange.lock();
     exchange.get(consumed_ids);
-
+    exchange.unlock();
+    
     // printing consumed item ids to console
 
-    std::cout << "\n";
     while (!consumed_ids.empty()){
       int id = consumed_ids.front();
       consumed_ids.pop_front();
       std::cout << "\t\tconsumed: " << id << "\n";
     }
-    std::cout << "\n";
 
     // note : slower than consumer,
     //        as otherwise the buffer

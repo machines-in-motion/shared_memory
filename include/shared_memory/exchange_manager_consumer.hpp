@@ -9,6 +9,7 @@
 #include <boost/interprocess/containers/string.hpp>
 
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/thread_synchronisation.hpp"
 
 namespace bip = boost::interprocess;
 
@@ -31,14 +32,21 @@ namespace shared_memory {
 
     Exchange_manager_consumer(std::string segment_id,
 			      std::string object_id,
+			      bool autolock=true,
 			      bool clean_memory_on_destruction=false);
 
 
     ~Exchange_manager_consumer();
 
-    void clean_memory();
+    void lock();
+    void unlock();
+
     bool consume(Serializable &serializable);
 
+  public:
+
+    static void clean_memory(std::string segment_id);
+    
 
   private:
 
@@ -51,6 +59,13 @@ namespace shared_memory {
     double *values_;
     int previous_consumed_id_;
     bool clean_memory_;
+
+    // consumes lock the condition variable automatically.
+    // if false: the lock function has to be called
+    bool autolock_;
+
+    // to synchronize with producer
+    shared_memory::Mutex locker_;
     
   };
 

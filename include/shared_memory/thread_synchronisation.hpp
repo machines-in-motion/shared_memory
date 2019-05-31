@@ -22,16 +22,23 @@ namespace shared_memory {
 
 
   struct Mutex{
-    Mutex(std::string mutex_id):mutex_{
+    Mutex(std::string mutex_id, bool clean_memory_on_destruction=true ):mutex_{
               boost::interprocess::open_or_create,
               mutex_id.c_str()}
     {
       mutex_id_ = mutex_id;
+      clean_memory_on_destruction_ = clean_memory_on_destruction;
     }
 
     ~Mutex()
     {
-      boost::interprocess::named_mutex::remove(mutex_id_.c_str());
+      if(clean_memory_on_destruction_){
+	boost::interprocess::named_mutex::remove(mutex_id_.c_str());
+      } else {
+	try {
+	  mutex_.unlock();
+	} catch(...) {}
+      }
     }
 
     void lock()
@@ -46,6 +53,8 @@ namespace shared_memory {
 
     std::string mutex_id_;
     SHMMutex mutex_;
+    bool clean_memory_on_destruction_;
+    
   };
 
   /**
@@ -57,10 +66,12 @@ namespace shared_memory {
   {
   public:
     ConditionVariable(const std::string segment_id,
-                       const std::string object_id):
+		      const std::string object_id,
+		      bool clean_memory_on_destruction=true):
       segment_id_(segment_id)
       ,mutex_id_(object_id + "_mtx")
       ,condition_id_(object_id + "_cond")
+      ,clean_memory_on_destruction_(clean_memory_on_destruction)
       ,mutex_{
         boost::interprocess::open_or_create,
         mutex_id_.c_str()
@@ -79,8 +90,12 @@ namespace shared_memory {
     ~ConditionVariable()
     {
       unlock_scope();
-      boost::interprocess::named_mutex::remove(mutex_id_.c_str());
-      boost::interprocess::named_condition::remove(condition_id_.c_str());
+      
+      if (clean_memory_on_destruction_){
+	boost::interprocess::named_mutex::remove(mutex_id_.c_str());
+	boost::interprocess::named_condition::remove(condition_id_.c_str());
+      }
+      
     }
 
     /**
@@ -241,6 +256,13 @@ namespace shared_memory {
      * boost documentation about "boost::interprocess::scoped_lock"
      */
     std::unique_ptr<SHMScopeLock> lock_;
+
+    /**
+     * @brief if true (the default), clean the shared memory of the
+     * hosted mutex and condition. 
+     */
+    bool clean_memory_on_destruction_;
+    
   };
 }
 

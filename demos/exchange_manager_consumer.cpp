@@ -28,8 +28,12 @@ void execute(){
 
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
+  bool autolock = false; // to read several items in a single shot
+  bool clean_on_destruction = false; // to allow the producer to keep running
   shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
-												 OBJECT_ID );
+												 OBJECT_ID,
+												 autolock,
+												 clean_on_destruction);
 
 
   while(RUNNING){
@@ -37,6 +41,9 @@ void execute(){
     // values serialized in shared memory will be deserialized in this object
     shared_memory::Four_int_values fiv;
 
+    // required because autolock is false
+    exchange.lock();
+    
     // we arbitrary consider we can only consume 3 items per iteration
     for(int i=0;i<3;i++){
 
@@ -47,6 +54,8 @@ void execute(){
       fiv.print();
       
     }
+
+    exchange.unlock();
     
     // note : faster than producer,
     //        as otherwise the buffer of the producer

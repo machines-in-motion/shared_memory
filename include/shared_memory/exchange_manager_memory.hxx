@@ -4,8 +4,9 @@
 template <class Serializable, int QUEUE_SIZE>
 Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::string segment_id,
 									   std::string object_id )
-  : locker_(segment_id+"_locker",false) {
 
+  : segment_(bip::open_or_create, segment_id.c_str(), 100*65536),
+    locker_(std::string(segment_id+"_locker").c_str(),false) {
 
   object_id_producer_ = object_id+"_producer";
   object_id_consumer_ = object_id+"_consumer";
@@ -58,9 +59,8 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_status(Status &status
 template <class Serializable, int QUEUE_SIZE>
 void Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean(){
 
-  lock();
+  Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_mutex(segment_id_);
   Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_memory(segment_id_);
-  unlock();
   
 }
 

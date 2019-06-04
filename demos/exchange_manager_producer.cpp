@@ -24,7 +24,7 @@ static int _get_int(int max){
 void execute(){
 
   srand(time(NULL));
-  
+
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
   bool autolock = false; // we need to "manually" call lock, in order to write several item in a single shot
@@ -85,9 +85,10 @@ void execute(){
       exchange.unlock();
 
     } else {
-
-      std::cout << "waiting for consumer to start ...\n" ;
-      
+      if (!waiting_warning_printed){
+	waiting_warning_printed = true;
+	std::cout << "waiting for consumer to start ...\n" ;
+      }
     }
 
     // reading from shared_memory which

@@ -26,6 +26,7 @@ namespace shared_memory {
               boost::interprocess::open_or_create,
               mutex_id.c_str()}
     {
+
       mutex_id_ = mutex_id;
       clean_memory_on_destruction_ = clean_memory_on_destruction;
     }

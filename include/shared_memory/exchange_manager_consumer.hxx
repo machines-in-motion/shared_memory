@@ -40,6 +40,12 @@ Exchange_manager_consumer<Serializable,QUEUE_SIZE>::~Exchange_manager_consumer()
   if(leading_){
     memory_->clean();
   }
+
+  else {
+
+    memory_->set_status(Memory::Status::RESET);
+    
+  }
   
 }
 
@@ -93,6 +99,7 @@ template <class Serializable, int QUEUE_SIZE>
 void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::unlock(){
 
   memory_->unlock();
+
 }
 
 
@@ -112,7 +119,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
 
 
   if ( autolock_ ){
-    memory_->lock();
+    this->lock();
   }
 
   bool read;
@@ -138,9 +145,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
   } 
 
   if( autolock_ ){
-
-    memory_->unlock();
-    
+    this->unlock();
   }
 
   return read;

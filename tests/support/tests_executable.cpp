@@ -168,26 +168,37 @@ int main(int argc, char *argv[]){
 
   if(command==shared_memory_test::Actions::exchange_manager){
 
-    bool autolock=true;
-    bool clean_memory_on_exit=false;
+    bool leading = false;
+    bool autolock = true;
     
     shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
 					     DATA_EXCHANGE_QUEUE_SIZE> consumer(segment,
 										object,
-										autolock,
-										clean_memory_on_exit);
+										leading,
+										autolock);
+
 
     int nb_consumed = 0;
     shared_memory::Four_int_values fiv;
     int max_wait = 1000000; // 1 second
     int waited;
     while (nb_consumed<shared_memory_test::nb_to_consume){
-      bool received = consumer.consume(fiv);
-      if(received){
-	int consumed = fiv.get_id();
-      }
+      if (consumer.ready_to_consume()){
+	bool received = consumer.consume(fiv);
+	if(received){
+	  int consumed = fiv.get_id();
+	  std::cout << "\n\t\treceived: "<< consumed << "\n";
+	} else {
+	  usleep(100);
+	  waited += 100;
+	}
+      } 
       else {
 	usleep(100);
+	waited += 100;
+      }
+      if(waited>=max_wait){
+	break;
       }
     }
 

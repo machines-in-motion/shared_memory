@@ -425,19 +425,24 @@ TEST_F(Shared_memory_tests,test_timed_wait){
 
 TEST_F(Shared_memory_tests,exchange_manager){
 
+  bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
   bool clean_memory_on_exit = true;
-  
+
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
+
   shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
 					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
 									       shared_memory_test::object_id,
-									       autolock,
-									       clean_memory_on_exit );
-
+									       leading,
+									       autolock );
   
   // 2 iterations to make sure the producer can manage 2 consumers running in a row
   
-  for (int iteration=0;iteration<2;iteration++) {
+  for (int iteration=0;iteration<1;iteration++) {
 
     std::cout << "\n\niteration: " << iteration << "\n\n";
     
@@ -450,16 +455,19 @@ TEST_F(Shared_memory_tests,exchange_manager){
     int max_wait = 1000000; // 1 seconds
     int waited = 0;
     while (id<shared_memory_test::nb_to_consume){
-      try {
-	shared_memory::Four_int_values p(1,1,1,1);
-	p.set_id(id);
-	producer.set(p);
-	id++;
-      } catch(shared_memory::Memory_overflow_exception){
-	usleep(200);
-	waited += 200;
-	if(waited>=max_wait){
-	  break;
+      if(producer.ready_to_produce()){
+	try {
+	  shared_memory::Four_int_values p(1,1,1,1);
+	  p.set_id(id);
+	  std::cout << "producing: "<< id << "\n";
+	  producer.set(p);
+	  id++;
+	} catch(shared_memory::Memory_overflow_exception){
+	  usleep(200);
+	  waited += 200;
+	  if(waited>=max_wait){
+	    break;
+	  }
 	}
       }
     }
@@ -474,18 +482,21 @@ TEST_F(Shared_memory_tests,exchange_manager){
     waited = 0;
     id = 0;
     while(id<shared_memory_test::nb_to_consume){
-      std::deque<int> consumed;
-      producer.get(consumed);
-      if (consumed.empty()){
-	usleep(100);
-	waited+=100;
-	if (waited>=max_wait){
-	  break;
-	}
-      } else {
-	for (int consumed_id : consumed){
-	  ASSERT_EQ(consumed_id,id);
-	  id++;
+      if(producer.ready_to_produce()){
+	std::deque<int> consumed;
+	producer.get(consumed);
+	if (consumed.empty()){
+	  usleep(100);
+	  waited+=100;
+	  if (waited>=max_wait){
+	    break;
+	  }
+	} else {
+	  for (int consumed_id : consumed){
+	    std::cout << "consumed: "<< consumed_id << "\n";
+	    ASSERT_EQ(consumed_id,id);
+	    id++;
+	  }
 	}
       }
     }

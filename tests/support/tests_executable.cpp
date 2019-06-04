@@ -6,7 +6,7 @@
 #include <iostream>
 
 int main(int argc, char *argv[]){
-  
+
   int command = atoi(argv[1]);
 
   std::string segment = shared_memory_test::segment_id;
@@ -168,21 +168,27 @@ int main(int argc, char *argv[]){
 
   if(command==shared_memory_test::Actions::exchange_manager){
 
-    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,2000> consumer(segment,
-											   object,
-											   false);
+    bool autolock=true;
+    bool clean_memory_on_exit=false;
+    
+    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
+					     DATA_EXCHANGE_QUEUE_SIZE> consumer(segment,
+										object,
+										autolock,
+										clean_memory_on_exit);
+
     int nb_consumed = 0;
     shared_memory::Four_int_values fiv;
-    int previous_id = -1;
+    int max_wait = 1000000; // 1 second
+    int waited;
     while (nb_consumed<shared_memory_test::nb_to_consume){
       bool received = consumer.consume(fiv);
       if(received){
-	if (fiv.get_id()!=previous_id){
-	  nb_consumed++;
-	  previous_id = fiv.get_id();
-	}
+	int consumed = fiv.get_id();
       }
-      usleep(1000);
+      else {
+	usleep(100);
+      }
     }
 
   }

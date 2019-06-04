@@ -425,32 +425,76 @@ TEST_F(Shared_memory_tests,test_timed_wait){
 
 TEST_F(Shared_memory_tests,exchange_manager){
 
-  _call_executable(shared_memory_test::exchange_manager);
-
-  usleep(TIME_SLEEP);
+  bool autolock = true; // we will not need to call producer.lock()
+  bool clean_memory_on_exit = true;
   
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values> producer(shared_memory_test::segment_id,
-										    shared_memory_test::object_id,
-										    true);
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
+									       shared_memory_test::object_id,
+									       autolock,
+									       clean_memory_on_exit );
 
-  for(int i=0;i<shared_memory_test::nb_to_consume;i++){
-    shared_memory::Four_int_values p(1,1,1,1);
-    p.set_id(i);
-    producer.set(p);
-    usleep(800);
-  }
-
-  std::deque<int> consumed;
-  bool all_consumed = false;
-  while (!all_consumed){
-    all_consumed = producer.get(consumed);
-    usleep(100);
-  }
   
-  for(int i=0;i<shared_memory_test::nb_to_consume;i++){
-    int value = consumed.front();
-    ASSERT_EQ(value,i);
-    consumed.pop_front();
+  // 2 iterations to make sure the producer can manage 2 consumers running in a row
+  
+  for (int iteration=0;iteration<2;iteration++) {
+
+    std::cout << "\n\niteration: " << iteration << "\n\n";
+    
+    _call_executable(shared_memory_test::exchange_manager);
+
+    usleep(TIME_SLEEP);
+
+    // producing items
+    int id=0;
+    int max_wait = 1000000; // 1 seconds
+    int waited = 0;
+    while (id<shared_memory_test::nb_to_consume){
+      try {
+	shared_memory::Four_int_values p(1,1,1,1);
+	p.set_id(id);
+	producer.set(p);
+	id++;
+      } catch(shared_memory::Memory_overflow_exception){
+	usleep(200);
+	waited += 200;
+	if(waited>=max_wait){
+	  break;
+	}
+      }
+    }
+    // we did not manage to produce all the items:
+    // memory was full and no consumer was consuming ?
+    ASSERT_LT(waited,max_wait);
+  
+  
+    // checking all items have been consumed in the
+    // order they have been produced
+    max_wait = 1000000; // 1 seconds
+    waited = 0;
+    id = 0;
+    while(id<shared_memory_test::nb_to_consume){
+      std::deque<int> consumed;
+      producer.get(consumed);
+      if (consumed.empty()){
+	usleep(100);
+	waited+=100;
+	if (waited>=max_wait){
+	  break;
+	}
+      } else {
+	for (int consumed_id : consumed){
+	  ASSERT_EQ(consumed_id,id);
+	  id++;
+	}
+      }
+    }
+    // we did not get all the items,
+    // despit waiting for max wait
+    ASSERT_LT(waited,max_wait);
+
+    usleep(1000000);
+    
   }
 
 }

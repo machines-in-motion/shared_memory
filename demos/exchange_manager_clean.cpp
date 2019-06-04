@@ -1,4 +1,4 @@
-#include "shared_memory/exchange_manager_consumer.hpp"
+#include "shared_memory/exchange_manager_memory.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include <stdlib.h>
 #include <time.h>
@@ -13,7 +13,7 @@
 
 int main(){
 
-  shared_memory::Mutex locker_(std::string(SEGMENT_ID)+"_locker",true);
-  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,QUEUE_SIZE>::clean_memory(SEGMENT_ID);
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,QUEUE_SIZE>::clean_mutex(std::string(SEGMENT_ID));
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,QUEUE_SIZE>::clean_memory(std::string(SEGMENT_ID));
 
 }

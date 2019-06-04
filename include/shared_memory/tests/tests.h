@@ -3,6 +3,8 @@
 #include <vector>
 
 
+#define DATA_EXCHANGE_QUEUE_SIZE 100
+
 
 namespace shared_memory_test {
 
@@ -28,7 +30,7 @@ namespace shared_memory_test {
   
   const int test_map_size = 2;
 
-  const int nb_to_consume = 300;
+  const int nb_to_consume = 1000;
   
   enum Actions{
     set_double = 1,

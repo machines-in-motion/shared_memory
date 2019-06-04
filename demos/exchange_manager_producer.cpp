@@ -28,11 +28,12 @@ void execute(){
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
   bool autolock = false; // we need to "manually" call lock, in order to write several item in a single shot
-  bool clean_memory = true; // we clean the memory on destruction of exchange
+  bool leading = true; // producer expected to start first, and to survive several consumers
   shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
 												 OBJECT_ID,
-												 autolock,
-												 clean_memory);
+												 leading,
+												 autolock );
+
 
 
 
@@ -54,32 +55,40 @@ void execute(){
 
     int nb_items = _get_int(5);
 
-    // necessary because autolock is false
-    exchange.lock();
+    if ( exchange.ready_to_produce() ){
     
-    for(int item=0;item<nb_items;item++){
+      // necessary because autolock is false
+      exchange.lock();
+    
+      for(int item=0;item<nb_items;item++){
 
-      shared_memory::Four_int_values fiv(c,c,c,c);
+	shared_memory::Four_int_values fiv(c,c,c,c);
 
-      // serializing fiv and writing it to shared memory
-      try {
+	// serializing fiv and writing it to shared memory
+	try {
 	
-	exchange.set(fiv);
-	waiting_warning_printed = false;
-	std::cout << "produced: " << fiv.get_id() << " | " << c << "\n";
-	c++;
+	  exchange.set(fiv);
+	  waiting_warning_printed = false;
+	  std::cout << "produced: " << fiv.get_id() << " | " << c << "\n";
+	  c++;
 	
-      } catch (shared_memory::Memory_overflow_exception){
+	} catch (shared_memory::Memory_overflow_exception){
 
-	if (!waiting_warning_printed){
-	  waiting_warning_printed = true;
-	  std::cout << "shared memory full, waiting for consumer ...\n";
-	}
-      } 
+	  if (!waiting_warning_printed){
+	    waiting_warning_printed = true;
+	    std::cout << "shared memory full, waiting for consumer ...\n";
+	  }
+	} 
+      
+      }
+
+      exchange.unlock();
+
+    } else {
+
+      std::cout << "waiting for consumer to start ...\n" ;
       
     }
-
-    exchange.unlock();
 
     // reading from shared_memory which
     // items have been consumed

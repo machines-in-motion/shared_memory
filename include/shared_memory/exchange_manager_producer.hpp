@@ -38,6 +38,9 @@ namespace shared_memory {
 
     ~Exchange_manager_producer();
 
+    /** @brief returns true if a consumer is also running.
+     *  'set' should be called only if ready_to_produce returns true. 
+     */
     bool ready_to_produce();
     
     /** @brief lock the mutex required for writting in the shared memory
@@ -55,7 +58,8 @@ namespace shared_memory {
 
     /** Set this serializable to be consumed. Throws shared_memory::Memory_overflow_exception 
      *  if the shared memory is full. Some of the shared memory should get free once items have
-     *  been consumed by a consumer. 
+     *  been consumed by a consumer. This method should be called only if 'ready_to_produce'
+     *  returns true;
      */
     void set(const Serializable &serializable);
 

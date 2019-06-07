@@ -55,10 +55,14 @@ namespace shared_memory {
 
     /** @brief read from the underlying shared memory 
      *  a serialized object (set by a producer). 
+     *  Should be called only if ready_to_consume returns true.
      *  @return true if an item has been read
      */
     bool consume(Serializable &serializable);
 
+    /** @brief returns true if a producer is also running.
+     *  'consume' should be called only if ready_to_consume returns true. 
+     */
     bool ready_to_consume();
     
   public:

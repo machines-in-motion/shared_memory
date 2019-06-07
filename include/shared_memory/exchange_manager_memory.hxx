@@ -1,5 +1,72 @@
 
 
+template<class Serializable>
+Serialized_read<Serializable>::Serialized_read():size_(0){
+  values_ = new double[Serializable::serialization_size];
+}
+
+template<class Serializable>
+Serialized_read<Serializable>::~Serialized_read(){
+  delete[] values_;
+}
+
+template<class Serializable>
+void Serialized_read<Serializable>::set(double value){
+  buffer_.push_back(value);
+  size_++;
+}
+
+template<class Serializable>
+bool Serialized_read<Serializable>::read(Serializable &serializable){
+  if (size_>=Serializable::serialization_size){
+    for(int i=0;i<Serializable::serialization_size;i++){
+      values_[i]=buffer_.front();
+      buffer_.pop_front();
+      size_--;
+    }
+    serializable.create(values_);
+    return true;
+  }
+  return false;
+}
+
+
+template<class Serializable>
+Serialized_write<Serializable>::Serialized_write() {
+  values_ = new double[Serializable::serialization_size];
+}
+
+template<class Serializable>
+Serialized_write<Serializable>::~Serialized_write(){
+  delete[] values_;
+}
+
+template<class Serializable>
+bool Serialized_write<Serializable>::empty(){
+  return buffer_.empty();
+}
+
+template<class Serializable>
+double Serialized_write<Serializable>::front(){
+  double value = buffer_.front();
+  return value;
+}
+
+template<class Serializable>
+void Serialized_write<Serializable>::pop(){
+  buffer_.pop_front();
+}
+
+template<class Serializable>
+bool Serialized_write<Serializable>::write(const Serializable &serializable){
+  serializable.serialize(values_);
+  for(int i=0;i<Serializable::serialization_size;i++){
+    buffer_.push_back(values_[i]);
+  }
+}
+
+
+
 
 template <class Serializable, int QUEUE_SIZE>
 Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::string segment_id,
@@ -15,9 +82,6 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
   consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
   values_ = new double[Serializable::serialization_size];
-
-  producer_size_ = 0;
-  
 }
 
 
@@ -104,60 +168,43 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_memory( std::string
 template <class Serializable, int QUEUE_SIZE>
 bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::read_serialized(Serializable &serializable) {
 
-  int index=0;
+  while (true){
 
-  if ( produced_->pop(values_[index]) ) {
-
-    for(index=1;index<Serializable::serialization_size;index++){
-
-      bool poped = produced_->pop(values_[index]);
-
-      if(!poped){
-
-	throw std::runtime_error(std::string("half poped a serialized object !")+
-				 std::string(" This is a bug in shared_memory/exchange_manager_memory.hxx\n"));
-      }
-      
+    double value;
+    bool poped = produced_->pop(value);
+    if (poped) {
+      serialized_read_.set(value);
+    } else {
+      break;
     }
-    
-    serializable.create(values_);
 
-    return true;
-    
   }
 
-  return false;
+  bool read = serialized_read_.read(serializable);
+  
+  return read;
 
 }
 
 
 template <class Serializable, int QUEUE_SIZE>
-bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Serializable &serializable) {
-
-  set_consumed_memory();
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Serializable &serializable) {
   
-  if(producer_size_>=QUEUE_SIZE-1){
-    return false;
-  }
-  
-    // transforming serializable to an array of double
-  serializable.serialize(values_);
+  serialized_write_.write(serializable);
 
-  // writing the serialized object in the shared memory
-  for(int i=0;i<Serializable::serialization_size;i++){
+  while(! serialized_write_.empty() ){
 
-    bool pushed = produced_->bounded_push(values_[i]);
+    double value = serialized_write_.front();
+    bool pushed = produced_->bounded_push( value );
 
-    if(!pushed){
-
-      throw std::runtime_error(std::string("Failed to write a serialized object !")+
-			       std::string(" This is a bug in shared_memory/exchange_manager_producer.hxx\n"));
+    if(pushed) {
+      serialized_write_.pop();
+    } else {
+      break;
     }
-
+    
   }
 
-  producer_size_ ++;
-  return true;
 }
 
 
@@ -192,7 +239,7 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized_id(int i
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::set_consumed_memory() {
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_consumed_ids(std::deque<int> &get_consumed_ids) {
 
   int id;
   bool has_consumed;
@@ -203,27 +250,10 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::set_consumed_memory() {
       
       if (has_consumed) {
 
-	producer_size_--;
-	consumed_memory_.push_back(id);
+	get_consumed_ids.push_back(id);
 
       }
   }
-
-}
-
-
-template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_consumed_ids(std::deque<int> &get_consumed_ids) {
-
-  set_consumed_memory();
-
-  while(! consumed_memory_.empty() ) {
-
-    int id = consumed_memory_.front();
-    get_consumed_ids.push_back(id);
-    consumed_memory_.pop_front();
-    
-  }
-
+  
 }
 

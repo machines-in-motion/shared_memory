@@ -116,9 +116,8 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable 
     this->lock();
   }
 
-  bool pushed;
   try {
-    pushed = memory_->write_serialized(serializable);
+    memory_->write_serialized(serializable);
   } catch(const std::runtime_error &e){
     if(autolock_){
       this->unlock();
@@ -130,11 +129,6 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable 
     this->unlock();
   }
 
-  
-  // memory overflow in the queue
-  if(!pushed){
-      throw Memory_overflow_exception("exchange_manager_producer: queue is full ");
-  }
   
 }
 

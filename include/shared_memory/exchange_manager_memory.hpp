@@ -15,6 +15,43 @@ namespace bip = boost::interprocess;
 
 namespace shared_memory {
 
+  template<class Serializable>
+  class Serialized_read {
+
+  public:
+
+    Serialized_read();
+    ~Serialized_read();
+    void set(double value);
+    bool read(Serializable &serializable);
+
+  private:
+    std::deque<double> buffer_;
+    int size_;
+    double *values_;
+    
+  };
+
+
+
+  template<class Serializable>
+  class Serialized_write {
+
+  public:
+
+    Serialized_write();
+    ~Serialized_write();
+    bool empty();
+    double front();
+    void pop();
+    bool write(const Serializable &serializable);
+
+  private:
+    std::deque<double> buffer_;
+    double *values_;
+  };
+
+  
 
   /* @brief Used internally by Exchange_manager_consumer
    * and Exchange_manager_producer. Do not use directly.
@@ -43,7 +80,7 @@ namespace shared_memory {
     ~Exchange_manager_memory();
 
     bool read_serialized(Serializable &serializable);
-    bool write_serialized(const Serializable &serializable);
+    void write_serialized(const Serializable &serializable);
     void write_serialized_id(int id);
     void get_consumed_ids(std::deque<int> &get_ids);
 
@@ -55,10 +92,6 @@ namespace shared_memory {
     void lock();
     void unlock();
 
-  private:
-
-    void set_consumed_memory();
-    
   public:
 
     static void clean_mutex( std::string segment_id );
@@ -74,12 +107,12 @@ namespace shared_memory {
     bip::managed_shared_memory segment_;
     producer_queue *produced_;
     std::deque<int> consumed_buffer_;
-    std::deque<int> consumed_memory_;
     consumer_queue *consumed_;
     double *values_;
     shared_memory::Mutex locker_;
-    int producer_size_;
-
+    Serialized_read<Serializable> serialized_read_;
+    Serialized_write<Serializable> serialized_write_;
+    
   };
 
 

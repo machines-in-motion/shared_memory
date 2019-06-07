@@ -101,7 +101,7 @@ namespace shared_memory {
 
     std::string segment_id_;
     std::string object_id_;
-    
+
   };
 
 

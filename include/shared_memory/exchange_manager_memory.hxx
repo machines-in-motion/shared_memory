@@ -15,6 +15,8 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
   consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
   values_ = new double[Serializable::serialization_size];
+
+  producer_size_ = 0;
   
 }
 
@@ -132,24 +134,30 @@ bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::read_serialized(Serializa
 template <class Serializable, int QUEUE_SIZE>
 bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Serializable &serializable) {
 
+  set_consumed_memory();
+  
+  if(producer_size_>=QUEUE_SIZE-1){
+    return false;
+  }
+  
     // transforming serializable to an array of double
   serializable.serialize(values_);
 
   // writing the serialized object in the shared memory
-  bool pushed = false;
   for(int i=0;i<Serializable::serialization_size;i++){
 
-    pushed = produced_->bounded_push(values_[i]);
+    bool pushed = produced_->bounded_push(values_[i]);
 
-    if( (!pushed) && i!=0 ){
+    if(!pushed){
 
-      throw std::runtime_error(std::string("half pushed a serialized object !")+
+      throw std::runtime_error(std::string("Failed to write a serialized object !")+
 			       std::string(" This is a bug in shared_memory/exchange_manager_producer.hxx\n"));
     }
 
   }
-    
-  return pushed;
+
+  producer_size_ ++;
+  return true;
 }
 
 
@@ -184,7 +192,7 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized_id(int i
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_consumed_ids(std::deque<int> &get_consumed_ids) {
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::set_consumed_memory() {
 
   int id;
   bool has_consumed;
@@ -194,10 +202,27 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_consumed_ids(std::deq
       has_consumed = consumed_->pop(id);
       
       if (has_consumed) {
-	
-	get_consumed_ids.push_back(id);
+
+	producer_size_--;
+	consumed_memory_.push_back(id);
 
       }
+  }
+
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_consumed_ids(std::deque<int> &get_consumed_ids) {
+
+  set_consumed_memory();
+
+  while(! consumed_memory_.empty() ) {
+
+    int id = consumed_memory_.front();
+    get_consumed_ids.push_back(id);
+    consumed_memory_.pop_front();
+    
   }
 
 }

@@ -23,12 +23,12 @@ namespace shared_memory {
   class Exchange_manager_memory {
 
     
+    typedef boost::lockfree::queue<double,
+				   boost::lockfree::fixed_sized<true>,
+				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE> > producer_queue;
     typedef boost::lockfree::queue<int,
 				   boost::lockfree::fixed_sized<true>,
-				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> producer_queue;
-    typedef boost::lockfree::queue<int,
-				   boost::lockfree::fixed_sized<true>,
-				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE>> consumer_queue;
+				   boost::lockfree::capacity<QUEUE_SIZE> > consumer_queue;
 
 
   public:
@@ -54,6 +54,10 @@ namespace shared_memory {
 
     void lock();
     void unlock();
+
+  private:
+
+    void set_consumed_memory();
     
   public:
 
@@ -70,10 +74,11 @@ namespace shared_memory {
     bip::managed_shared_memory segment_;
     producer_queue *produced_;
     std::deque<int> consumed_buffer_;
+    std::deque<int> consumed_memory_;
     consumer_queue *consumed_;
     double *values_;
     shared_memory::Mutex locker_;
-
+    int producer_size_;
 
   };
 

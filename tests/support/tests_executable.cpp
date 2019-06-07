@@ -187,7 +187,6 @@ int main(int argc, char *argv[]){
 	bool received = consumer.consume(fiv);
 	if(received){
 	  int consumed = fiv.get_id();
-	  std::cout << "\n\t\treceived: "<< consumed << "\n";
 	} else {
 	  usleep(100);
 	  waited += 100;

@@ -444,8 +444,6 @@ TEST_F(Shared_memory_tests,exchange_manager){
   
   for (int iteration=0;iteration<1;iteration++) {
 
-    std::cout << "\n\niteration: " << iteration << "\n\n";
-    
     _call_executable(shared_memory_test::exchange_manager);
 
     usleep(TIME_SLEEP);
@@ -459,7 +457,6 @@ TEST_F(Shared_memory_tests,exchange_manager){
 	try {
 	  shared_memory::Four_int_values p(1,1,1,1);
 	  p.set_id(id);
-	  std::cout << "producing: "<< id << "\n";
 	  producer.set(p);
 	  id++;
 	} catch(shared_memory::Memory_overflow_exception){
@@ -493,7 +490,6 @@ TEST_F(Shared_memory_tests,exchange_manager){
 	  }
 	} else {
 	  for (int consumed_id : consumed){
-	    std::cout << "consumed: "<< consumed_id << "\n";
 	    ASSERT_EQ(consumed_id,id);
 	    id++;
 	  }

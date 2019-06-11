@@ -30,7 +30,7 @@ namespace shared_memory_test {
   
   const int test_map_size = 2;
 
-  const int nb_to_consume = 1000;
+  const int nb_to_consume = 100;
   
   enum Actions{
     set_double = 1,

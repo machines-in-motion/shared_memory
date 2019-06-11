@@ -8,7 +8,9 @@
  * @brief Used to generate or read data from the shared memory.
  */
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include <iostream>
 
@@ -172,6 +174,43 @@ int main(int argc, char *argv[]){
     cond_var.wait();
     cond_var.unlock_scope();
   }
+
+  if(command==shared_memory_test::Actions::exchange_manager){
+
+    bool leading = false;
+    bool autolock = true;
     
+    shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
+					     DATA_EXCHANGE_QUEUE_SIZE> consumer(segment,
+										object,
+										leading,
+										autolock);
+
+
+    int nb_consumed = 0;
+    shared_memory::Four_int_values fiv;
+    int max_wait = 1000000; // 1 second
+    int waited;
+    while (nb_consumed<shared_memory_test::nb_to_consume){
+      if (consumer.ready_to_consume()){
+	bool received = consumer.consume(fiv);
+	if(received){
+	  int consumed = fiv.get_id();
+	} else {
+	  usleep(100);
+	  waited += 100;
+	}
+      } 
+      else {
+	usleep(100);
+	waited += 100;
+      }
+      if(waited>=max_wait){
+	break;
+      }
+    }
+
+  }
+  
 }
 

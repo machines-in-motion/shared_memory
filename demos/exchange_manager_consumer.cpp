@@ -18,7 +18,7 @@
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
-#define EXCHANGE_SIZE 200
+#define QUEUE_SIZE 2000
 
 static bool RUNNING = true;
 
@@ -37,40 +37,47 @@ void execute(){
 
   // Four_int_values is a subclass of shared_memory/serializable,
   // i.e an object which can be serialized as an array of double
-  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values> exchange ( SEGMENT_ID,
-										      OBJECT_ID,
-										      EXCHANGE_SIZE );
+  bool leading = false; // producer expected to start first, and to survive serveral consumers
+  bool autolock = false; // to read several items in a single shot
+  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
+												 OBJECT_ID,
+												 leading,
+												 autolock);
 
 
-  // for error detection
-  int previous_id = -1;
-  int id;
-  
   while(RUNNING){
 
     // values serialized in shared memory will be deserialized in this object
     shared_memory::Four_int_values fiv;
 
-    // we arbitrary consider we can only consume 3 items per iteration
-    for(int i=0;i<3;i++){
+    if(exchange.ready_to_consume()) {
+    
+      // required because autolock is false
+      exchange.lock();
+    
+      // we arbitrary consider we can only consume 3 items per iteration
+      for(int i=0;i<3;i++){
 
-      // ready_to_consume is used to make sure producer and
-      // consumer are in sync
-      if (exchange.ready_to_consume() && !exchange.empty()){
-        exchange.consume(fiv);
-        fiv.print();
-        id = fiv.get_id();
-        previous_id=id;
+	bool consuming = exchange.consume(fiv);
+
+	if(!consuming) break;
+
+	fiv.print();
+      
       }
 
+      exchange.unlock();
+
+    } else {
+
+      std::cout << "waiting for producer\n";
+      
     }
-
-    // informing producer which items have been consumed
-    exchange.update_memory();
-
+    
     // note : faster than producer,
     //        as otherwise the buffer of the producer
     //        would end up overflowing
+
     usleep(1000);
 
   }

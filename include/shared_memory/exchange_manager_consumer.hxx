@@ -1,140 +1,155 @@
-/**
- * @file exchange_manager_consumer.hxx
- * @author Vincent Berenz
- * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
- * @date 2019-05-22
- * 
- * @brief Define the template method of the Exchange_manager_consumer
- */
-template <class Serializable>
-Exchange_manager_consumer<Serializable>::Exchange_manager_consumer(std::string segment_id,
-								   std::string object_id,
-								   int max_exchange_size)
-  : items_(max_exchange_size) {
+
+
+
+template <class Serializable, int QUEUE_SIZE>
+Exchange_manager_consumer<Serializable,QUEUE_SIZE>::Exchange_manager_consumer(std::string segment_id,
+									      std::string object_id,
+									      bool leading,
+									      bool autolock) { 
+
+  leading_ = leading;
+  autolock_ = autolock;
 
   segment_id_ = segment_id;
-  object_id_consumer_ = object_id+"_consumer";
-  object_id_producer_ = object_id+"_producer";
-  object_id_reset_ = object_id+"_reset";
-  previous_producer_id_=-1;
-  ready_to_consume_ = true;
-  nb_consumed_ = 0;
+  object_id_ = object_id;
 
-  // init of shared memory
-  double foo[2];
-  foo[0]=static_cast<double>(0); 
-  foo[1]=static_cast<double>(0);
-  double* data = items_.get_data();
-  data[0]=-1;
-  data[1]=0;
-  shared_memory::set(segment_id_,object_id_consumer_,foo,2);
-  shared_memory::set(segment_id_,object_id_producer_,
-		     data,items_.get_data_size());
-  shared_memory::set(segment_id_,object_id_reset_,false);
-		     
-}
+  memory_.reset( new Memory( segment_id,
+			     object_id ) );
 
-template <class Serializable>
-void Exchange_manager_consumer<Serializable>::reset_if_producer_stopped(){
-  bool should_reset;
-  shared_memory::get(segment_id_,object_id_reset_,should_reset);
-  if (should_reset){
-    double foo[2];
-    foo[0]=static_cast<double>(0); 
-    foo[1]=static_cast<double>(0);
-    shared_memory::set(segment_id_,object_id_consumer_,foo,2);
-    previous_producer_id_=-1;
-    ready_to_consume_ = true;
-    nb_consumed_ = 0;
-    double* data = items_.get_data();
-    data[0]=-1;
-    data[1]=0;
-    items_.reset();
-    shared_memory::set(segment_id_,object_id_producer_,
-		       data,items_.get_data_size());
-    shared_memory::set(segment_id_,object_id_reset_,false);
-  }
-}
+  if (leading){
 
+    // if leading, waiting for a producer to change the status
+    // to ready
+    memory_->set_status(Memory::Status::WAITING);
+  
+  } else {
 
-template <class Serializable>
-Exchange_manager_consumer<Serializable>::~Exchange_manager_consumer(){}
-
-template <class Serializable>  
-void Exchange_manager_consumer<Serializable>::clean_memory(){
-  shared_memory::clear_shared_memory(segment_id_);
-  shared_memory::delete_segment(segment_id_);
-}
-
-template <class Serializable>
-void Exchange_manager_consumer<Serializable>::update_memory(bool verbose){
-
-  // checking if the producer stopped, in which case we need to reset
-  reset_if_producer_stopped();
-
-  // some items have been consumed, we need to inform the producer
-  if (nb_consumed_>0){
-    static double to_producer[2];
-    static int id = 1;
-    id++;
-    // items have been consumed, informing the producer
-    to_producer[0]=static_cast<double>(id);
-    to_producer[1]=static_cast<double>(nb_consumed_);
-    shared_memory::set(segment_id_,object_id_consumer_,to_producer,2);
-    // we need to wait for the producer to update the command stack
-    // before we can resume operation
-    ready_to_consume_ = false;
-    nb_consumed_=0;
-    return;
-  }
-
-  // we are waiting for the producer to acknowledge
-  // it removed consume items from the stack
-  if (!ready_to_consume_){
-    static double from_producer[2];      
-    shared_memory::get(segment_id_,object_id_consumer_,
-		       from_producer,2);
-    bool consumed_items_removed = (from_producer[0]<0);
-    if (consumed_items_removed){
-      // the producer removed consumed items,
-      // reseting the pointer to the stack and
-      // resuming operation
-      int nb_removed = static_cast<int>(from_producer[1]);
-      items_.reset(nb_removed);
-      ready_to_consume_ = true;
-    }
-  }
+    // if not leading, informing the (leading) producer
+    // that this consumer is ready
+    memory_->set_status(Memory::Status::RUNNING);
     
-  // updating stack of items, if operation running
-  if(ready_to_consume_){
-    try {
-      shared_memory::get(segment_id_,object_id_producer_,
-			 items_.get_data(),
-			 items_.get_data_size());
-    } catch (shared_memory::Unexpected_size_exception &e) {
-      // the memory has not been initialized yet by the producer
+  }
+
+  
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+Exchange_manager_consumer<Serializable,QUEUE_SIZE>::~Exchange_manager_consumer(){
+
+  if(leading_){
+    memory_->clean();
+  }
+
+  else {
+
+    memory_->set_status(Memory::Status::RESET);
+    
+  }
+  
+}
+
+
+template <class Serializable, int QUEUE_SIZE>  
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::ready_to_consume(){
+
+  typename Memory::Status status;
+  memory_->get_status(status);
+
+  if (status == Memory::Status::WAITING){
+    return false;
+  }
+
+  
+  if (status == Memory::Status::RESET) {
+
+    if (leading_ ){
+
+      // producer died, reseting the memory
+      this->reset();
+      memory_->set_status(Memory::Status::WAITING);
+      return false;
+      
+    } else {
+
+      // waiting for the leader to set back to waiting
+      return false;
+    }
+    
+  } 
+
+  
+  if (status == Memory::Status::RUNNING){
+    return true;
+  }
+  
+}
+
+
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::lock(){
+
+  memory_->lock();
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::unlock(){
+
+  memory_->unlock();
+
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::reset(){
+
+  memory_->clean();
+  memory_ = NULL;
+  memory_.reset( new Memory( segment_id_,
+			     object_id_ ) );
+
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &serializable) {
+
+
+  if ( autolock_ ){
+    this->lock();
+  }
+
+  bool read;
+  try {
+
+    read = memory_->read_serialized(serializable);
+    
+  } catch(const std::runtime_error &e){
+
+    if( autolock_ ){
+      memory_->unlock();
     }
 
+    throw e;
+    
   }
 
-}
+  if (read) {
 
-template <class Serializable>
-bool Exchange_manager_consumer<Serializable>::ready_to_consume(){
-  return ready_to_consume_;
-}
+    int id = serializable.get_id();
+    memory_->write_serialized_id(id);
 
-template <class Serializable>
-bool Exchange_manager_consumer<Serializable>::empty(){
-  return items_.empty();
-}
+  } 
 
-template <class Serializable>
-void Exchange_manager_consumer<Serializable>::consume(Serializable &serializable){
-  if(!ready_to_consume_){
-    throw std::runtime_error("exchange_manager_consumer tried to consume data when not ready to do so. Please call ready_to_consume(), and only if it returns 'true' call consume().");
+  if( autolock_ ){
+    this->unlock();
   }
-  items_.read(serializable);
-  nb_consumed_+=1;
+
+  return read;
+  
 }
+
+

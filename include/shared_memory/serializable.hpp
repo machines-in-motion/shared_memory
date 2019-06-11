@@ -22,7 +22,7 @@ namespace shared_memory {
     virtual void create(double *serialized_data) = 0;
     virtual void serialize(double *serialized) const = 0;
     virtual int get_id() const = 0;
-    
+
   public:
 
     static const int serialization_size=SERIALIZATION_SIZE;
@@ -30,7 +30,7 @@ namespace shared_memory {
     
   };
 
-
+  
 }
 
 

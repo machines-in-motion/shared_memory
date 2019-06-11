@@ -9,6 +9,8 @@
  */
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include "gtest/gtest.h"
 #include <cstdlib>
@@ -19,7 +21,7 @@
 // see tests/support/tests_executable.cpp
 static std::string PATH_TO_EXECUTABLE = SHM_PATH_TO_SUPPORT_EXE;
 
-static unsigned int TIME_SLEEP = 5000;  //microseconds
+static unsigned int TIME_SLEEP = 20000;  //microseconds
 
 
 static inline void clear_memory(){
@@ -429,3 +431,86 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   cond_var.unlock_scope();
 }
 
+
+TEST_F(Shared_memory_tests,exchange_manager){
+
+  bool leading = true;
+  bool autolock = true; // we will not need to call producer.lock()
+  bool clean_memory_on_exit = true;
+
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
+  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
+
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
+									       shared_memory_test::object_id,
+									       leading,
+									       autolock );
+  
+  // 2 iterations to make sure the producer can manage 2 consumers running in a row
+  
+  for (int iteration=0;iteration<1;iteration++) {
+
+    _call_executable(shared_memory_test::exchange_manager);
+
+    usleep(TIME_SLEEP);
+
+    // producing items
+    int id=0;
+    int max_wait = 1000000; // 1 seconds
+    int waited = 0;
+    while (id<shared_memory_test::nb_to_consume){
+      if(producer.ready_to_produce()){
+	try {
+	  shared_memory::Four_int_values p(1,1,1,1);
+	  p.set_id(id);
+	  producer.set(p);
+	  id++;
+	} catch(shared_memory::Memory_overflow_exception){
+	  usleep(200);
+	  waited += 200;
+	  if(waited>=max_wait){
+	    break;
+	  }
+	}
+      }
+    }
+    // we did not manage to produce all the items:
+    // memory was full and no consumer was consuming ?
+    ASSERT_LT(waited,max_wait);
+  
+  
+    // checking all items have been consumed in the
+    // order they have been produced
+    max_wait = 1000000; // 1 seconds
+    waited = 0;
+    id = 0;
+    while(id<shared_memory_test::nb_to_consume){
+      if(producer.ready_to_produce()){
+	std::deque<int> consumed;
+	producer.get(consumed);
+	if (consumed.empty()){
+	  usleep(100);
+	  waited+=100;
+	  if (waited>=max_wait){
+	    break;
+	  }
+	} else {
+	  for (int consumed_id : consumed){
+	    ASSERT_EQ(consumed_id,id);
+	    id++;
+	  }
+	}
+      }
+    }
+    // we did not get all the items,
+    // despit waiting for max wait
+    ASSERT_LT(waited,max_wait);
+
+    usleep(1000000);
+    
+  }
+
+}

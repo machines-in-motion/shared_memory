@@ -71,5 +71,8 @@ namespace shared_memory {
     return true;
   }
 
-  
+
+  void Four_int_values::set_id(int id){
+    this->id_ = id;
+  }
 }

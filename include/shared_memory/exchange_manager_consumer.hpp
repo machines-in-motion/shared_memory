@@ -1,12 +1,13 @@
 /**
  * @file exchange_manager_consumer.hpp
- * @author Vincent Berenz
+ * @author Vincent Berenz (vberenz@tuebingen.mpg.de)
  * @license License BSD-3-Clause
  * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
- * @date 2019-05-22
+ * @date 2019-06-07
  * 
- * @brief Consume message from a "pipe" in the shared memory.
+ * @brief Interprocess exchange of serialized items
  */
+
 #ifndef EXCHANGE_MANAGER_CONSUMER_HPP
 #define EXCHANGE_MANAGER_CONSUMER_HPP
 

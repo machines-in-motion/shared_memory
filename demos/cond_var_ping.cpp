@@ -19,17 +19,8 @@ void stop(int){
 
 void execute(){
 
-  {
-    shared_memory::ConditionVariable cv_ ("main_memory", "cond_var");
-  }
-    
-  shared_memory::clear_shared_memory("main_memory");
-  shared_memory::delete_segment("main_memory");
+  shared_memory::ConditionVariable::clean("main_memory", "cond_var");
 
-  {
-    shared_memory::ConditionVariable cv_ ("main_memory", "cond_var");
-  }
-  
   shared_memory::ConditionVariable cv ("main_memory", "cond_var");
 
   int count = 0;

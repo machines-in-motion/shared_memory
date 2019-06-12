@@ -136,6 +136,16 @@ namespace shared_memory {
      */
     void unlock_scope();
 
+  public:
+
+    /**
+     * @brief ConditionVariable clean their shared memory on destruction.
+     * But the destructor may have failed to be called if for some reason
+     * the program crashed.
+     */
+    static void clean(const std::string segment_id,
+		      const std::string object_id);
+    
   private:
     /**
      * @brief segment_id_ is the segment name

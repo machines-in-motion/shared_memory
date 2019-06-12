@@ -33,6 +33,13 @@ namespace shared_memory {
       
   }
 
+  void ConditionVariable::clean(const std::string segment_id,
+				const std::string object_id){
+
+    ConditionVariable cv(segment_id,object_id,true);
+    
+  }
+  
   
   void ConditionVariable::notify_all()
   {

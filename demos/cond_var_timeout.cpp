@@ -1,13 +1,3 @@
-/**
- * @file cond_var_timeout.cpp
- * @author Vincent Berenz
- * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
- * @date 2019-05-22
- * 
- * @brief Demo presenting the API around the condition variable used with the
- * shared memory.
- */
 #include "shared_memory/thread_synchronisation.hpp"
 #include <iostream>
 #include <thread>

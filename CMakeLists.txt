@@ -19,6 +19,7 @@ include_directories(
 
 add_library(shared_memory 
   src/shared_memory.cpp
+  src/thread_synchronisation.cpp
   src/exceptions.cpp
   src/simpleId.cpp)
 target_link_libraries(shared_memory

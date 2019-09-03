@@ -280,6 +280,12 @@ namespace shared_memory {
       const bool clear_upon_destruction=false);
 
   /**
+   * @brief returns true if a segment exists under this id
+   * @param segment_id is the name of the shared memory segment.
+   */
+  bool segment_exists(const std::string &segment_id);
+  
+  /**
    * @brief delete_segment deletes the segment of existing shared memory.
    * it makes sure that all element created in it is destroyed first.
    * (is this needed? I do not know.)

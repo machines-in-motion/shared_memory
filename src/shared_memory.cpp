@@ -68,6 +68,17 @@ namespace shared_memory {
     return *GLOBAL_SHM_SEGMENTS[segment_id];
   }
 
+  bool segment_exists(
+      const std::string &segment_id )
+  {
+    if(GLOBAL_SHM_SEGMENTS.count(segment_id) == 0)
+    {
+      return false;
+    }
+    return true;
+  }
+
+  
   boost::interprocess::interprocess_mutex& get_segment_mutex(
       const std::string segment_id)
   {

@@ -2,7 +2,7 @@
  * @file std_string_vector.cpp
  * @author Vincent Berenz
  * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
  * @date 2019-05-22
  * 
  * @brief This demonstrate how to use the equivalent of std::string in the

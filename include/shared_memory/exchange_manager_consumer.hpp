@@ -2,7 +2,7 @@
  * @file exchange_manager_consumer.hpp
  * @author Vincent Berenz (vberenz@tuebingen.mpg.de)
  * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
  * @date 2019-06-07
  * 
  * @brief Interprocess exchange of serialized items

@@ -2,7 +2,7 @@
  * @file four_int_values.hpp
  * @author Vincent Berenz
  * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellshaft.
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
  * @date 2019-05-22
  * 
  * @brief Defines a messages to be sent throw the shared memory

@@ -1,4 +1,4 @@
-#include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/locked_condition_variable.hpp"
 #include <iostream>
 #include <thread>
 
@@ -7,7 +7,7 @@ static int thread_callback()
 {
   std::cout << "THREAD: create the condition variable" << std::endl;
   // get a condition variable
-  shared_memory::ConditionVariable cond_var ("main_memory", "cond_var");
+  shared_memory::LockedConditionVariable cond_var ("main_memory", "cond_var");
 
   cond_var.lock_scope();
   std::cout << "THREAD: wait" << std::endl;
@@ -30,7 +30,7 @@ int main(){
   std::cout << "MAIN: sleep(1) so THREAD goes to wait" << std::endl;
   sleep(1);
   std::cout << "MAIN: create the condition variable" << std::endl;
-  shared_memory::ConditionVariable cond_var ("main_memory", "cond_var");
+  shared_memory::LockedConditionVariable cond_var ("main_memory", "cond_var");
 
   std::cout << "MAIN: notify thread" << std::endl;
   cond_var.notify_all();

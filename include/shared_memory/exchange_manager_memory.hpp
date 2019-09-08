@@ -19,7 +19,7 @@
 #include <boost/interprocess/containers/string.hpp>
 
 #include "shared_memory/shared_memory.hpp"
-#include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/locked_condition_variable.hpp"
 
 namespace bip = boost::interprocess;
 

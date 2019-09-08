@@ -1,4 +1,4 @@
-#include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/locked_condition_variable.hpp"
 #include "shared_memory/shared_memory.hpp"
 #include <iostream>
 #include <thread>
@@ -19,7 +19,7 @@ void stop(int){
 
 void execute(){
 
-  shared_memory::ConditionVariable cv ("main_memory", "cond_var",false);
+  shared_memory::LockedConditionVariable cv ("main_memory", "cond_var",false);
 
   cv.lock_scope();
   

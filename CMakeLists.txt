@@ -3,7 +3,7 @@ project(shared_memory)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules)
+find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules pybind11_catkin)
 search_for_eigen()
 search_for_boost()
 
@@ -19,7 +19,10 @@ include_directories(
 
 add_library(shared_memory 
   src/shared_memory.cpp
-  src/thread_synchronisation.cpp
+  src/locked_condition_variable.cpp
+  src/condition_variable.cpp
+  src/mutex.cpp
+  src/lock.cpp
   src/exceptions.cpp
   src/simpleId.cpp)
 target_link_libraries(shared_memory
@@ -55,11 +58,26 @@ target_link_libraries(get_data shared_memory ${protobuf_cmake_target})
 add_executable(cond_var_timeout demos/cond_var_timeout.cpp)
 target_link_libraries(cond_var_timeout shared_memory)
 
+add_executable(cond_var_demo demos/cond_var_demo.cpp)
+target_link_libraries(cond_var_demo shared_memory)
+
+add_executable(sm_cond_var_demo demos/sm_cond_var_demo.cpp)
+target_link_libraries(sm_cond_var_demo shared_memory)
+
+add_executable(sm_create demos/create_cv.cpp)
+target_link_libraries(sm_create shared_memory)
+
 add_executable(cond_var_ping demos/cond_var_ping.cpp)
 target_link_libraries(cond_var_ping shared_memory)
 
 add_executable(cond_var_pong demos/cond_var_pong.cpp)
 target_link_libraries(cond_var_pong shared_memory)
+
+add_executable(sm_cond_var_ping demos/sm_cond_var_demo_ping.cpp)
+target_link_libraries(sm_cond_var_ping shared_memory)
+
+add_executable(sm_cond_var_pong demos/sm_cond_var_demo_pong.cpp)
+target_link_libraries(sm_cond_var_pong shared_memory)
 
 add_executable(exchange_manager_producer
   demos/four_int_values.cpp
@@ -80,6 +98,18 @@ target_link_libraries(exchange_manager_clean shared_memory)
 add_executable(std_string_vector
   demos/std_string_vector.cpp)
 target_link_libraries(std_string_vector shared_memory)
+
+
+##############
+# Python wrapper #
+##############
+
+pybind11_add_module(shared_memory_py srcpy/wrappers.cpp)
+target_link_libraries(shared_memory_py PRIVATE shared_memory ${catkin_LIBRARIES})
+set_target_properties(shared_memory_py PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+install(TARGETS shared_memory_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+
 
 ##############
 # Unit tests #

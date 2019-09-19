@@ -20,6 +20,7 @@
 
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/serializer.hpp"
 
 namespace bip = boost::interprocess;
 
@@ -32,13 +33,15 @@ namespace shared_memory {
 
     Serialized_read();
     ~Serialized_read();
-    void set(double value);
+    void set(char value);
     bool read(Serializable &serializable);
 
   private:
-    std::deque<double> buffer_;
+    std::deque<char> buffer_;
     int size_;
-    double *values_;
+    int serializable_size_;
+    char *values_;
+    Serializer<Serializable> serializer_;
     
   };
 
@@ -52,13 +55,15 @@ namespace shared_memory {
     Serialized_write();
     ~Serialized_write();
     bool empty();
-    double front();
+    char front();
     void pop();
     bool write(const Serializable &serializable);
 
   private:
-    std::deque<double> buffer_;
-    double *values_;
+    std::deque<char> buffer_;
+    char *values_;
+    int serializable_size_;
+    Serializer<Serializable> serializer_;
   };
 
   
@@ -70,9 +75,9 @@ namespace shared_memory {
   class Exchange_manager_memory {
 
     
-    typedef boost::lockfree::queue<double,
+    typedef boost::lockfree::queue<char,
 				   boost::lockfree::fixed_sized<true>,
-				   boost::lockfree::capacity<Serializable::serialization_size*QUEUE_SIZE> > producer_queue;
+				   boost::lockfree::capacity<QUEUE_SIZE> > producer_queue;
     typedef boost::lockfree::queue<int,
 				   boost::lockfree::fixed_sized<true>,
 				   boost::lockfree::capacity<QUEUE_SIZE> > consumer_queue;
@@ -118,10 +123,11 @@ namespace shared_memory {
     producer_queue *produced_;
     std::deque<int> consumed_buffer_;
     consumer_queue *consumed_;
-    double *values_;
+    char *values_;
     shared_memory::Mutex locker_;
     Serialized_read<Serializable> serialized_read_;
     Serialized_write<Serializable> serialized_write_;
+    int serializable_size_;
     
   };
 

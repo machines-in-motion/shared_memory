@@ -8,8 +8,7 @@
  * @brief Interprocess exchange of serialized items
  */
 
-#ifndef EXCHANGE_MANAGER_CONSUMER_HPP
-#define EXCHANGE_MANAGER_CONSUMER_HPP
+#pragma once
 
 #include "shared_memory/exchange_manager_memory.hpp"
 
@@ -35,8 +34,8 @@ namespace shared_memory {
      * segment_id and object_id), possibly running in a separate process.
      * @param segment_id id of the shared memory segment
      * @param object_id id of the shared memory object prefix
-     * @param the consumer is to be "permanent", while different consumers
-     * may consume its data. Implies the deletion of the underlying share memory
+     * @param the consumer is to be "permanent", while different producers
+     * may provide data. Implies the deletion of the underlying share memory
      * upon destruction.
      * @param mutex locking mechanism internally managed by the 
      * producer. If false, lock has to be "manually" called. This allows for
@@ -123,4 +122,3 @@ namespace shared_memory {
 
 
 
-#endif // EXCHANGE_MANAGER_CONSUMER_HPP

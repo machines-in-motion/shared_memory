@@ -1,31 +1,38 @@
 /**
  * @file four_int_values.hpp
- * @author Vincent Berenz
+o * @author Vincent Berenz
  * @license License BSD-3-Clause
  * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
  * @date 2019-05-22
  * 
  * @brief Defines a messages to be sent throw the shared memory
  */
-#ifndef FOUR_INT_VALUES_HPP
-#define FOUR_INT_VALUES_HPP
 
-#include "shared_memory/serializable.hpp"
+#pragma once
+
+#include "shared_memory/serializer.hpp"
 #include <iostream>
 
 namespace shared_memory {
 
 
-  class Four_int_values : public Serializable<5,0> {
+  class Four_int_values {
 
   public:
     
     Four_int_values();
     Four_int_values(int a, int b, int c, int d);
-    void create(double *serialized_data);
-    void serialize(double *serialized) const;
     int get_id() const;
     void set_id(int id);
+
+  public:
+    
+    template<class Archive>
+    void serialize(Archive & archive)
+    {
+      archive( id_, values_); 
+    }
+
     
   public:
 
@@ -46,11 +53,12 @@ namespace shared_memory {
     
   private:
 
-    int values_[4];
+    friend private_serialization;
+
+    std::vector<int> values_;
     int id_;
     
   };
 
 }
 
-#endif

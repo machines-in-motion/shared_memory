@@ -18,7 +18,7 @@
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
-#define QUEUE_SIZE 2000
+#define QUEUE_SIZE 2000*4
 
 static bool RUNNING = true;
 
@@ -39,10 +39,11 @@ void execute(){
   // i.e an object which can be serialized as an array of double
   bool leading = false; // producer expected to start first, and to survive serveral consumers
   bool autolock = false; // to read several items in a single shot
-  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
-												 OBJECT_ID,
-												 leading,
-												 autolock);
+  shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
+					   QUEUE_SIZE> exchange ( SEGMENT_ID,
+								  OBJECT_ID,
+								  leading,
+								  autolock );
 
 
   while(RUNNING){

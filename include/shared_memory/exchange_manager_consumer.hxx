@@ -42,9 +42,7 @@ Exchange_manager_consumer<Serializable,QUEUE_SIZE>::~Exchange_manager_consumer()
   }
 
   else {
-
     memory_->set_status(Memory::Status::RESET);
-    
   }
   
 }

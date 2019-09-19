@@ -33,7 +33,7 @@ template <class Serializable, int QUEUE_SIZE>
 Exchange_manager_producer<Serializable,QUEUE_SIZE>::~Exchange_manager_producer(){
 
   if(leading_){
-    
+
     memory_->clean();
     
   } else {

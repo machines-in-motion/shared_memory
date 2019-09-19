@@ -512,5 +512,28 @@ TEST_F(Shared_memory_tests,exchange_manager){
     usleep(1000000);
     
   }
+  
+}
+
+TEST_F(Shared_memory_tests,serialization){
+
+  shared_memory::clear_shared_memory("test_ser");
+    
+  shared_memory::Four_int_values in1(1,1,2,1);
+  shared_memory::Four_int_values in2(1,2,1,1);
+
+  shared_memory::Four_int_values out1;
+  shared_memory::Four_int_values out2;
+
+  shared_memory::serialize("test_ser","obj1",in1);
+  shared_memory::serialize("test_ser","obj2",in2);
+    
+  shared_memory::deserialize("test_ser","obj1",out1);
+  shared_memory::deserialize("test_ser","obj2",out2);
+
+  ASSERT_EQ(in1.same(out1),true);
+  ASSERT_EQ(in2.same(out2),true);
 
 }
+  
+

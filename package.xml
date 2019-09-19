@@ -15,6 +15,9 @@
   <build_depend> mpi_cmake_modules </build_depend>
   <run_depend>   mpi_cmake_modules </run_depend>
 
+  <run_depend> cereal_catkin </run_depend>
+  <build_depend> cereal_catkin </build_depend>
+  
   <export>
   </export>
 

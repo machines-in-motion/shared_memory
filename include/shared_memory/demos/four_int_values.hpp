@@ -16,6 +16,13 @@ o * @author Vincent Berenz
 namespace shared_memory {
 
 
+  /**
+   * Example of an instance that can be serialized.
+   * Notice: 
+   * There is a default constructor
+   * There is a serialize function
+   * It is friend to private_serialization
+   */
   class Four_int_values {
 
   public:

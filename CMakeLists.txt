@@ -61,23 +61,17 @@ target_link_libraries(cond_var_timeout shared_memory)
 add_executable(cond_var_demo demos/cond_var_demo.cpp)
 target_link_libraries(cond_var_demo shared_memory)
 
-add_executable(sm_cond_var_demo demos/sm_cond_var_demo.cpp)
-target_link_libraries(sm_cond_var_demo shared_memory)
+add_executable(locked_cond_var_ping demos/locked_cond_var_ping.cpp)
+target_link_libraries(locked_cond_var_ping shared_memory)
 
-add_executable(sm_create demos/create_cv.cpp)
-target_link_libraries(sm_create shared_memory)
+add_executable(locked_cond_var_pong demos/locked_cond_var_pong.cpp)
+target_link_libraries(locked_cond_var_pong shared_memory)
 
 add_executable(cond_var_ping demos/cond_var_ping.cpp)
 target_link_libraries(cond_var_ping shared_memory)
 
 add_executable(cond_var_pong demos/cond_var_pong.cpp)
 target_link_libraries(cond_var_pong shared_memory)
-
-add_executable(sm_cond_var_ping demos/sm_cond_var_demo_ping.cpp)
-target_link_libraries(sm_cond_var_ping shared_memory)
-
-add_executable(sm_cond_var_pong demos/sm_cond_var_demo_pong.cpp)
-target_link_libraries(sm_cond_var_pong shared_memory)
 
 add_executable(exchange_manager_producer
   demos/four_int_values.cpp

@@ -25,11 +25,15 @@ namespace shared_memory {
   {
     
     unlock_scope();
-    delete(condition_variable_);
-    if (clean_memory_on_destruction_){
-      boost::interprocess::named_mutex::remove(mutex_id_.c_str());
-      boost::interprocess::named_condition::remove(condition_id_.c_str());
-    }
+    if(condition_variable_!=nullptr)
+      {
+	delete(condition_variable_);
+      }
+    if (clean_memory_on_destruction_)
+      {
+	boost::interprocess::named_mutex::remove(mutex_id_.c_str());
+	boost::interprocess::named_condition::remove(condition_id_.c_str());
+      }
       
   }
 

@@ -432,7 +432,7 @@ TEST_F(Shared_memory_tests,test_timed_wait){
 }
 
 
-TEST_F(Shared_memory_tests,exchange_manager){
+TEST_F(DISABLED_Shared_memory_tests,exchange_manager){
 
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()

@@ -28,6 +28,7 @@
 #include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
+#include "shared_memory/serializer.hpp"
 
 #include "shared_memory/exceptions.h"
 
@@ -565,6 +566,49 @@ namespace shared_memory {
            const std::string& object_id,
            std::map<KeyType, ValueType>& get_);
 
+
+  /**
+   * @brief Serialize the instance into a string which is 
+   * written in the shared memory. This uses cereal for
+   * serialization, and Serializable must implement a serialize function,
+   * see: https://uscilab.github.io/cereal/
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] serializable is the instance to serialize 
+   */
+  template<class Serializable>
+  void serialize(const std::string &segment,
+		 const std::string &object,
+		 const Serializable &serializable)
+  {
+    static Serializer<Serializable> serializer;
+    std::string data = serializer.serialize(serializable);
+    shared_memory::set(segment,object,data);  
+  }
+
+  /**
+   * @brief Read from the memory a string that is deserialized
+   * into the passed instance of Serializable. 
+   * This assumes the serialization and writting in the shared
+   * memory has been performed using the serialize function.
+   * @param[in] segment_id is the name of the shared memory segment.
+   * @param[in] object_id is the name of the shared memory object to set.
+   * @param[in] serializable is the instance in which the string
+   * will be deserialized
+   */
+  template<class Serializable>
+  void deserialize(const std::string &segment,
+		   const std::string &object,
+		   Serializable &serializable)
+  {
+    static Serializer<Serializable> serializer;
+    static std::string data;
+    shared_memory::get(segment,object,data);
+    serializer.deserialize(data,serializable);
+  }
+
+  
+  
 } // namespace shared_memory
 
 #include<shared_memory/shared_memory.hxx>

@@ -8,6 +8,7 @@
  * @brief Demonstrate the use of the exhange manager producer
  */
 #include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include <stdlib.h>
 #include <time.h>
@@ -18,7 +19,7 @@
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
-#define QUEUE_SIZE 2000
+#define QUEUE_SIZE 2000*4
 
 static bool RUNNING = true;
 
@@ -38,10 +39,11 @@ void execute(){
   // i.e an object which can be serialized as an array of double
   bool autolock = false; // we need to "manually" call lock, in order to write several item in a single shot
   bool leading = true; // producer expected to start first, and to survive several consumers
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,QUEUE_SIZE> exchange ( SEGMENT_ID,
-												 OBJECT_ID,
-												 leading,
-												 autolock );
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					   QUEUE_SIZE> exchange ( SEGMENT_ID,
+								  OBJECT_ID,
+								  leading,
+								  autolock );
 
 
 

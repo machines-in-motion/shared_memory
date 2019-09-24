@@ -11,21 +11,16 @@
 
 namespace shared_memory {
 
-  Four_int_values::Four_int_values(){}
+  Four_int_values::Four_int_values()
+    :values_(4) {}
   
-  Four_int_values::Four_int_values(int a, int b, int c, int d){
+  Four_int_values::Four_int_values(int a, int b, int c, int d)
+    : values_(4) {
     id_= Four_int_values::next_id();
     values_[0]=a;
     values_[1]=b;
     values_[2]=c;
     values_[3]=d;
-  }
-
-  static void prints(const double *serialized){
-    for(int i=0;i<Four_int_values::serialization_size;i++){
-      std::cout << serialized[i] << " ";
-    }
-    std::cout << "\n";
   }
 
   void Four_int_values::print() const {
@@ -34,20 +29,6 @@ namespace shared_memory {
     std::cout << "\n";
   }
   
-  void Four_int_values::create(double *serialized){
-    id_ = static_cast<int>(serialized[0]);
-    for(int i=0;i<4;i++){
-      values_[i]=static_cast<int>(serialized[i+1]);
-    }
-  }
-
-  void Four_int_values::serialize(double *serialized) const {
-    serialized[0]=static_cast<double>(id_);
-    for(int i=0;i<4;i++){
-      serialized[i+1]=static_cast<double>(values_[i]);
-    }
-  }
-
   int Four_int_values::get_id() const {
     return id_;
   }

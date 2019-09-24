@@ -10,11 +10,13 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules)
 search_for_eigen()
 search_for_boost()
+search_for_cereal()
 
 include_directories(
-    include
     ${Boost_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIRS}
+    ${cereal_INCLUDE_DIRS}
+    include
 )
 
 ###############
@@ -24,8 +26,7 @@ include_directories(
 add_library(shared_memory 
   src/shared_memory.cpp
   src/thread_synchronisation.cpp
-  src/exceptions.cpp
-  src/simpleId.cpp)
+  src/exceptions.cpp)
 target_link_libraries(shared_memory
   ${Boost_LIBRARIES}
 )
@@ -80,10 +81,13 @@ add_executable(exchange_manager_clean
   demos/exchange_manager_clean.cpp)
 target_link_libraries(exchange_manager_clean shared_memory)
 
-
 add_executable(std_string_vector
   demos/std_string_vector.cpp)
 target_link_libraries(std_string_vector shared_memory)
+
+add_executable(serialization
+  demos/serialization.cpp)
+target_link_libraries(serialization shared_memory)
 
 ##############
 # Unit tests #
@@ -159,6 +163,14 @@ target_link_libraries(stress_get_api
 # simple executable to clean the benchmarks shared memory
 add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
 target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
+
+# not really a benchmark, just to get an idea how fast or slow
+# serialization is
+add_executable(serialization_frequency
+  demos/four_int_values.cpp
+  benchmarks/serialization_frequency.cpp)
+target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
+
 
 ##########################
 # building documentation #

@@ -1,30 +1,38 @@
 
 
 template<class Serializable>
-Serialized_read<Serializable>::Serialized_read():size_(0){
-  values_ = new double[Serializable::serialization_size];
+Serialized_read<Serializable>::Serialized_read():
+  size_(0),
+  serializable_size_(Serializer<Serializable>::serializable_size())
+{
+  values_ = new char[serializable_size_];
 }
 
+
 template<class Serializable>
-Serialized_read<Serializable>::~Serialized_read(){
+Serialized_read<Serializable>::~Serialized_read()
+{
   delete[] values_;
 }
 
+
 template<class Serializable>
-void Serialized_read<Serializable>::set(double value){
+void Serialized_read<Serializable>::set(char value){
   buffer_.push_back(value);
   size_++;
 }
 
 template<class Serializable>
 bool Serialized_read<Serializable>::read(Serializable &serializable){
-  if (size_>=Serializable::serialization_size){
-    for(int i=0;i<Serializable::serialization_size;i++){
+  if (size_>=serializable_size_){
+    for(int i=0;i<serializable_size_;i++){
       values_[i]=buffer_.front();
       buffer_.pop_front();
       size_--;
     }
-    serializable.create(values_);
+    serializer_.deserialize(std::string(values_,
+					serializable_size_),
+			    serializable);
     return true;
   }
   return false;
@@ -32,23 +40,27 @@ bool Serialized_read<Serializable>::read(Serializable &serializable){
 
 
 template<class Serializable>
-Serialized_write<Serializable>::Serialized_write() {
-  values_ = new double[Serializable::serialization_size];
+Serialized_write<Serializable>::Serialized_write()
+  : serializable_size_(Serializer<Serializable>::serializable_size())
+{
+  values_ = new char[serializable_size_];
 }
 
 template<class Serializable>
-Serialized_write<Serializable>::~Serialized_write(){
+Serialized_write<Serializable>::~Serialized_write()
+{
   delete[] values_;
 }
 
 template<class Serializable>
-bool Serialized_write<Serializable>::empty(){
+bool Serialized_write<Serializable>::empty()
+{
   return buffer_.empty();
 }
 
 template<class Serializable>
-double Serialized_write<Serializable>::front(){
-  double value = buffer_.front();
+char Serialized_write<Serializable>::front(){
+  char value = buffer_.front();
   return value;
 }
 
@@ -59,9 +71,9 @@ void Serialized_write<Serializable>::pop(){
 
 template<class Serializable>
 bool Serialized_write<Serializable>::write(const Serializable &serializable){
-  serializable.serialize(values_);
-  for(int i=0;i<Serializable::serialization_size;i++){
-    buffer_.push_back(values_[i]);
+  const std::string& s = serializer_.serialize(serializable);
+  for (char c: s){
+    buffer_.push_back(c);
   }
 }
 
@@ -73,21 +85,22 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
 									   std::string object_id )
 
   : segment_(bip::open_or_create, segment_id.c_str(), 100*65536),
-    locker_(std::string(segment_id+"_locker").c_str(),false) {
-
+    locker_(std::string(segment_id+"_locker").c_str(),false),
+    serializable_size_(Serializer<Serializable>::serializable_size())
+{
   object_id_producer_ = object_id+"_producer";
   object_id_consumer_ = object_id+"_consumer";
   object_id_status_ = object_id+"_status";
   produced_ = segment_.find_or_construct<producer_queue>(object_id_producer_.c_str())();
   consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
-  values_ = new double[Serializable::serialization_size];
+  values_ = new char[serializable_size_];
 }
 
 
 template <class Serializable, int QUEUE_SIZE>
-Exchange_manager_memory<Serializable,QUEUE_SIZE>::~Exchange_manager_memory(){
-
+Exchange_manager_memory<Serializable,QUEUE_SIZE>::~Exchange_manager_memory()
+{
   unlock();
   delete[] values_;
 
@@ -95,19 +108,19 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::~Exchange_manager_memory(){
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::set_status(Status status){
-
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::set_status(Status status)
+{
   lock();
   shared_memory::set<int>( segment_id_,
 			   object_id_status_,
 			   status );
   unlock();
-
 }
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_status(Status &status){
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::get_status(Status &status)
+{
 
   int r;
   
@@ -170,7 +183,7 @@ bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::read_serialized(Serializa
 
   while (true){
 
-    double value;
+    char value;
     bool poped = produced_->pop(value);
     if (poped) {
       serialized_read_.set(value);

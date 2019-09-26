@@ -14,7 +14,7 @@
 #include "shared_memory/tests/tests.h"
 #include <iostream>
 
-int main(int argc, char *argv[]){
+int main(int, char *argv[]){
 
   int command = atoi(argv[1]);
 
@@ -175,27 +175,29 @@ int main(int argc, char *argv[]){
     cond_var.unlock_scope();
   }
 
-  if(command==shared_memory_test::Actions::exchange_manager){
+  if(command==shared_memory_test::Actions::exchange_manager) {
 
     bool leading = false;
     bool autolock = true;
-    
+
     shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
 					     DATA_EXCHANGE_QUEUE_SIZE> consumer(segment,
 										object,
 										leading,
 										autolock);
-
+    
 
     int nb_consumed = 0;
     shared_memory::Four_int_values fiv;
     int max_wait = 1000000; // 1 second
-    int waited;
+    int waited=0;
+
     while (nb_consumed<shared_memory_test::nb_to_consume){
       if (consumer.ready_to_consume()){
 	bool received = consumer.consume(fiv);
 	if(received){
-	  int consumed = fiv.get_id();
+	  waited = 0;
+	  nb_consumed+=1;
 	} else {
 	  usleep(100);
 	  waited += 100;
@@ -206,11 +208,36 @@ int main(int argc, char *argv[]){
 	waited += 100;
       }
       if(waited>=max_wait){
+	// waiting for too long, exiting
+	shared_memory::set(shared_memory_test::exchange_manager_segment_id,
+			   shared_memory_test::exchange_manager_object_id,true);
 	break;
       }
+
+      // letting a chance for the producer to get the lock
+      usleep(10);
+      
     }
 
+    // making sure the producer receives all the feedbacks
+    waited=0;
+    while (!consumer.purge_feedbacks()){
+      usleep(100);
+      waited+=100;
+      if(waited>=max_wait){
+	// waiting for too long, exiting
+	shared_memory::set(shared_memory_test::exchange_manager_segment_id,
+			   shared_memory_test::exchange_manager_object_id,true);
+	break;
+      }
+      
+      // letting a chance for the producer to get the lock
+      usleep(10);
+    }
+
+    
   }
   
 }
+
 

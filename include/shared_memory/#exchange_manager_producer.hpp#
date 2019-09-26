@@ -78,6 +78,9 @@ namespace shared_memory {
      */
     void get(std::deque<int> &get_consumed_ids);
 
+
+    bool 
+    
     void reset_char_count();
     int nb_char_written();
     

@@ -73,6 +73,19 @@ namespace shared_memory {
      *  'consume' should be called only if ready_to_consume returns true. 
      */
     bool ready_to_consume();
+
+
+    /** @brief When consuming an item, the item id is written in a shared queue
+     *  for the producer to read (and acquire the feedback the item has been consumed).
+     *  This queue may get full (e.g the producer does not read it fast enough), 
+     *  in which case the item id is buffered. This attempts
+     *  to write the buffered ids into the queue, and returns true if the buffer 
+     *  is not empty after the call (i.e. some feedbacks have not been sent yet),
+     *  false otherwise.
+     */
+    bool purge_feedbacks();
+
+    int nb_char_read();
     
   public:
 

@@ -75,11 +75,12 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::ready_to_consume(){
     }
     
   } 
-
   
   if (status == Memory::Status::RUNNING){
     return true;
   }
+
+  return true;
   
 }
 
@@ -113,6 +114,14 @@ void Exchange_manager_consumer<Serializable,QUEUE_SIZE>::reset(){
 
 
 template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::purge_feedbacks() {
+
+  return memory_->purge_feedbacks();
+  
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
 bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &serializable) {
 
 
@@ -139,7 +148,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
 
     int id = serializable.get_id();
     memory_->write_serialized_id(id);
-
+ 
   } 
 
   if( autolock_ ){
@@ -150,4 +159,7 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
   
 }
 
-
+template <class Serializable, int QUEUE_SIZE>
+int Exchange_manager_consumer<Serializable,QUEUE_SIZE>::nb_char_read() {
+  return memory_->nb_char_read();
+}

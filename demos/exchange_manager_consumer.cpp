@@ -26,11 +26,6 @@ void stop(int){
   RUNNING=false;
 }
 
-static int _get_int(int max){
-  return rand()%max;
-}
-
-
 void execute(){
 
   srand(time(NULL));

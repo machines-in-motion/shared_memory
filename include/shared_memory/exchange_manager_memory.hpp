@@ -8,8 +8,7 @@
  * @brief Interprocess exchange of serialized items
  */
 
-#ifndef EXCHANGE_MANAGER_MEMORY_HPP
-#define EXCHANGE_MANAGER_MEMORY_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -35,16 +34,18 @@ namespace shared_memory {
     ~Serialized_read();
     void set(char value);
     bool read(Serializable &serializable);
-
+    int nb_char_read();
+    void reset_nb_char_read();
+    
   private:
     std::deque<char> buffer_;
     int size_;
+    int nb_char_read_;
     int serializable_size_;
     char *values_;
     Serializer<Serializable> serializer_;
     
   };
-
 
 
   template<class Serializable>
@@ -57,13 +58,18 @@ namespace shared_memory {
     bool empty();
     char front();
     void pop();
-    bool write(const Serializable &serializable);
-
+    void write(const Serializable &serializable,
+	       std::size_t expected_size);
+    int nb_char_written();
+    void reset_nb_char_written();
+    
   private:
     std::deque<char> buffer_;
     char *values_;
+    int nb_char_written_;
     int serializable_size_;
     Serializer<Serializable> serializer_;
+
   };
 
   
@@ -101,12 +107,30 @@ namespace shared_memory {
 
     void set_status(Status status);
     void get_status(Status &status);
+
+    bool purge_feedbacks();
     
     void clean();
 
     void lock();
     void unlock();
 
+    
+  public:
+
+    // for monitoring the number of characters written/read
+    // from the queue
+    void reset_char_count();
+    int nb_char_written();
+    int nb_char_read();
+
+
+  private:
+    
+    int nb_char_read_;
+    int nb_char_written_;
+    
+    
   public:
 
     static void clean_mutex( std::string segment_id );
@@ -136,4 +160,3 @@ namespace shared_memory {
 
 }
 
-#endif

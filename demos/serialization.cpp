@@ -30,7 +30,7 @@ public:
 
   void print(){
     std::cout << i1_ << " " << i2_ << " " << d1_ << "\n";
-    for(int i=0;i<v_.size();i++){
+    for(size_t i=0;i<v_.size();i++){
       std::cout << v_[i] << " ";
     }
     std::cout << "\n";

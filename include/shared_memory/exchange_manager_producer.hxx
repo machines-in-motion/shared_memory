@@ -89,6 +89,7 @@ bool Exchange_manager_producer<Serializable,QUEUE_SIZE>::ready_to_produce(){
     return true;
   }
 
+  return false;
   
 }
 
@@ -149,7 +150,18 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::get(std::deque<int> &ge
   return;
  
 }
-    
+
+
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_producer<Serializable,QUEUE_SIZE>::reset_char_count(){
+  memory_->reset_char_count();
+}
+
+template <class Serializable, int QUEUE_SIZE>
+int Exchange_manager_producer<Serializable,QUEUE_SIZE>::nb_char_written(){
+  return memory_->nb_char_written();
+}
+
 
 
 

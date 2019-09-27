@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include "shared_memory/exchange_manager_memory.hpp"
-
+#include "shared_memory/internal/exchange_manager_memory.hpp"
 
 namespace bip = boost::interprocess;
+
+using namespace shared_memory::internal;
 
 namespace shared_memory {
 
@@ -85,6 +86,10 @@ namespace shared_memory {
      */
     bool purge_feedbacks();
 
+    /** @brief 
+     *  returns the number of char that have been read
+     *  from the exchange queue. For debugging purposes
+     */
     int nb_char_read();
     
   public:

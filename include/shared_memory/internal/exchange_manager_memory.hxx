@@ -6,6 +6,7 @@ Serialized_read<Serializable>::Serialized_read():
   nb_char_read_(0),
   serializable_size_(Serializer<Serializable>::serializable_size())
 {
+
   values_ = new char[serializable_size_];
 }
 

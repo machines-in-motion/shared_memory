@@ -437,9 +437,9 @@ TEST_F(Shared_memory_tests,exchange_manager){
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
 
-  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
 					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
-  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
 					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
 
   shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,

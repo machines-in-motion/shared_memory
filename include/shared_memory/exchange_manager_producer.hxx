@@ -160,9 +160,18 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::reset_char_count(){
 template <class Serializable, int QUEUE_SIZE>
 int Exchange_manager_producer<Serializable,QUEUE_SIZE>::nb_char_written(){
   return memory_->nb_char_written();
+
 }
 
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_mutex(std::string segment_id){
+  Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_mutex(segment_id);
+}
 
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_memory(std::string segment_id){
+  Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_memory(segment_id);
+}
 
 
 

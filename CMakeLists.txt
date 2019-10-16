@@ -10,7 +10,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules pybind11_catkin)
 search_for_eigen()
 search_for_boost()
-search_for_cereal()
+search_for_cereal_required()
 
 include_directories(
     ${Boost_INCLUDE_DIRS}

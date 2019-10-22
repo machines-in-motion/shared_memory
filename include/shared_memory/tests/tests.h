@@ -12,7 +12,7 @@
 #include <vector>
 
 
-#define DATA_EXCHANGE_QUEUE_SIZE 100
+#define DATA_EXCHANGE_QUEUE_SIZE 1000
 
 
 namespace shared_memory_test {
@@ -22,6 +22,9 @@ namespace shared_memory_test {
   const std::string segment_mutex_id("unit_test_mutex_segment");
   const std::string object_id("unit_test_object");
   const std::string cond_var_id("unit_test_cond_var");
+
+  const std::string exchange_manager_segment_id("em_test_segment");
+  const std::string exchange_manager_object_id("em_test_object");
   
   const double test_double = 4.4;
   const float test_float = 4.4;

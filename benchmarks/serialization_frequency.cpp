@@ -5,7 +5,7 @@
 
 // checks at which frequency 1 million items can be serialized
 
-int execute(){
+void execute(){
 
   int nb_iterations = 1000000; // 1 million
 

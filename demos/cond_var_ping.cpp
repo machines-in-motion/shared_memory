@@ -47,13 +47,13 @@ void update_vector(){
       condition.wait(lock);
 
       std::cout << "PING ";
-      for(int i=0;i<v.size();i++){
+      for(unsigned int i=0;i<v.size();i++){
 	v[i] = VALUE;
       }
     
       usleep(500);
     
-      for(int i=0;i<v.size();i++){
+      for(unsigned int i=0;i<v.size();i++){
 	if (v[i]!= VALUE){
 	  std::cout << "\n--- damn, the vector was not locked !\n";
 	  break;

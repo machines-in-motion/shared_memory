@@ -28,7 +28,7 @@ void update_vector(){
   condition.notify_one();
   std::cout << "\nstarting PONG...\n";
   
-  for(int i=0;i<10000;i++){
+  for(unsigned int i=0;i<10000;i++){
 
     {
 
@@ -36,19 +36,19 @@ void update_vector(){
       condition.wait(lock);
 
       std::cout << "PONG ";
-      for(int i=0;i<v.size();i++){
-	v[i] = VALUE;
+      for(unsigned int j=0;j<v.size();j++){
+	v[j] = VALUE;
       }
     
       usleep(500);
     
-      for(int i=0;i<v.size();i++){
-	if (v[i]!= VALUE){
+      for(unsigned int j=0;j<v.size();j++){
+	if (v[j]!= VALUE){
 	  std::cout << "\n--- damn, the vector was not locked !\n";
 	  break;
 	}
-	if (i<10){
-	  std::cout << " " << v[i];
+	if (j<10){
+	  std::cout << " " << v[j];
 	}
       }
       std::cout << "\n";

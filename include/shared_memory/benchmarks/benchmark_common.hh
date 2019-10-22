@@ -25,7 +25,7 @@
 typedef std::chrono::high_resolution_clock::time_point TimeType;
 
 static std::vector<double> DATA(SIZE, 2);
-static bool RUNNING;
+bool RUNNING;
 static std::string SHM_NAME("stress_test");
 static std::string SHM_OBJECT_NAME("stress_object");
 
@@ -40,7 +40,7 @@ struct MeasureTime{
   {
     tic_ = std::chrono::high_resolution_clock::now();
   }
-  double update()
+  void update()
   {
     auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>
                  (tic_-prev_tic_).count();

@@ -11,10 +11,12 @@
 #ifndef EXCHANGE_MANAGER_PRODUCER_HPP
 #define EXCHANGE_MANAGER_PRODUCER_HPP
 
-#include "shared_memory/exchange_manager_memory.hpp"
+#include "shared_memory/internal/exchange_manager_memory.hpp"
 
 
 namespace bip = boost::interprocess;
+
+using namespace shared_memory::internal;
 
 namespace shared_memory {
 
@@ -66,18 +68,31 @@ namespace shared_memory {
      */
     void unlock();
 
-    /** Set this serializable to be consumed. Throws shared_memory::Memory_overflow_exception 
+    /** @brief Set this serializable to be consumed. Throws shared_memory::Memory_overflow_exception 
      *  if the shared memory is full. Some of the shared memory should get free once items have
      *  been consumed by a consumer. This method should be called only if 'ready_to_produce'
      *  returns true;
      */
     void set(const Serializable &serializable);
 
-    /** write into get_consumed_ids the ids of serialized items that have been 
+    /** @brief write into get_consumed_ids the ids of serialized items that have been 
      *  successfully consumed by a consumer
      */
     void get(std::deque<int> &get_consumed_ids);
 
+    /** @brief returns the number of characters
+     *  that have been serialized and written to 
+     *  the exchange queue. For debug purposes.
+     */
+    int nb_char_written();
+
+    /** @brief reset the count
+     *  of characters written to 
+     * the exchange queue to zero
+     */
+    void reset_char_count();
+
+    
   private:
 
     void reset();
@@ -89,6 +104,21 @@ namespace shared_memory {
     bool leading_;
     std::string segment_id_;
     std::string object_id_;
+
+  public:
+
+    /** @brief (unlock) and erase the mutex from the shared
+     *  memory. To be used if some executable using the 
+     *  exchange manager crashed without calls to destructors.
+     */
+    static void clean_mutex( std::string segment_id );
+
+    /** @brief wipe out the corresponding shared
+     *  memory. To be used if some executable using the 
+     *  exchange manager crashed without calls to destructors.
+     */
+    static void clean_memory( std::string segment_id );
+
     
     
   };

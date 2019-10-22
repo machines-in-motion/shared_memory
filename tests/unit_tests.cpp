@@ -61,6 +61,7 @@ static bool _call_executable(int action,bool blocking){
     return true;
   }
   std::system(s.str().c_str());
+  return true;
 }
 
 
@@ -292,7 +293,7 @@ TEST_F(Shared_memory_tests,test_memory_overflow){
 
   unsigned int max_size = SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
-  for(int i=0;i<v.size();i++) v[i]=1;
+  for(size_t i=0;i<v.size();i++) v[i]=1;
 
   ASSERT_THROW (
          shared_memory::set(shared_memory_test::segment_id,
@@ -379,6 +380,7 @@ TEST_F(Shared_memory_tests,test_concurrency){
   ASSERT_EQ(set_2_observed,true);
 
 }
+
 
 TEST_F(Shared_memory_tests,test_locked_condition_variable){
 
@@ -506,15 +508,14 @@ TEST_F(Shared_memory_tests,test_condition_variable){
 }
 
 
-TEST_F(DISABLED_Shared_memory_tests,exchange_manager){
+TEST_F(Shared_memory_tests,exchange_manager){
 
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
-  bool clean_memory_on_exit = true;
 
-  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
 					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
-  shared_memory::Exchange_manager_memory<shared_memory::Four_int_values,
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
 					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
 
   shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
@@ -522,68 +523,106 @@ TEST_F(DISABLED_Shared_memory_tests,exchange_manager){
 									       shared_memory_test::object_id,
 									       leading,
 									       autolock );
-  
-  // 2 iterations to make sure the producer can manage 2 consumers running in a row
-  
-  for (int iteration=0;iteration<1;iteration++) {
 
+  
+  // several iterations to make sure the producer can manage 2 consumers running in a row
+  
+  for (int iteration=0;iteration<10;iteration++) {
+
+    producer.reset_char_count();
+    
+    // for informing main process if failure occured
+    shared_memory::clear_shared_memory(shared_memory_test::exchange_manager_segment_id);
+    shared_memory::delete_segment(shared_memory_test::exchange_manager_segment_id);
+    shared_memory::set<bool>(shared_memory_test::exchange_manager_segment_id,
+			     shared_memory_test::exchange_manager_object_id,false);
+    
     _call_executable(shared_memory_test::exchange_manager);
 
-    usleep(TIME_SLEEP);
-
-    // producing items
-    int id=0;
     int max_wait = 1000000; // 1 seconds
     int waited = 0;
-    while (id<shared_memory_test::nb_to_consume){
-      if(producer.ready_to_produce()){
-	try {
-	  shared_memory::Four_int_values p(1,1,1,1);
-	  p.set_id(id);
-	  producer.set(p);
-	  id++;
-	} catch(shared_memory::Memory_overflow_exception){
-	  usleep(200);
-	  waited += 200;
-	  if(waited>=max_wait){
-	    break;
-	  }
-	}
+    bool failed_to_start = false;
+    while(!producer.ready_to_produce()){
+      usleep(100);
+      waited += 100;
+      if(waited>max_wait){
+	failed_to_start = true;
       }
     }
-    // we did not manage to produce all the items:
-    // memory was full and no consumer was consuming ?
-    ASSERT_LT(waited,max_wait);
-  
-  
-    // checking all items have been consumed in the
-    // order they have been produced
-    max_wait = 1000000; // 1 seconds
-    waited = 0;
-    id = 0;
-    while(id<shared_memory_test::nb_to_consume){
-      if(producer.ready_to_produce()){
-	std::deque<int> consumed;
-	producer.get(consumed);
-	if (consumed.empty()){
-	  usleep(100);
-	  waited+=100;
-	  if (waited>=max_wait){
-	    break;
-	  }
-	} else {
-	  for (int consumed_id : consumed){
-	    ASSERT_EQ(consumed_id,id);
-	    id++;
-	  }
-	}
-      }
-    }
-    // we did not get all the items,
-    // despit waiting for max wait
-    ASSERT_LT(waited,max_wait);
+    ASSERT_EQ(failed_to_start,false);
 
-    usleep(1000000);
+    // producing items
+    
+    int id=0;
+    waited = 0;
+    bool failed_to_produce_all = false;
+    std::deque<int> consumed;
+    int consumed_id=0;
+
+    int written = 0;
+    int previous_written = -1;
+
+    while ( id<shared_memory_test::nb_to_consume
+	    || consumed_id<shared_memory_test::nb_to_consume )
+      {
+
+	// producing items
+	if( id<shared_memory_test::nb_to_consume )
+	  {
+	    try
+	      {
+		shared_memory::Four_int_values p(1,1,1,1);
+		p.set_id(id);
+		producer.set(p);
+		id++;
+		waited=0;
+	      }
+	    catch(shared_memory::Memory_overflow_exception)
+	      {
+		usleep(200);
+		waited += 200;
+		if(waited>=max_wait){
+		  failed_to_produce_all = true;
+		  break;
+		}
+	      }
+	  }
+	
+	// monitoring consumed items
+	// should have been consumed in same order
+	// as produced
+	producer.get(consumed);
+	while (!consumed.empty())
+	  {
+	    ASSERT_EQ(consumed_id,consumed.front());
+	    consumed_id++;
+	    consumed.pop_front();
+	  }
+
+	// everything supposed to be produced was produced,
+	// and consumer died, so exiting
+	if(id>=shared_memory_test::nb_to_consume &&
+	   !producer.ready_to_produce()){
+	  break;
+	}
+	
+	written = producer.nb_char_written();
+	if(written!=previous_written){
+	  previous_written = written;
+	}
+
+	// letting a chance for the consumer to get the lock
+	usleep(10);
+	
+    }
+
+    ASSERT_EQ(failed_to_produce_all,false);
+  
+    bool command_failed;
+    shared_memory::get<bool>(shared_memory_test::exchange_manager_segment_id,
+			     shared_memory_test::exchange_manager_object_id,
+			     command_failed);
+    ASSERT_EQ(command_failed,false);
     
   }
   

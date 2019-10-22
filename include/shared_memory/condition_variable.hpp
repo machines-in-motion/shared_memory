@@ -59,25 +59,26 @@ namespace shared_memory {
   private:
 
     /**
-     * @brief condition_variable_ is the boost condition variable that is used
+     * @brief condition_id_ is the condition variable name in the shared memory
      */
-    SHMCondition* condition_variable_;
+    std::string condition_id_;
 
     /**
      * @brief if true (the default), clean the shared memory of the
      * hosted mutex and condition. 
      */
     bool clean_memory_on_destruction_;
+    
+    /**
+     * @brief condition_variable_ is the boost condition variable that is used
+     */
+    SHMCondition* condition_variable_;
 
     /**
      * @brief mutex_id_ is the mutex name in the shared memory
      */
     std::string mutex_id_;
 
-    /**
-     * @brief condition_id_ is the condition variable name in the shared memory
-     */
-    std::string condition_id_;
 
     
   };

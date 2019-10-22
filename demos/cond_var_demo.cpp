@@ -29,13 +29,13 @@ void* update_vector_async(void *config_){
 
       std::cout << config->message;
       
-      for(int i=0;i<config->vector->size();i++){
+      for(unsigned int i=0;i<config->vector->size();i++){
 	(*config->vector)[i] = config->value;
       }
     
       usleep(500);
     
-      for(int i=0;i<config->vector->size();i++){
+      for(unsigned int i=0;i<config->vector->size();i++){
 	if ((*config->vector)[i]!= config->value){
 	  std::cout << "--- damn, the vector was not locked !\n";
 	  break;
@@ -52,6 +52,8 @@ void* update_vector_async(void *config_){
       
     }
 
+    return nullptr;
+
 }
 
 
@@ -66,13 +68,13 @@ void* update_vector(void *config_){
       config->condition->wait(lock);
 
       std::cout << config->message;
-      for(int i=0;i<config->vector->size();i++){
+      for(unsigned int i=0;i<config->vector->size();i++){
 	(*config->vector)[i] = config->value;
       }
     
       usleep(500);
     
-      for(int i=0;i<config->vector->size();i++){
+      for(unsigned int i=0;i<config->vector->size();i++){
 	if ((*config->vector)[i]!= config->value){
 	  std::cout << "\n--- damn, the vector was not locked !\n";
 	  break;
@@ -88,6 +90,8 @@ void* update_vector(void *config_){
     config->condition->notify_one();
     
   }
+
+  return nullptr;
   
 }
 

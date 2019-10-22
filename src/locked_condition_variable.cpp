@@ -10,16 +10,15 @@ namespace shared_memory {
     segment_id_(segment_id)
     ,mutex_id_(object_id + "_mtx")
     ,condition_id_(object_id + "_cond")
-    ,clean_memory_on_destruction_(clean_memory_on_destruction)
     ,mutex_{
     boost::interprocess::open_or_create,
       mutex_id_.c_str()
       }
+    ,clean_memory_on_destruction_(clean_memory_on_destruction)
     {
       condition_variable_ = new SHMCondition(boost::interprocess::open_or_create,
 					     condition_id_.c_str());
     }
-
   
   LockedConditionVariable::~LockedConditionVariable()
   {

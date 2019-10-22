@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include "shared_memory/exchange_manager_memory.hpp"
-
+#include "shared_memory/internal/exchange_manager_memory.hpp"
 
 namespace bip = boost::interprocess;
+
+using namespace shared_memory::internal;
 
 namespace shared_memory {
 
@@ -73,6 +74,26 @@ namespace shared_memory {
      *  'consume' should be called only if ready_to_consume returns true. 
      */
     bool ready_to_consume();
+
+
+    /** @brief When this instance consumes an item, the item id is written in a shared queue
+     *  for the producer to read (and acquire the feedback the item has been consumed).
+     *  This shared queue may get full (e.g the producer does not read it fast enough), 
+     *  in which case the item id is buffered in this instance. 
+     *  If this instance stops to consume, the buffered item ids will never be written
+     *  in the shared queue, and the producer will not receive the corresponding feedback.
+     *  This attempts to write the buffered ids into the queue, and returns true if the buffer 
+     *  is not empty after the call (i.e. some feedbacks have not been sent yet),
+     *  false otherwise.
+     *  Usage: to call before exit until true is returned
+     */
+    bool purge_feedbacks();
+
+    /** @brief 
+     *  returns the number of char that have been read
+     *  from the exchange queue. For debugging purposes
+     */
+    int nb_char_read();
     
   public:
 

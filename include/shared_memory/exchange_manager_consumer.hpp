@@ -76,13 +76,16 @@ namespace shared_memory {
     bool ready_to_consume();
 
 
-    /** @brief When consuming an item, the item id is written in a shared queue
+    /** @brief When this instance consumes an item, the item id is written in a shared queue
      *  for the producer to read (and acquire the feedback the item has been consumed).
-     *  This queue may get full (e.g the producer does not read it fast enough), 
-     *  in which case the item id is buffered. This attempts
-     *  to write the buffered ids into the queue, and returns true if the buffer 
+     *  This shared queue may get full (e.g the producer does not read it fast enough), 
+     *  in which case the item id is buffered in this instance. 
+     *  If this instance stops to consume, the buffered item ids will never be written
+     *  in the shared queue, and the producer will not receive the corresponding feedback.
+     *  This attempts to write the buffered ids into the queue, and returns true if the buffer 
      *  is not empty after the call (i.e. some feedbacks have not been sent yet),
      *  false otherwise.
+     *  Usage: to call before exit until true is returned
      */
     bool purge_feedbacks();
 

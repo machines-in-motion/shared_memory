@@ -18,6 +18,8 @@
 namespace shared_memory_test {
 
   const std::string segment_id("unit_test_segment");
+  const std::string segment_cv_id("unit_test_cv_segment");
+  const std::string segment_mutex_id("unit_test_mutex_segment");
   const std::string object_id("unit_test_object");
   const std::string cond_var_id("unit_test_cond_var");
 
@@ -58,7 +60,8 @@ namespace shared_memory_test {
     set_string_vector_eigen_map,
     concurrent_1,
     concurrent_2,
-    sync,
+    locked_condition_variable,
+    condition_variable,
     exchange_manager,
   };
 }

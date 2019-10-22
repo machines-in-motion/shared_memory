@@ -1,26 +1,19 @@
-/**
- * @file thread_synchronisation.hpp
- * @author Maximilien Naveau (maximilien.naveau@gmail.com)
- * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
- * @date 2019-05-22
- * 
- * @brief Thread and process synchronization tools
- */
-#ifndef THREAD_SYNCHRONISATION_HPP
-#define THREAD_SYNCHRONISATION_HPP
+// Copyright 2019 Max Planck Gesellschaft and New York University
+// Authors: Vincent Berenz, Maximilien Naveau
+
+#pragma once
 
 #include <memory> // defines the unique_ptr
 
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
+#include "shared_memory/shared_memory.hpp"
+#include "shared_memory/mutex.hpp"
 
-#include <shared_memory/shared_memory.hpp>
 
 namespace shared_memory {
 
-  typedef boost::interprocess::named_mutex SHMMutex;
   typedef boost::interprocess::named_condition SHMCondition;
   typedef boost::interprocess::scoped_lock<SHMMutex> SHMScopeLock;
 
@@ -29,61 +22,29 @@ namespace shared_memory {
   typedef boost::interprocess::scoped_lock<UnamedSHMMutex> UnamedSHMLock;
 
 
-
-  struct Mutex{
-    Mutex(std::string mutex_id, bool clean_memory_on_destruction=true ):mutex_{
-              boost::interprocess::open_or_create,
-              mutex_id.c_str()}
-    {
-
-      mutex_id_ = mutex_id;
-      clean_memory_on_destruction_ = clean_memory_on_destruction;
-    }
-
-    ~Mutex()
-    {
-      if(clean_memory_on_destruction_){
-	boost::interprocess::named_mutex::remove(mutex_id_.c_str());
-      } else {
-	try {
-	  mutex_.unlock();
-	} catch(...) {}
-      }
-    }
-
-    void lock()
-    {
-      mutex_.lock();
-    }
-
-    void unlock()
-    {
-      mutex_.unlock();
-    }
-
-    std::string mutex_id_;
-    SHMMutex mutex_;
-    bool clean_memory_on_destruction_;
-    
-  };
-
   /**
-   * @brief The ConditionVariable class is here as a anonymous layer on top
+   * @brief The LockedConditionVariable class is here as a anonymous layer on top
    * of the boost intersprocess condition variable labrary.
    * It creates a condition variable in a shared memory automatically.
    */
-  class ConditionVariable
+  class LockedConditionVariable
   {
   public:
-    ConditionVariable(const std::string segment_id,
+
+    /**
+     * @brief A condition variable shared over the memory
+     * The condition variable is cleaned from the memory
+     * on destruction if clean_memory_on_destruction 
+     * is set to true. Contrary to shared_memory::ConditionVariable,
+     * instances of this class manages their mutex and lock internally,
+     * with the consequence the mutex can be locked and unlocked exclusively
+     * through other instances of LockedConditionVariable.
+     */
+    LockedConditionVariable(const std::string segment_id,
 		      const std::string object_id,
 		      bool clean_memory_on_destruction=true);
     
-    /**
-      * @brief ~ConditionVariable is the destructor of the class, his job is to
-      * remove the condition variable from the shared memory
-      */
-    ~ConditionVariable();
+    ~LockedConditionVariable();
 
     /**
      * @brief notify_all is notifying all condition variables with the same
@@ -139,7 +100,7 @@ namespace shared_memory {
   public:
 
     /**
-     * @brief ConditionVariable clean their shared memory on destruction.
+     * @brief LockedConditionVariable clean their shared memory on destruction.
      * But the destructor may have failed to be called if for some reason
      * the program crashed.
      */
@@ -177,7 +138,7 @@ namespace shared_memory {
     /**
      * @brief condition_variable_ is the boost condition variable that is used
      */
-    SHMCondition condition_variable_;
+    SHMCondition* condition_variable_;
 
     /**
      * @brief lock_ is a object that protects the codes with a mutex, see the
@@ -192,6 +153,7 @@ namespace shared_memory {
     bool clean_memory_on_destruction_;
     
   };
+  
 }
 
-#endif // THREAD_SYNCHRONISATION_HPP
+

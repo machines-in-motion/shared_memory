@@ -8,7 +8,10 @@
  * @brief Shared memroy API unittests.
  */
 #include "shared_memory/shared_memory.hpp"
-#include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/locked_condition_variable.hpp"
+#include "shared_memory/condition_variable.hpp"
+#include "shared_memory/lock.hpp"
+#include "shared_memory/mutex.hpp"
 #include "shared_memory/exchange_manager_producer.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
@@ -378,7 +381,8 @@ TEST_F(Shared_memory_tests,test_concurrency){
 
 }
 
-TEST_F(DISABLED_Shared_memory_tests,test_synchronisation){
+
+TEST_F(Shared_memory_tests,test_locked_condition_variable){
 
   usleep(TIME_SLEEP);
 
@@ -386,10 +390,10 @@ TEST_F(DISABLED_Shared_memory_tests,test_synchronisation){
   double d[shared_memory_test::test_array_size];
 
   // get a condition variable
-  shared_memory::ConditionVariable cond_var (shared_memory_test::segment_id,
+  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id,
                                              shared_memory_test::cond_var_id);
 
-  _call_executable(shared_memory_test::sync);
+  _call_executable(shared_memory_test::locked_condition_variable);
 
   cond_var.lock_scope();
   cond_var.wait();
@@ -408,9 +412,9 @@ TEST_F(DISABLED_Shared_memory_tests,test_synchronisation){
   cond_var.wait();
 
   shared_memory::get(shared_memory_test::segment_id,
-           shared_memory_test::object_id,
-           d,
-           shared_memory_test::test_array_size);
+		     shared_memory_test::object_id,
+		     d,
+		     shared_memory_test::test_array_size);
 
   ASSERT_EQ(d[0], shared_memory_test::concurrent_stop_value);
   for(int i=1;i<shared_memory_test::test_array_size;i++){
@@ -424,11 +428,83 @@ TEST_F(DISABLED_Shared_memory_tests,test_synchronisation){
 TEST_F(Shared_memory_tests,test_timed_wait){
 
   // get a condition variable
-  shared_memory::ConditionVariable cond_var ( shared_memory_test::segment_id,
-					      shared_memory_test::cond_var_id );
+  shared_memory::LockedConditionVariable cond_var (
+        shared_memory_test::segment_id,
+        shared_memory_test::cond_var_id);
   cond_var.lock_scope();
   ASSERT_FALSE(cond_var.timed_wait(10));
   cond_var.unlock_scope();
+}
+
+TEST_F(Shared_memory_tests,test_condition_variable){
+
+  clear_memory();
+
+  // initializing shared array
+  int value = 1;
+  double v[shared_memory_test::test_array_size];
+  for(int i=0;i<shared_memory_test::test_array_size;i++){
+    v[i]=value;
+  }
+  shared_memory::set(shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     v,
+		     shared_memory_test::test_array_size);
+
+  
+  // in case previous run crashed without cleaning up
+  std::string segment_mutex(shared_memory_test::segment_mutex_id);
+  shared_memory::Mutex::clean(shared_memory_test::segment_mutex_id);
+
+  // get a condition variable
+  shared_memory::Mutex mutex(segment_mutex,true);
+  shared_memory::ConditionVariable condition (shared_memory_test::segment_cv_id,
+                                             true);
+
+  // starting another process with same condition variable
+  _call_executable(shared_memory_test::condition_variable);
+  usleep(100000);
+
+  // other process should be hanging, freeing it
+  condition.notify_one();
+  
+  for(int i=0;i<10;i++){
+      
+      {
+
+	shared_memory::Lock lock(mutex);
+	condition.wait(lock);
+
+	for(int i=0;i<shared_memory_test::test_array_size;i++){
+	  v[i] = value;
+	}
+
+	shared_memory::set(shared_memory_test::segment_id,
+			   shared_memory_test::object_id,
+			   v,
+			   shared_memory_test::test_array_size);
+
+	
+	usleep(500);
+
+	shared_memory::get(shared_memory_test::segment_id,
+			   shared_memory_test::object_id,
+			   v,
+			   shared_memory_test::test_array_size);
+
+	
+	for(int i=0;i<shared_memory_test::test_array_size;i++){
+	  ASSERT_EQ(v[i],value);
+	}
+	
+      }
+
+      condition.notify_one();
+
+  }
+
+  condition.notify_one();
+
 }
 
 

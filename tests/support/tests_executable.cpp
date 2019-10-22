@@ -9,7 +9,10 @@
  */
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/exchange_manager_consumer.hpp"
-#include "shared_memory/thread_synchronisation.hpp"
+#include "shared_memory/locked_condition_variable.hpp"
+#include "shared_memory/condition_variable.hpp"
+#include "shared_memory/lock.hpp"
+#include "shared_memory/mutex.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include <iostream>
@@ -135,15 +138,15 @@ int main(int, char *argv[]){
 		       d,shared_memory_test::test_array_size);
   }
 
-  if(command==shared_memory_test::Actions::sync){
+  if(command==shared_memory_test::Actions::locked_condition_variable){
     // create a data vector
     double d[shared_memory_test::test_array_size];
 
     // get a condition variable
-    shared_memory::ConditionVariable cond_var (segment,
+    shared_memory::LockedConditionVariable cond_var (segment,
                                                shared_memory_test::cond_var_id);
 
-    // from here all varaibles are protected
+    // from here all variables are protected
     cond_var.lock_scope();
 
     // we wait that the client fetch its own condition variable
@@ -175,7 +178,44 @@ int main(int, char *argv[]){
     cond_var.unlock_scope();
   }
 
-  if(command==shared_memory_test::Actions::exchange_manager) {
+  if(command==shared_memory_test::Actions::condition_variable){
+
+    std::string segment_mutex(shared_memory_test::segment_mutex_id);
+    shared_memory::Mutex mutex(shared_memory_test::segment_mutex_id,false);
+    shared_memory::ConditionVariable condition(shared_memory_test::segment_cv_id,
+					       false);
+
+    double v[shared_memory_test::test_array_size];
+
+    int value = 2;
+    
+    for(int i=0;i<10;i++){
+      
+      {
+
+	shared_memory::Lock lock(mutex);
+	condition.wait(lock);
+	
+	for(int i=0;i<shared_memory_test::test_array_size;i++){
+	  v[i] = value;
+	}
+
+	shared_memory::set(shared_memory_test::segment_id,
+			   shared_memory_test::object_id,
+			   v,
+			   shared_memory_test::test_array_size);
+	
+      }
+
+      condition.notify_one();
+
+    }
+
+    condition.notify_one();
+  }
+
+  
+  if(command==shared_memory_test::Actions::exchange_manager){
 
     bool leading = false;
     bool autolock = true;

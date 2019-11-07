@@ -26,7 +26,7 @@ Exchange_manager_producer<Serializable,QUEUE_SIZE>::Exchange_manager_producer(st
     memory_->set_status(Memory::Status::RUNNING);
     
   }
-  
+
 }
 
 template <class Serializable, int QUEUE_SIZE>  
@@ -111,14 +111,23 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::unlock(){
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable &serializable){
+void
+Exchange_manager_producer<Serializable,QUEUE_SIZE>::clear(){
+  memory_->clear();
+}
 
+template <class Serializable, int QUEUE_SIZE>
+bool
+Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable &serializable){
+
+  bool everything_shared;
+  
   if(autolock_){
     this->lock();
   }
 
   try {
-    memory_->write_serialized(serializable);
+    everything_shared = memory_->write_serialized(serializable);
   } catch(const std::runtime_error &e){
     if(autolock_){
       this->unlock();
@@ -130,6 +139,7 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::set(const Serializable 
     this->unlock();
   }
 
+  return everything_shared;
   
 }
 
@@ -171,6 +181,19 @@ void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_mutex(std::string
 template <class Serializable, int QUEUE_SIZE>
 void Exchange_manager_producer<Serializable,QUEUE_SIZE>::clean_memory(std::string segment_id){
   Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_memory(segment_id);
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_producer<Serializable,QUEUE_SIZE>::producer_queue_empty() const
+{
+  return memory_->producer_queue_empty();
+}
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_producer<Serializable,QUEUE_SIZE>::consumer_queue_empty() const
+{
+  return memory_->consumer_queue_empty();
 }
 
 

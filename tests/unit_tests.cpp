@@ -13,6 +13,7 @@
 #include "shared_memory/lock.hpp"
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include "gtest/gtest.h"
@@ -390,8 +391,7 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
   double d[shared_memory_test::test_array_size];
 
   // get a condition variable
-  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id,
-                                             shared_memory_test::cond_var_id);
+  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id);
 
   _call_executable(shared_memory_test::locked_condition_variable);
 
@@ -428,9 +428,8 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
 TEST_F(Shared_memory_tests,test_timed_wait){
 
   // get a condition variable
-  shared_memory::LockedConditionVariable cond_var (
-        shared_memory_test::segment_id,
-        shared_memory_test::cond_var_id);
+  shared_memory::LockedConditionVariable
+    cond_var (shared_memory_test::segment_id);
   cond_var.lock_scope();
   ASSERT_FALSE(cond_var.timed_wait(10));
   cond_var.unlock_scope();
@@ -513,17 +512,16 @@ TEST_F(Shared_memory_tests,exchange_manager){
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
 
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
+  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
 
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
-									       shared_memory_test::object_id,
-									       leading,
-									       autolock );
+  Producer::clean_mutex(shared_memory_test::segment_id);
+  Producer::clean_memory(shared_memory_test::segment_id);
 
+  Producer producer( shared_memory_test::segment_id,
+		    shared_memory_test::object_id,
+		    leading,
+		    autolock );
   
   // several iterations to make sure the producer can manage 2 consumers running in a row
   
@@ -626,6 +624,41 @@ TEST_F(Shared_memory_tests,exchange_manager){
     
   }
   
+}
+
+
+TEST_F(Shared_memory_tests,exchange_manager_init){
+
+  bool leading = true;
+  bool autolock = true; // we will not need to call producer.lock()
+
+  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
+
+  typedef shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Consumer;
+
+  
+  Producer::clean_mutex(shared_memory_test::segment_id);
+  Producer::clean_memory(shared_memory_test::segment_id);
+
+  Producer producer( shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     leading,
+		     autolock );
+
+  Consumer consumer( shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     !leading);
+
+  bool consumed;
+  if (consumer.ready_to_consume())
+    {
+      shared_memory::Four_int_values fiv;
+      consumed = consumer.consume(fiv);
+    }
+
+  ASSERT_EQ(consumed,false);
 }
 
 TEST_F(Shared_memory_tests,serialization){

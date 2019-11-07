@@ -129,11 +129,9 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
     this->lock();
   }
 
-  bool read;
+  bool read = false;
   try {
-
     read = memory_->read_serialized(serializable);
-    
   } catch(const std::runtime_error &e){
 
     if( autolock_ ){
@@ -162,4 +160,17 @@ bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consume(Serializable &s
 template <class Serializable, int QUEUE_SIZE>
 int Exchange_manager_consumer<Serializable,QUEUE_SIZE>::nb_char_read() {
   return memory_->nb_char_read();
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::producer_queue_empty() const
+{
+  return memory_->producer_queue_empty();
+}
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consumer_queue_empty() const
+{
+  return memory_->consumer_queue_empty();
 }

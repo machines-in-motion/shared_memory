@@ -40,7 +40,7 @@ PYBIND11_MODULE(shared_memory_py,m){
   // LockedConditionVariable
   
   pybind11::class_<LockedConditionVariable>(m,"LockedConditionVariable")
-    .def(pybind11::init<std::string,std::string,bool>())
+    .def(pybind11::init<std::string,bool>())
     .def("notify_all",&LockedConditionVariable::notify_all)
     .def("notify_one",&LockedConditionVariable::notify_one)
     .def("timed_wait",&LockedConditionVariable::timed_wait)

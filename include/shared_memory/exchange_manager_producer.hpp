@@ -72,9 +72,19 @@ namespace shared_memory {
      *  if the shared memory is full. Some of the shared memory should get free once items have
      *  been consumed by a consumer. This method should be called only if 'ready_to_produce'
      *  returns true;
+     *  Returns true if all data could be written in the shared memory, false if some
+     *  data required to be buffered (any following
+     *  call to set, if any, will perform a new attempt to write remaining buffer to the
+     *  shared memory)
      */
-    void set(const Serializable &serializable);
+    bool set(const Serializable &serializable);
 
+    /**
+     * @brief removed all elements from the shared queue
+     *
+     */
+    void clear();
+    
     /** @brief write into get_consumed_ids the ids of serialized items that have been 
      *  successfully consumed by a consumer
      */
@@ -92,6 +102,9 @@ namespace shared_memory {
      */
     void reset_char_count();
 
+    bool producer_queue_empty() const;
+    bool consumer_queue_empty() const;
+    
     
   private:
 

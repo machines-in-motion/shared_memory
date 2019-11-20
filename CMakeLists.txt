@@ -101,6 +101,10 @@ add_executable(serialization
   demos/serialization.cpp)
 target_link_libraries(serialization shared_memory)
 
+add_executable(vector
+  demos/vector_demo2.cpp)
+target_link_libraries(vector shared_memory)
+
 ##############
 # Python wrapper #
 ##############

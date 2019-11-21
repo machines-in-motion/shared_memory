@@ -24,17 +24,32 @@ void run()
 				  true,
 				  true);
 
+  Pitoune p(100);
+  p.print();
+  a.set(5,p);
+  
   shared_memory::array<Pitoune> b(SEGMENT,
 				  SIZE,
 				  false,
 				  true);
+
+  uint iteration = 0;
+  
   while(RUNNING)
     {
-      std::cout << ".";
-      usleep(100000);
+      usleep(100);
+      /*
+      for(int i=0;i<SIZE;i++)
+	{
+	  Pitoune p(iteration);
+	  p.print();
+	  a.set(i,p);
+	}
+      Pitoune p = b.get(5);
+      p.print();
+      usleep(10);
+      iteration++;*/
     }
-
-
 }
 
 

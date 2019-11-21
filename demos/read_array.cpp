@@ -22,7 +22,14 @@ void run()
 				  false,
 				  true);
 
-
+  /*
+  while(RUNNING)
+    {
+      Pitoune n = b.get(5);
+      n.print();
+      usleep(20);
+      }*/
+  
 }
 
 

@@ -17,8 +17,8 @@ namespace shared_memory
     array(std::string segment_id,
 	  std::size_t size,
 	  bool clear_on_destruction=false,
-	  bool multiprocess_safe=true,
-	  uint memory_size=65536);
+	  bool multiprocess_safe=true);
+
 
     ~array();
     
@@ -43,8 +43,8 @@ namespace shared_memory
     std::size_t item_size_;
     std::size_t size_;
     std::size_t total_size_;
-    shared_memory::Mutex mutex_;    
-    std::string* shared_;
+    shared_memory::Mutex mutex_;
+    char* shared_;
     T t_;
     
   };

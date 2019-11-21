@@ -15,10 +15,12 @@
 #include "shared_memory/exchange_manager_producer.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
+#include "shared_memory/demos/item.hpp"
 #include "gtest/gtest.h"
 #include <cstdlib>
 #include <unistd.h>
 #include <sstream>
+
 
 // set in the CMakeLists.txt file
 // see tests/support/tests_executable.cpp
@@ -648,5 +650,23 @@ TEST_F(Shared_memory_tests,serialization){
   ASSERT_EQ(in2.same(out2),true);
 
 }
+
+
+TEST_F(Shared_memory_tests,serialization2){
+
+  shared_memory::clear_shared_memory("test_ser");
+
+  shared_memory::Serializer<shared_memory::Item<10>> serializer;
   
+  for(int v=1;v<100;v++)
+    {
+      shared_memory::Item<10> in(v);
+      shared_memory::Item<10> out;
+      const std::string& s = serializer.serialize(in);
+      serializer.deserialize(s,out);
+      ASSERT_EQ(in.get(),out.get());
+    }
+  
+}
+
 

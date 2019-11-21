@@ -1,8 +1,9 @@
 #include "shared_memory/array.hpp"
-#include "shared_memory/demos/pitoune.hpp"
+#include "shared_memory/demos/item.hpp"
 #include <signal.h>
 #include <unistd.h>
 
+#define S 10
 #define SIZE 100
 #define SEGMENT "demo_array"
 
@@ -17,38 +18,31 @@ void stop(int){
 void run()
 {
 
-  shared_memory::array<Pitoune>::clear(SEGMENT);
+  shared_memory::array<shared_memory::Item<S>>::clear(SEGMENT);
   
-  shared_memory::array<Pitoune> a(SEGMENT,
-				  SIZE,
-				  true,
-				  true);
+  shared_memory::array<shared_memory::Item<S>> a( SEGMENT,
+						  SIZE,
+						  true,
+						  true );
 
-  Pitoune p(100);
-  p.print();
-  a.set(5,p);
-  
-  shared_memory::array<Pitoune> b(SEGMENT,
-				  SIZE,
-				  false,
-				  true);
+  shared_memory::array<shared_memory::Item<S>> b( SEGMENT,
+						  SIZE,
+						  false,
+						  true );
 
   uint iteration = 0;
   
   while(RUNNING)
     {
-      usleep(100);
-      /*
       for(int i=0;i<SIZE;i++)
 	{
-	  Pitoune p(iteration);
-	  p.print();
+	  shared_memory::Item<S> p(iteration);
 	  a.set(i,p);
 	}
-      Pitoune p = b.get(5);
+      shared_memory::Item<S> p = b.get(5);
       p.print();
       usleep(10);
-      iteration++;*/
+      iteration++;
     }
 }
 

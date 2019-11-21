@@ -202,6 +202,11 @@ add_executable(serialization_frequency
   benchmarks/serialization_frequency.cpp)
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 
+# comparing std::array and shared_memory::array
+add_executable(benchmark_array
+  benchmarks/array.cpp)
+target_link_libraries(benchmark_array ${BENCHMARK_DEPENDENCIES} shared_memory)
+
 
 ##########################
 # building documentation #

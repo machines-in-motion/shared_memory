@@ -8,7 +8,7 @@ namespace shared_memory
 {
 
 
-  template<class T>
+  template<typename T>
   class array
   {
 
@@ -45,8 +45,8 @@ namespace shared_memory
     std::size_t total_size_;
     shared_memory::Mutex mutex_;
     char* shared_;
+    T* f_shared_;
     T t_;
-    
   };
 
 

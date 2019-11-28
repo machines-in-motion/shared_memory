@@ -1,15 +1,17 @@
+// Copyright (c) 2019 Max Planck Gesellschaft
+// Author : Vincent Berenz
+
 #pragma once
 
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/mutex.hpp"
 
+#include <cstring>
+
 namespace shared_memory
 {
 
-  using boost::interprocess as bi;
-  using shared_memory as sm;
-  
   typedef std::integral_constant<int,0> SERIALIZABLE;
   typedef std::integral_constant<int,1> FUNDAMENTAL;
   typedef std::integral_constant<int,2> FUNDAMENTAL_ARRAY;
@@ -19,29 +21,15 @@ namespace shared_memory
 
     template<typename T, int SIZE=0, typename Enable=void>
     class array_members
-      : public SERIALIZABLE
     {
     protected:
-      sm::Serializer<T> serializer_;
+      Serializer<T> serializer_;
       char * shared_;
       std::size_t item_size_;
       std::size_t total_size_;
       SERIALIZABLE type_;
-    }
-
-    // defining members for fundamental types
-    // which will directly be stored
-    template<typename T>
-    class array_members< T ,
-			 0,
-			 typename std::enable_if<std::is_fundamental<T>::type >
-      : public FUNDAMENTAL
-    {
-    protected:
-      T * shared_;
-      FUNDAMENTAL type_;
     };
-      
+
     // defining members for serializable instances,
     // which will be stored as char arrays
     template<typename T, int SIZE>
@@ -51,9 +39,21 @@ namespace shared_memory
     {
     protected:
       T * shared_;
-      std::size_t item_size_;
       std::size_t total_size_;
       FUNDAMENTAL_ARRAY type_;
+    };
+
+
+    // defining members for fundamental types
+    // which will directly be stored
+    template<typename T>
+    class array_members< T ,
+			 0,
+			 typename std::enable_if< std::is_fundamental<T>::value >::type >
+    {
+    protected:
+      T * shared_;
+      FUNDAMENTAL type_;
     };
       
   }
@@ -68,18 +68,20 @@ namespace shared_memory
     // -----------------------------------------
     // implementation for serializable instances
     // -----------------------------------------
-    
+
     void init( SERIALIZABLE )
     {
-      this->item_size_ = sm::Serializer<T>::serializable_size();
-      this->total_size_ = this->item_size_*this->size_,
+      this->item_size_ = Serializer<T>::serializable_size();
+      this->total_size_ = this->item_size_*this->size_;
       // note: I do not understand how the memory padding works for memory segment,
       // but using the exact required amount of memory does not work, hence the ugly +500.
-      this->segment_manager_ = bi::managed_shared_memory(bi::open_or_create,
-						   segment_id.c_str(),
+      segment_manager_ =
+	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
+						   segment_id_.c_str(),
 						   this->total_size_*sizeof(char)+500);
-      this->shared_ = segment_manager_.find_or_construct<char>
-	(segment_id.c_str())[this->total_size_]();
+      this->shared_ =
+	  segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
+
     }
 
     void set(uint index,const T& t, SERIALIZABLE) 
@@ -105,7 +107,7 @@ namespace shared_memory
 	}
     }
 
-    T get(uint index,SERIALIZABLE) 
+    void get(uint index, T& t, SERIALIZABLE) 
     {
       uint abs_index = index*this->item_size_;
       if(abs_index<0 || abs_index>=this->total_size_)
@@ -117,24 +119,86 @@ namespace shared_memory
 	  mutex_.lock();
 	}
       this->serializer_.deserialize(std::string(&this->shared_[abs_index],
-						this->item_size_),t_);
+						this->item_size_),t);
       if(multiprocess_safe_)
 	{
 	  mutex_.unlock();
 	}
-      return t_;
     }
 
+    // ----------------------------------------------
+    // implementation for arrays of fundamental types
+    // ----------------------------------------------
+
+    void init( FUNDAMENTAL_ARRAY )
+    {
+      this->total_size_ = this->item_size_*SIZE;
+      // note: I do not understand how the memory padding works for memory segment,
+      // but using the exact required amount of memory does not work, hence the ugly +500.
+      segment_manager_ =
+	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
+						   segment_id_.c_str(),
+						   this->total_size_*sizeof(T)+500);
+      this->shared_ =
+	segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
+
+      
+    }
+
+    void set(uint index, const T& t, FUNDAMENTAL_ARRAY) 
+    {
+
+      uint abs_index = index*SIZE;
+      if(abs_index<0 || index>=this->total_size_)
+	{
+	  throw std::runtime_error("invalid index");
+	}
+      if(multiprocess_safe_)
+	{
+	  mutex_.lock();
+	}
+      std::memcpy(this->shared_+sizeof(T)*abs_index,
+		  &t,
+		  SIZE);
+      if(multiprocess_safe_)
+	{
+	  mutex_.unlock();
+	}
+    }
+
+    void get(uint index,T& t,FUNDAMENTAL_ARRAY) 
+    {
+      uint abs_index = index*this->item_size_;
+      if(abs_index<0 || abs_index>=this->total_size_)
+	{
+	  throw std::runtime_error("invalid index");
+	}
+      if(multiprocess_safe_)
+	{
+	  mutex_.lock();
+	}
+      std::memcpy(t,
+		  this->shared_+sizeof(T)*abs_index,
+		  SIZE);
+      if(multiprocess_safe_)
+	{
+	  mutex_.unlock();
+	}
+    }
+
+    
     // ------------------------------------
     // implementation for fundamental types
     // ------------------------------------
 
-    init( FUNDAMENTAL )
+    void init( FUNDAMENTAL )
     {
-      segment_manager_ = bi::managed_shared_memory(bi::open_or_create,
-						   segment_id.c_str(),
+      segment_manager_ =
+	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
+						   segment_id_.c_str(),
 						   size_*sizeof(T)+500);
-      this->shared_ = segment_manager_.find_or_construct<T>(segment_id.c_str())[size_]();
+      this->shared_ =
+	segment_manager_.find_or_construct<T>(segment_id_.c_str())[size_]();
     }
 
     void set(uint index,const T& t, FUNDAMENTAL) 
@@ -155,7 +219,7 @@ namespace shared_memory
       return;
     }
     
-    T get(uint index, FUNDAMENTAL) 
+    void get(uint index, T& t, FUNDAMENTAL) 
     {
       if(index<0 || index>=size_)
 	{
@@ -165,12 +229,11 @@ namespace shared_memory
 	{
 	  mutex_.lock();
 	}
-      T r = this->shared_[index];
+      t = this->shared_[index];
       if(multiprocess_safe_)
 	{
 	  mutex_.unlock();
 	}
-      return r;
     }
 
 
@@ -184,9 +247,10 @@ namespace shared_memory
       : segment_id_(segment_id),
 	size_(size),
 	clear_on_destruction_(clear_on_destruction),
-	multiprocess_safe_(multiprocess_safe)
+	multiprocess_safe_(multiprocess_safe),
+	mutex_(segment_id+std::string("_mutex"),clear_on_destruction)
     {
-      init(type_);
+      init(this->type_);
     }
 
     ~array()
@@ -196,22 +260,33 @@ namespace shared_memory
 	  array<T>::clear(segment_id_); 
 	}
     }
-    
-    static void clear(std::string segment_id)
+
+    void set(uint index, const T& t)
     {
-      bi::shared_memory_object::remove(segment_id.c_str());
-      bi::named_mutex::remove((segment_id+std::string("_mutex")).c_str());
+      set(index,t,this->type_);
     }
 
+    void get(uint index, T& t)
+    {
+      get(index,t,this->type_);
+    }
+
+    static void clear(std::string segment_id)
+    {
+      boost::interprocess::shared_memory_object::remove(segment_id.c_str());
+      boost::interprocess::named_mutex::remove((segment_id+std::string("_mutex")).c_str());
+    }
+
+    
   private:
 
+    boost::interprocess::managed_shared_memory segment_manager_;
     std::string segment_id_;
     std::size_t size_;
     bool clear_on_destruction_;
     bool multiprocess_safe_;
-    T t_;
+    shared_memory::Mutex mutex_;
     
-
   };
 
 }

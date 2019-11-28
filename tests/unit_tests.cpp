@@ -13,6 +13,7 @@
 #include "shared_memory/lock.hpp"
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/array.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
 #include "shared_memory/demos/item.hpp"
@@ -670,3 +671,14 @@ TEST_F(Shared_memory_tests,serialization2){
 }
 
 
+TEST_F(Shared_memory_tests,array_int){
+
+  shared_memory::clear_shared_memory("test_array");
+
+  shared_memory::array<int> a("test_array",10,true,true);
+  int value = 1;
+  a.set(2,1);
+  a.get(2,value);
+  ASSERT_EQ(value,1);
+  
+}

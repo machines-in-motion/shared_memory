@@ -101,17 +101,18 @@ add_executable(serialization
   demos/serialization.cpp)
 target_link_libraries(serialization shared_memory)
 
-add_executable(write_array
-  demos/write_array.cpp)
-target_link_libraries(write_array shared_memory)
 
-add_executable(read_array
-  demos/read_array.cpp)
-target_link_libraries(read_array shared_memory)
+#add_executable(write_array
+#  demos/write_array.cpp)
+#target_link_libraries(write_array shared_memory)
 
-add_executable(write_int_array
-  demos/write_int_array.cpp)
-target_link_libraries(write_int_array shared_memory)
+#add_executable(read_array
+#  demos/read_array.cpp)
+#target_link_libraries(read_array shared_memory)
+
+#add_executable(write_int_array
+#  demos/write_int_array.cpp)
+#target_link_libraries(write_int_array shared_memory)
 
 
 
@@ -208,9 +209,9 @@ add_executable(serialization_frequency
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 
 # comparing std::array and shared_memory::array
-add_executable(benchmark_array
-  benchmarks/array.cpp)
-target_link_libraries(benchmark_array ${BENCHMARK_DEPENDENCIES} shared_memory)
+#add_executable(benchmark_array
+#  benchmarks/array.cpp)
+#target_link_libraries(benchmark_array ${BENCHMARK_DEPENDENCIES} shared_memory)
 
 
 ##########################

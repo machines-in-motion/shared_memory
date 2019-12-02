@@ -7,58 +7,37 @@
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/mutex.hpp"
 
+// support code exclusive for array
+// define types SERIALIZABLE, FUNDAMENTAL and FUNDAMENTAL_ARRAY
+// define super class array_member, which defines the private class
+// members specific for each implementation (serializable,
+// fundamental and fundamental array)
+#include "shared_memory/internal/array_members.hpp"
+
 #include <cstring>
 
 namespace shared_memory
 {
+  /**
+   * wipe the shared memory segment created by an instance
+   * of shared_memory::array, including mutexes, if any.
+   * If there are not memory segment of this id, there will be
+   * no effect. If shared_memory::array are pointing to the
+   * wiped out segment, their get and set function may hang 
+   * indefinitely.
+   */
+  void clear_array(std::string segment_id);
 
-  typedef std::integral_constant<int,0> SERIALIZABLE;
-  typedef std::integral_constant<int,1> FUNDAMENTAL;
-  typedef std::integral_constant<int,2> FUNDAMENTAL_ARRAY;
-  
-  namespace internal
-  {
-
-    template<typename T, int SIZE=0, typename Enable=void>
-    class array_members
-    {
-    protected:
-      Serializer<T> serializer_;
-      char * shared_;
-      std::size_t item_size_;
-      std::size_t total_size_;
-      SERIALIZABLE type_;
-    };
-
-    // defining members for serializable instances,
-    // which will be stored as char arrays
-    template<typename T, int SIZE>
-    class array_members< T,
-			 SIZE,
-			 typename std::enable_if< std::is_fundamental<T>::value && SIZE!=0 >::type >
-    {
-    protected:
-      T * shared_;
-      std::size_t total_size_;
-      FUNDAMENTAL_ARRAY type_;
-    };
-
-
-    // defining members for fundamental types
-    // which will directly be stored
-    template<typename T>
-    class array_members< T ,
-			 0,
-			 typename std::enable_if< std::is_fundamental<T>::value >::type >
-    {
-    protected:
-      T * shared_;
-      FUNDAMENTAL type_;
-    };
-      
-  }
-  
-  
+  /**
+   * Implement a shared array stored on a shared memory
+   * segment. Items hosted by the array may be of (1) fundamental 
+   * type (e.g. int, double, char), (2) array of fundamental type
+   * (e.g. int[10]); or (3) instances of a class implementing a 
+   * serializable function (see shared_memory::serializer).
+   * For (3), due to the cost of serializing, a shared_memory::array
+   * is expected to be around 50 times slower compared to a std::array.
+   * For (1) and (2), performances are similar to std::array.
+   */
   template<typename T, int SIZE=0>
   class array : public internal::array_members<T,SIZE>
   {
@@ -69,214 +48,96 @@ namespace shared_memory
     // implementation for serializable instances
     // -----------------------------------------
 
-    void init( SERIALIZABLE )
-    {
-      this->item_size_ = Serializer<T>::serializable_size();
-      this->total_size_ = this->item_size_*this->size_;
-      // note: I do not understand how the memory padding works for memory segment,
-      // but using the exact required amount of memory does not work, hence the ugly +500.
-      segment_manager_ =
-	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
-						   segment_id_.c_str(),
-						   this->total_size_*sizeof(char)+500);
-      this->shared_ =
-	  segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
-
-    }
-
-    void set(uint index,const T& t, SERIALIZABLE) 
-    {
-
-      uint abs_index = index*this->item_size_;
-      if(abs_index<0 || index>=this->total_size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      const std::string& serialized = this->serializer_.serialize(t);
-      for(uint index=0;index<this->item_size_;index++)
-	{
-	  this->shared_[abs_index+index]=serialized[index];
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-    }
-
-    void get(uint index, T& t, SERIALIZABLE) 
-    {
-      uint abs_index = index*this->item_size_;
-      if(abs_index<0 || abs_index>=this->total_size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      this->serializer_.deserialize(std::string(&this->shared_[abs_index],
-						this->item_size_),t);
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-    }
+    void init( SERIALIZABLE );
+    void set(uint index,const T& t, SERIALIZABLE);
+    void get(uint index, T& t, SERIALIZABLE);
 
     // ----------------------------------------------
     // implementation for arrays of fundamental types
     // ----------------------------------------------
 
-    void init( FUNDAMENTAL_ARRAY )
-    {
-      this->total_size_ = this->item_size_*SIZE;
-      // note: I do not understand how the memory padding works for memory segment,
-      // but using the exact required amount of memory does not work, hence the ugly +500.
-      segment_manager_ =
-	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
-						   segment_id_.c_str(),
-						   this->total_size_*sizeof(T)+500);
-      this->shared_ =
-	segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
-
-      
-    }
-
-    void set(uint index, const T& t, FUNDAMENTAL_ARRAY) 
-    {
-
-      uint abs_index = index*SIZE;
-      if(abs_index<0 || index>=this->total_size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      std::memcpy(this->shared_+sizeof(T)*abs_index,
-		  &t,
-		  SIZE);
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-    }
-
-    void get(uint index,T& t,FUNDAMENTAL_ARRAY) 
-    {
-      uint abs_index = index*this->item_size_;
-      if(abs_index<0 || abs_index>=this->total_size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      std::memcpy(t,
-		  this->shared_+sizeof(T)*abs_index,
-		  SIZE);
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-    }
-
+    void init( FUNDAMENTAL_ARRAY );
+    void set(uint index, const T& t, FUNDAMENTAL_ARRAY);
+    void get(uint index,T& t,FUNDAMENTAL_ARRAY);
     
     // ------------------------------------
     // implementation for fundamental types
     // ------------------------------------
 
-    void init( FUNDAMENTAL )
-    {
-      segment_manager_ =
-	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
-						   segment_id_.c_str(),
-						   size_*sizeof(T)+500);
-      this->shared_ =
-	segment_manager_.find_or_construct<T>(segment_id_.c_str())[size_]();
-    }
-
-    void set(uint index,const T& t, FUNDAMENTAL) 
-    {
-      if(index<0 || index>=size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      this->shared_[index]=t;
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-      return;
-    }
-    
-    void get(uint index, T& t, FUNDAMENTAL) 
-    {
-      if(index<0 || index>=size_)
-	{
-	  throw std::runtime_error("invalid index");
-	}
-      if(multiprocess_safe_)
-	{
-	  mutex_.lock();
-	}
-      t = this->shared_[index];
-      if(multiprocess_safe_)
-	{
-	  mutex_.unlock();
-	}
-    }
-
-
+    void init( FUNDAMENTAL );
+    void set(uint index,const T& t, FUNDAMENTAL); 
+    void get(uint index, T& t, FUNDAMENTAL);
     
   public:
 
+    /**
+     * @param segment_id should be the same for 
+     * all array pointing to the same shared memory segment
+     * @param size : number of elements to be stored by the array
+     * @param clear_on_destruction: if true, the shared memory segment
+     * will be wiped on destruction of the array. Note that any array
+     * pointing to this segment may hang indefinitely as a result. If
+     * no arrays pointing to the shared memory segment delete the segment,
+     * then users are expected to call shared_memory::clear_array. 
+     * @param multiprocess_safe if false, it is strongly adviced to 
+     * protect accesses via a shared_memory::Mutex
+     */
     array( std::string segment_id,
 	   std::size_t size,
 	   bool clear_on_destruction=true,
-	   bool multiprocess_safe=true)
-      : segment_id_(segment_id),
-	size_(size),
-	clear_on_destruction_(clear_on_destruction),
-	multiprocess_safe_(multiprocess_safe),
-	mutex_(segment_id+std::string("_mutex"),clear_on_destruction)
-    {
-      init(this->type_);
-    }
+	   bool multiprocess_safe=true);
 
-    ~array()
-    {
-      if(clear_on_destruction_)
-	{
-	  array<T>::clear(segment_id_); 
-	}
-    }
+    /**
+     * wipe the related shared memory segment 
+     * if clear_on_destruction is true (true by default)
+     */ 
+    ~array();
 
-    void set(uint index, const T& t)
-    {
-      set(index,t,this->type_);
-    }
+    /**
+     * this array and other array will point to the
+     * same memory segment, and will have same values for
+     * clear_on_destruction and multiprocess_safe
+     */
+    array(const array<STATE>& other);
+    
+    /**
+     * This array will point to the share memory segment 
+     * pointed at by other; and will have same value for 
+     * multprocess_safe and clear_on_destruction.
+     * Warning: even if other.clear_on_destruction is 
+     * true, the segment memory will not be wiped on the destruction
+     * of other. The duty of deleting the shared memory is passed 
+     * to the new instance, so to speak 
+     */
+    array(array<STATE>&& other) noexcept;
 
-    void get(uint index, T& t)
-    {
-      get(index,t,this->type_);
-    }
+    /**
+     * this array and other array will point to the
+     * same memory segment, and will have same values for
+     * clear_on_destruction and multiprocess_safe
+     */
+    array<STATE>& operator=(const array<STATE>& other);
+    
+    /**
+     * This array will point to the share memory segment 
+     * pointed at by other; and will have same value for 
+     * multprocess_safe and clear_on_destruction.
+     * Warning: even if other.clear_on_destruction is 
+     * true, the segment memory will not be wiped on the destruction
+     * of other. The duty of deleting the shared memory is passed 
+     * to the new instance, so to speak 
+     */
+    array<STATE>& operator=(array<STATE>&& other) noexcept;
+    
+    /**
+     * @brief set element t at index 
+     */
+    void set(uint index, const T& t);
 
-    static void clear(std::string segment_id)
-    {
-      boost::interprocess::shared_memory_object::remove(segment_id.c_str());
-      boost::interprocess::named_mutex::remove((segment_id+std::string("_mutex")).c_str());
-    }
-
+    /**
+     * @brief read element at index into t
+     */
+    void get(uint index, T& t);
     
   private:
 
@@ -289,4 +150,21 @@ namespace shared_memory
     
   };
 
+  // code common for all implementations
+  #include "array.hxx"
+
+  // implementation for array of fundamental types
+  // (e.g. array of int or of double)
+  #include "array_fundamental.hxx"
+
+  // implementation for array of array of fundamental
+  // types
+  // (e.g. array of array of int, possibly useful to
+  // store images)
+  #include "array_fundamental_array.hxx"
+
+  // implementation for arbitrary class implementing
+  // the serialize function (see shared_memory/serializer.hpp)
+  #include "array_serializable.hxx"
+  
 }

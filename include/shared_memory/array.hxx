@@ -16,6 +16,47 @@ array<T,SIZE>::array( std::string segment_id,
   init(this->type_);
 }
 
+
+template<typename T, int SIZE>
+array<T,SIZE>::array(const array<T,SIZE>& other)
+  : segment_id_(other.segment_id_),
+    size_(other.size_),
+    clear_on_destruction_(other.clear_on_destruction_),
+    multiprocess_safe_(other.multiprocess_safe_),
+    mutex_(segment_id_+std::string("_mutex"),clear_on_destruction_)
+{
+  init(this->type_);
+}
+
+
+template<typename T, int SIZE>
+array<T,SIZE>::array(array<T,SIZE>&& other) noexcept
+  : segment_id_(other.segment_id_),
+    size_(other.size_),
+    clear_on_destruction_(other.clear_on_destruction_),
+    multiprocess_safe_(other.multiprocess_safe_),
+    mutex_(segment_id_+std::string("_mutex"),clear_on_destruction_)
+{
+  init(this->type_);
+  other.shared_=nullptr;
+  other.clear_on_destruction_=false;
+}
+
+
+template<typename T, int SIZE>
+array<T,SIZE>& array<T,SIZE>::operator=(array<T,SIZE>&& other) noexcept
+{
+  segment_id_ = other.segment_id_;
+  size_ = other.size_;
+  clear_on_destruction_ = other.clear_on_destruction_;
+  other.clear_on_destruction_=false;
+  multiprocess_safe_ = other.multiprocess_safe_;
+  init(this->type);
+  mutex_ = std::swap(other.mutex_);
+  other.shared_=nullptr;
+  return *this;
+}
+
 template<typename T, int SIZE>
 array<T,SIZE>::~array()
 {

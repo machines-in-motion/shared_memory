@@ -5,7 +5,7 @@
 template<typename T, int SIZE>
 void array<T,SIZE>::init( FUNDAMENTAL_ARRAY )
 {
-  this->total_size_ = this->item_size_*SIZE;
+  this->total_size_ = size_*SIZE;
   // note: I do not understand how the memory padding works for memory segment,
   // but using the exact required amount of memory does not work, hence the ugly +500.
   segment_manager_ =
@@ -13,9 +13,7 @@ void array<T,SIZE>::init( FUNDAMENTAL_ARRAY )
 					       segment_id_.c_str(),
 					       this->total_size_*sizeof(T)+500);
   this->shared_ =
-    segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
-
-      
+    segment_manager_.find_or_construct<T>(segment_id_.c_str())[this->total_size_]();
 }
 
 
@@ -32,9 +30,11 @@ void array<T,SIZE>::set(uint index, const T& t, FUNDAMENTAL_ARRAY)
     {
       mutex_.lock();
     }
+
   std::memcpy(this->shared_+sizeof(T)*abs_index,
 	      &t,
-	      SIZE);
+	      sizeof(T)*SIZE);
+
   if(multiprocess_safe_)
     {
       mutex_.unlock();
@@ -45,7 +45,7 @@ void array<T,SIZE>::set(uint index, const T& t, FUNDAMENTAL_ARRAY)
 template<typename T, int SIZE>
 void array<T,SIZE>::get(uint index,T& t,FUNDAMENTAL_ARRAY) 
 {
-  uint abs_index = index*this->item_size_;
+  uint abs_index = index*SIZE;
   if(abs_index<0 || abs_index>=this->total_size_)
     {
       throw std::runtime_error("invalid index");
@@ -54,9 +54,9 @@ void array<T,SIZE>::get(uint index,T& t,FUNDAMENTAL_ARRAY)
     {
       mutex_.lock();
     }
-  std::memcpy(t,
+  std::memcpy(&t,
 	      this->shared_+sizeof(T)*abs_index,
-	      SIZE);
+	      sizeof(T)*SIZE);
   if(multiprocess_safe_)
     {
       mutex_.unlock();

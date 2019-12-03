@@ -98,7 +98,7 @@ namespace shared_memory
      * same memory segment, and will have same values for
      * clear_on_destruction and multiprocess_safe
      */
-    array(const array<STATE>& other);
+    array(const array<T,SIZE>& other);
     
     /**
      * This array will point to the share memory segment 
@@ -109,16 +109,9 @@ namespace shared_memory
      * of other. The duty of deleting the shared memory is passed 
      * to the new instance, so to speak 
      */
-    array(array<STATE>&& other) noexcept;
+    array(array<T,SIZE>&& other) noexcept;
 
     /**
-     * this array and other array will point to the
-     * same memory segment, and will have same values for
-     * clear_on_destruction and multiprocess_safe
-     */
-    array<STATE>& operator=(const array<STATE>& other);
-    
-    /**
      * This array will point to the share memory segment 
      * pointed at by other; and will have same value for 
      * multprocess_safe and clear_on_destruction.
@@ -127,7 +120,7 @@ namespace shared_memory
      * of other. The duty of deleting the shared memory is passed 
      * to the new instance, so to speak 
      */
-    array<STATE>& operator=(array<STATE>&& other) noexcept;
+    array<T,SIZE>& operator=(array<T,SIZE>&& other) noexcept;
     
     /**
      * @brief set element t at index 

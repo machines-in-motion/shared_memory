@@ -7,6 +7,7 @@
  * 
  * @brief Shared memroy API unittests.
  */
+
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/locked_condition_variable.hpp"
 #include "shared_memory/condition_variable.hpp"
@@ -763,3 +764,34 @@ TEST_F(Shared_memory_tests,array_array_int){
   
 }
 
+TEST_F(Shared_memory_tests,array_serializable)
+{
+
+  shared_memory::clear_shared_memory("test_array");
+
+  int size=100;
+  
+  shared_memory::array<shared_memory::Item<10>> a("test_array",size,true,true);
+
+  for(int i=0;i<size;i++)
+    {
+      shared_memory::Item<10> item(i);
+      a.set(i,item);
+    }
+
+  shared_memory::Item<10> item;
+  for(int i=0;i<size;i++)
+    {
+      a.get(i,item);
+      ASSERT_EQ(item.get(),i);
+    }
+
+  shared_memory::array<shared_memory::Item<10>> b(a);
+  for(int i=0;i<size;i++)
+    {
+      b.get(i,item);
+      ASSERT_EQ(item.get(),i);
+    }
+  
+  
+}

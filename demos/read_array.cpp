@@ -3,8 +3,8 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define S 10
-#define SIZE 100
+
+#define SIZE 4
 #define SEGMENT "demo_array"
 
 
@@ -18,16 +18,23 @@ void stop(int){
 void run()
 {
 
-  shared_memory::array<shared_memory::Item<S>> b(SEGMENT,
-						 SIZE,
-						 false,
-						 true);
+  shared_memory::array<shared_memory::Item<SIZE>> a(SEGMENT,
+						    SIZE,
+						    false,
+						    true);
 
   while(RUNNING)
     {
-      shared_memory::Item<S> n = b.get(5);
-      n.print();
-      usleep(12);
+      shared_memory::Item<SIZE> item;
+      
+      for(int i=0;i<SIZE;i++)
+	{
+	  a.get(i,item);
+	  item.compact_print();
+	}
+
+      std::cout << std::endl;
+
     }
   
 }

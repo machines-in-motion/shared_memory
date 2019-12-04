@@ -21,9 +21,9 @@ namespace shared_memory
   /**
    * wipe the shared memory segment created by an instance
    * of shared_memory::array, including mutexes, if any.
-   * If there are not memory segment of this id, there will be
-   * no effect. If shared_memory::array are pointing to the
-   * wiped out segment, their get and set function may hang 
+   * If there are no memory segment of this id, there will be
+   * no effect. If shared_memory::array instances are pointing to the
+   * wiped out segment, their get and set functions may hang 
    * indefinitely.
    */
   void clear_array(std::string segment_id);
@@ -75,10 +75,12 @@ namespace shared_memory
      * all array pointing to the same shared memory segment
      * @param size : number of elements to be stored by the array
      * @param clear_on_destruction: if true, the shared memory segment
-     * will be wiped on destruction of the array. Note that any array
+     * will be wiped on destruction of the array. Note that any other array
      * pointing to this segment may hang indefinitely as a result. If
      * no arrays pointing to the shared memory segment delete the segment,
-     * then users are expected to call shared_memory::clear_array. 
+     * then users are expected to call shared_memory::clear_array. Failing
+     * to do so may result in new array pointing to a new memory segment
+     * of the same id to hang indefinitely at construction.
      * @param multiprocess_safe if false, it is strongly adviced to 
      * protect accesses via a shared_memory::Mutex
      */
@@ -136,10 +138,10 @@ namespace shared_memory
 
     boost::interprocess::managed_shared_memory segment_manager_;
     std::string segment_id_;
-    std::size_t size_;
-    bool clear_on_destruction_;
-    bool multiprocess_safe_;
-    shared_memory::Mutex mutex_;
+    std::size_t size_; // number of elements in array
+    bool clear_on_destruction_; // memory segment will be clear at destruction if true
+    bool multiprocess_safe_; // protects all operation with an interprocess mutex if true
+    shared_memory::Mutex mutex_; 
     
   };
 

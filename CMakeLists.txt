@@ -102,13 +102,13 @@ add_executable(serialization
 target_link_libraries(serialization shared_memory)
 
 
-add_executable(write_array
-  demos/write_array.cpp)
-target_link_libraries(write_array shared_memory)
+add_executable(demo_write_array
+  demos/demo_write_array.cpp)
+target_link_libraries(demo_write_array shared_memory)
 
-add_executable(read_array
-  demos/read_array.cpp)
-target_link_libraries(read_array shared_memory)
+add_executable(demo_read_array
+  demos/demo_read_array.cpp)
+target_link_libraries(demo_read_array shared_memory)
 
 #add_executable(write_int_array
 #  demos/write_int_array.cpp)

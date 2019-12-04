@@ -22,6 +22,13 @@ namespace shared_memory
       v_=value;
     }
 
+    void fill(int value)
+    {
+      a_.fill(value);
+      v_=value;
+    }
+      
+    
     void set(int index,int value)
     {
       a_[index]=value;

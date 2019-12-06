@@ -13,6 +13,7 @@ search_for_boost()
 search_for_cereal_required()
 
 include_directories(
+    ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIRS}
     ${cereal_INCLUDE_DIRS}
@@ -23,7 +24,7 @@ include_directories(
 # add library #
 ###############
 
-add_library(shared_memory 
+add_library(shared_memory
   src/shared_memory.cpp
   src/locked_condition_variable.cpp
   src/condition_variable.cpp
@@ -31,13 +32,14 @@ add_library(shared_memory
   src/lock.cpp
   src/exceptions.cpp)
 target_link_libraries(shared_memory
+  ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries(shared_memory
   -lrt
   -pthread
-)  
+)
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###################################

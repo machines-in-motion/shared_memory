@@ -295,7 +295,7 @@ TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
 
 TEST_F(Shared_memory_tests,test_memory_overflow){
 
-  unsigned int max_size = SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
+  unsigned int max_size = DEFAULT_SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
   for(size_t i=0;i<v.size();i++) v[i]=1;
 
@@ -793,5 +793,42 @@ TEST_F(Shared_memory_tests,array_serializable)
       ASSERT_EQ(item.get(),i);
     }
   
+}
+
+
+TEST_F(Shared_memory_tests,segment_memory_size)
+{
+
+  shared_memory::clear_shared_memory("ut_sg_mem_size");
+
+  bool error = false;
+  for(int i = 1; i<10; i++)
+    {
+      try
+	{
+	  shared_memory::set_segment_sizes(i*MEMORY_CHUNK_SIZE);
+	  uint size = i*MEMORY_CHUNK_SIZE-MEMORY_PADDING-1;
+	  char c[size];
+	  shared_memory::set("ut_sg_mem_size",
+			     "a",
+			     c,size);
+	  shared_memory::clear_shared_memory("ut_sg_mem_size");
+	}
+      catch (...)
+	{
+	  error = true;
+	}
+      ASSERT_EQ(error,false);
+    }
+
+  try
+    {
+      shared_memory::set_segment_sizes(5*MEMORY_CHUNK_SIZE+1);
+    }
+  catch (...)
+    {
+      error = true;
+    }
+  ASSERT_EQ(error,true);
   
 }

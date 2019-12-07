@@ -19,6 +19,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <mutex>
 
 #include <eigen3/Eigen/Core>
 
@@ -32,7 +33,17 @@
 
 #include "shared_memory/exceptions.h"
 
-#define SHARED_MEMORY_SIZE 65536
+#define DEFAULT_SHARED_MEMORY_SIZE 65536
+
+// memory segments must be of sizes that
+// are multiple of 1025
+#define MEMORY_CHUNK_SIZE 1025
+
+// a segment of size N will uses 292 bytes
+// for internal data, i.e. data space free
+// for user if N-292
+#define MEMORY_PADDING 292
+
 #define MAP_STRING_KEY_SEPARATOR ';'
 
 // cool doc:
@@ -45,6 +56,20 @@
  * int, double, float, char*, ...
  */
 namespace shared_memory {
+
+  /** 
+   * @brief setting the size of the segments that will be newly 
+   * created via the set methods. The size is in bytes 
+   * and must be a multiple of 1025 (a runtime error 
+   * will be thrown otherwise). Note that a shared
+   * memory segment uses 292 bytes for padding, i.e. if the 
+   * segment is of size N bytes, only N-292 bytes are
+   * available for user's data.
+   * Until this function is called, segments are created
+   * with a size of 65536 bytes.
+   */
+  void set_segment_sizes(uint size_in_bytes_multiple_of_1025);
+  
   /***********************
    * Typdef declarations *
    ***********************/

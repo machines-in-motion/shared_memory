@@ -13,6 +13,23 @@ namespace bi=boost::interprocess;
 
 namespace shared_memory {
 
+  static uint SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
+  static std::mutex SEGMENT_SIZE_MUTEX;
+
+  void set_segment_sizes(uint size_in_bytes_multiple_of_1025)
+  {
+    double d = static_cast<double>(size_in_bytes_multiple_of_1025);
+    d = d / static_cast<double>(MEMORY_CHUNK_SIZE);
+    uint i = static_cast<uint>(d);
+    if (i!=d)
+      {
+	throw std::runtime_error("segment sizes should be multiple of 1025 bytes");
+      }
+    SEGMENT_SIZE_MUTEX.lock();
+    SEGMENT_SIZE = size_in_bytes_multiple_of_1025;
+    SEGMENT_SIZE_MUTEX.unlock();
+  }
+  
   /***********************************************
    * Definition of the SharedMemorySegment class *
    ***********************************************/
@@ -29,10 +46,12 @@ namespace shared_memory {
     clear_upon_destruction_ = clear_upon_destruction;
 
     // create and/or map the memory segment
+    SEGMENT_SIZE_MUTEX.lock();
     segment_manager_ = boost::interprocess::managed_shared_memory(
                     boost::interprocess::open_or_create,
                     segment_id.c_str(),
-                    SHARED_MEMORY_SIZE);
+                    SEGMENT_SIZE);
+    SEGMENT_SIZE_MUTEX.unlock();
     create_mutex();
   }
 

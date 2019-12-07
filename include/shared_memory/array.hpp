@@ -67,7 +67,7 @@ namespace shared_memory
     void init( FUNDAMENTAL );
     void set(uint index,const T& t, FUNDAMENTAL); 
     void get(uint index, T& t, FUNDAMENTAL);
-    
+
   public:
 
     /**

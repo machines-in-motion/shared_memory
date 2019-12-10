@@ -40,7 +40,8 @@ add_library(shared_memory
   src/condition_variable.cpp
   src/mutex.cpp
   src/lock.cpp
-  src/exceptions.cpp)
+  src/exceptions.cpp
+  src/segment_info.cpp)
 target_link_libraries(shared_memory
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -194,6 +195,13 @@ add_executable(serialization_frequency
   demos/four_int_values.cpp
   benchmarks/serialization_frequency.cpp)
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
+
+# not really a benchmark, just to get an idea
+# spaces used by memory objects in a memory segment
+add_executable(memory_size
+  benchmarks/memory_size.cpp)
+target_link_libraries(memory_size shared_memory ${BENCHMARK_DEPENDENCIES})
+
 
 
 ##########################

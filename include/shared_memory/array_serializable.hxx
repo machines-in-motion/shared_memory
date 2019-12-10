@@ -7,12 +7,11 @@ void array<T,SIZE>::init( SERIALIZABLE )
 {
   this->item_size_ = Serializer<T>::serializable_size();
   this->total_size_ = this->item_size_*this->size_;
-  // note: I do not understand how the memory padding works for memory segment,
-  // but using the exact required amount of memory does not work, hence the ugly +500.
+  uint segment_size = get_segment_size(this->total_size_,sizeof(char));
   segment_manager_ =
     boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
 					       segment_id_.c_str(),
-					       this->total_size_*sizeof(char)+500);
+					       segment_size);
   this->shared_ =
     segment_manager_.find_or_construct<char>(segment_id_.c_str())[this->total_size_]();
 

@@ -16,17 +16,10 @@ namespace shared_memory {
   static uint SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
   static std::mutex SEGMENT_SIZE_MUTEX;
 
-  void set_segment_sizes(uint size_in_bytes_multiple_of_1025)
+  void set_segment_sizes(uint multiplier_1025)
   {
-    double d = static_cast<double>(size_in_bytes_multiple_of_1025);
-    d = d / static_cast<double>(MEMORY_CHUNK_SIZE);
-    uint i = static_cast<uint>(d);
-    if (i!=d)
-      {
-	throw std::runtime_error("segment sizes should be multiple of 1025 bytes");
-      }
     SEGMENT_SIZE_MUTEX.lock();
-    SEGMENT_SIZE = size_in_bytes_multiple_of_1025;
+    SEGMENT_SIZE = multiplier_1025 * 1025;
     SEGMENT_SIZE_MUTEX.unlock();
   }
   

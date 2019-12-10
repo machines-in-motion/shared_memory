@@ -5,13 +5,15 @@
 template<typename T, int SIZE>
 void array<T,SIZE>::init( FUNDAMENTAL )
 {
+  uint segment_size = get_segment_size(size_,sizeof(T));
   segment_manager_ =
-	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
-						   segment_id_.c_str(),
-						   size_*sizeof(T)+500);
-      this->shared_ =
-	segment_manager_.find_or_construct<T>(segment_id_.c_str())[this->size_]();
-    }
+    boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
+					       segment_id_.c_str(),
+					       segment_size);
+  this->shared_ =
+    segment_manager_.find_or_construct<T>(segment_id_.c_str())[this->size_]();
+
+}
 
 template<typename T, int SIZE>
 void array<T,SIZE>::set(uint index,const T& t, FUNDAMENTAL) 

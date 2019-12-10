@@ -683,7 +683,7 @@ static shared_memory::array<int> get_array_int()
 
 TEST_F(Shared_memory_tests,array_int){
 
-  shared_memory::clear_shared_memory("test_array");
+  shared_memory::clear_array("test_array");
 
   shared_memory::array<int> a("test_array",10,true,true);
   int value = 5;
@@ -708,7 +708,7 @@ TEST_F(Shared_memory_tests,array_int){
 
 TEST_F(Shared_memory_tests,array_array_int){
 
-  shared_memory::clear_shared_memory("test_array");
+  shared_memory::clear_array("test_array");
 
   int size=100;
   
@@ -743,10 +743,7 @@ TEST_F(Shared_memory_tests,array_array_int){
       a.set(i,*values);
     }
 
-  // fails at call to init,
-  // find_or_construct segment_manager.
-  // no idea why
-  //shared_memory::array<int,10> b(a);
+  shared_memory::array<int,10> b(a);
   
   for(int i=0;i<size;i++)
     {
@@ -755,11 +752,12 @@ TEST_F(Shared_memory_tests,array_array_int){
 	{
 	  ASSERT_EQ(values[j],i+j);
 	}
-      /*b.get(i,*values);
+      // fails here
+xo      b.get(i,*values);
       for(uint j=0;j<10;j++)
 	{
 	  ASSERT_EQ(values[j],i+j);
-	  }*/
+	}
     }
   
 }
@@ -767,7 +765,7 @@ TEST_F(Shared_memory_tests,array_array_int){
 TEST_F(Shared_memory_tests,array_serializable)
 {
 
-  shared_memory::clear_shared_memory("test_array");
+  shared_memory::clear_array("test_array");
 
   int size=100;
   
@@ -799,20 +797,15 @@ TEST_F(Shared_memory_tests,array_serializable)
 TEST_F(Shared_memory_tests,segment_memory_size)
 {
 
-  shared_memory::clear_shared_memory("ut_sg_mem_size");
+  shared_memory::clear_array("ut_sg_mem_size");
 
   bool error = false;
   for(int i = 1; i<10; i++)
     {
       try
 	{
-	  shared_memory::set_segment_sizes(i*MEMORY_CHUNK_SIZE);
-	  uint size = i*MEMORY_CHUNK_SIZE-MEMORY_PADDING-1;
-	  char c[size];
-	  shared_memory::set("ut_sg_mem_size",
-			     "a",
-			     c,size);
-	  shared_memory::clear_shared_memory("ut_sg_mem_size");
+	  shared_memory::set_segment_sizes(i);
+	  shared_memory::clear_array("ut_sg_mem_size");
 	}
       catch (...)
 	{
@@ -821,14 +814,4 @@ TEST_F(Shared_memory_tests,segment_memory_size)
       ASSERT_EQ(error,false);
     }
 
-  try
-    {
-      shared_memory::set_segment_sizes(5*MEMORY_CHUNK_SIZE+1);
-    }
-  catch (...)
-    {
-      error = true;
-    }
-  ASSERT_EQ(error,true);
-  
 }

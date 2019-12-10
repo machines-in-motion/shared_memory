@@ -44,13 +44,13 @@ namespace shared_memory
 
   private:
 
-    // -----------------------------------------
-    // implementation for serializable instances
-    // -----------------------------------------
+    // ------------------------------------
+    // implementation for fundamental types
+    // ------------------------------------
 
-    void init( SERIALIZABLE );
-    void set(uint index,const T& t, SERIALIZABLE);
-    void get(uint index, T& t, SERIALIZABLE);
+    void init( FUNDAMENTAL );
+    void set(uint index,const T& t, FUNDAMENTAL); 
+    void get(uint index, T& t, FUNDAMENTAL);
 
     // ----------------------------------------------
     // implementation for arrays of fundamental types
@@ -60,13 +60,13 @@ namespace shared_memory
     void set(uint index, const T& t, FUNDAMENTAL_ARRAY);
     void get(uint index,T& t,FUNDAMENTAL_ARRAY);
     
-    // ------------------------------------
-    // implementation for fundamental types
-    // ------------------------------------
+    // -----------------------------------------
+    // implementation for serializable instances
+    // -----------------------------------------
 
-    void init( FUNDAMENTAL );
-    void set(uint index,const T& t, FUNDAMENTAL); 
-    void get(uint index, T& t, FUNDAMENTAL);
+    void init( SERIALIZABLE );
+    void set(uint index,const T& t, SERIALIZABLE);
+    void get(uint index, T& t, SERIALIZABLE);
 
   public:
 

@@ -2,6 +2,20 @@
 // Author : Vincent Berenz
 
 
+// to make sure size of segments are multiple
+// of 1025
+static uint get_segment_size(size_t size_array,
+			     size_t size_item)
+{
+  size_t total_desired_size = size_array*size_item;
+  double multiplier_d = static_cast<double>(total_desired_size)/1025.0;
+  // + 1 because int rounds to lower bound
+  // + 2 for memory padding
+  uint multiplier = static_cast<uint>(multiplier_d)+2;
+  uint value = multiplier*1025+8*1025;
+  return value;
+}
+
 template<typename T, int SIZE>
 array<T,SIZE>::array( std::string segment_id,
 		      std::size_t size,

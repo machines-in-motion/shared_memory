@@ -40,7 +40,8 @@ add_library(shared_memory
   src/condition_variable.cpp
   src/mutex.cpp
   src/lock.cpp
-  src/exceptions.cpp)
+  src/exceptions.cpp
+  src/segment_info.cpp)
 target_link_libraries(shared_memory
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}

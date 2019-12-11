@@ -708,6 +708,8 @@ TEST_F(Shared_memory_tests, single_process_segments){
 	  smm2.init(segment_id,segment_size,array_size);
 	  bool matches = smm2.is_filled(5);
 	  ASSERT_TRUE(matches);
+	  bool does_not_match = smm2.is_filled(3);
+	  ASSERT_FALSE(does_not_match);
 	  array_size = array_size*2;
 	}
     }

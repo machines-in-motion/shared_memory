@@ -648,5 +648,72 @@ TEST_F(Shared_memory_tests,serialization){
   ASSERT_EQ(in2.same(out2),true);
 
 }
+
+
+class SMManager
+{
+public:
+  void init(std::string segment_id,
+	    int segment_size,
+	    int array_size)
+  {
+    array_size_ = array_size;
+    manager_ =
+      boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
+						 segment_id.c_str(),
+						 segment_size);
+    // segment id also used as object id, since there is only one segment
+    shared_ = manager_.find_or_construct<int>(segment_id.c_str())[array_size]();
+  }
+  void fill(int value)
+  {
+    for(int i=0;i<array_size_;i++)
+      {
+	shared_[i]=value;
+      }
+  }
+  bool is_filled(int expected_value)
+  {
+    for(int i=0;i<array_size_;i++)
+      {
+	if (shared_[i]!=expected_value)
+	  {
+	    return false;
+	  }
+      }
+    return true;
+  }
+  boost::interprocess::managed_shared_memory manager_;
+  int* shared_;
+  int array_size_;
+};
+
+// checking integrity of data of a memory segment
+// managed by to segment managers
+TEST_F(Shared_memory_tests, single_process_segments){
+
+  std::string segment_id("ut_single_process_segments");
   
+  for(int m=1;m<1000;m+=50)
+    {
+      int segment_size = 1025*m;
+      int array_size = 1;
+      while ( (sizeof(int)*array_size) < (segment_size-1025))
+	{
+	  boost::interprocess::shared_memory_object::remove(segment_id.c_str());
+	  SMManager smm1;
+	  SMManager smm2;
+	  smm1.init(segment_id,segment_size,array_size);
+	  smm1.fill(5);
+	  smm2.init(segment_id,segment_size,array_size);
+	  bool matches = smm2.is_filled(5);
+	  ASSERT_TRUE(matches);
+	  array_size = array_size*2;
+	}
+    }
+
+  boost::interprocess::shared_memory_object::remove(segment_id.c_str());
+  
+  
+}
 

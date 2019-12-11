@@ -13,14 +13,18 @@ namespace bi=boost::interprocess;
 
 namespace shared_memory {
 
+  bool VERBOSE=true;
+  void set_verbose(bool mode)
+  {
+    VERBOSE = mode;
+  }
+  
   /***********************************************
    * Definition of the SharedMemorySegment class *
    ***********************************************/
 
   SharedMemorySegment::SharedMemorySegment(std::string segment_id,
                                            bool clear_upon_destruction)
-//    : named_mtx_{boost::interprocess::open_or_create,
-//                 (segment_id_ + "_mutex").c_str()}
   {
     // save the id the of the segment
     segment_id_ = segment_id;

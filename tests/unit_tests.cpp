@@ -35,6 +35,7 @@ class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
+    shared_memory::set_verbose(false);
     shared_memory::get_segment_mutex(shared_memory_test::segment_id).unlock();
   }
   void TearDown() {

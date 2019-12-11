@@ -79,7 +79,15 @@ namespace shared_memory {
           clear_upon_destruction);
     return *GLOBAL_SHM_SEGMENTS[segment_id];
   }
-
+  
+  SegmentInfo get_segment_info(const std::string &segment_id,
+			       const bool clear_upon_destruction)
+  {
+    SharedMemorySegment& segment = get_segment(segment_id,
+					       clear_upon_destruction);
+    return segment.get_info();
+  }
+  
   bool segment_exists(
       const std::string &segment_id )
   {

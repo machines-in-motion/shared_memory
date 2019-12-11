@@ -12,9 +12,10 @@ static uint get_segment_size(size_t size_array,
   // + 1 because int rounds to lower bound
   // + 2 for memory padding
   uint multiplier = static_cast<uint>(multiplier_d)+2;
-  uint value = multiplier*1025+8*1025;
+  uint value = multiplier*1025*2;
   return value;
 }
+
 
 template<typename T, int SIZE>
 array<T,SIZE>::array( std::string segment_id,
@@ -90,6 +91,19 @@ template<typename T, int SIZE>
 void array<T,SIZE>::get(uint index, T& t)
 {
   get(index,t,this->type_);
+}
+
+template<typename T, int SIZE>
+void array<T,SIZE>::print()
+{
+  SegmentInfo si(segment_manager_);
+  si.print();
+}
+
+template<typename T, int SIZE>
+std::size_t array<T,SIZE>::size() const
+{
+  
 }
 
 void clear_array(std::string segment_id)

@@ -1,69 +1,124 @@
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <iostream>
+#include "shared_memory/shared_memory.hpp"
 
-#define SEGMENT "benchmark_memory_size"
+#define SEG "size_benchmark"
 
-
-int print_segment(boost::interprocess::managed_shared_memory &segment_manager)
+void print(const shared_memory::SegmentInfo &si)
 {
-  std::cout << "size:\t" << segment_manager.get_size() << "\n"
-	    << "free:\t" << segment_manager.get_free_memory() << "\n"
-	    << "used:\t" << segment_manager.get_size() - segment_manager.get_free_memory() << "\n"
-	    << "sanity:\t" << segment_manager.check_sanity() << "\n";
-
-  return (segment_manager.get_size() - segment_manager.get_free_memory());
+  std::cout << si.get_size() << "\t" << si.get_free_memory() << "\n";
 }
 
-void test_memory_size(int total_size,
-		      int obj_size)
-{
-
-  boost::interprocess::managed_shared_memory segment_manager;
-
-  segment_manager =
-	boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
-						   SEGMENT,
-						   total_size);
-
-  std::cout << "\n---------------------------------------\n";
-  
-  std::cout << "\ntotal size: " << total_size
-	    << " - nb of doubles: " << total_size/sizeof(double)
-	    << "\n"
-	    << "obj size: " << obj_size << "\n"
-	    << "used size: " << total_size-obj_size << "\n";
-  
-  std::cout << "\nbefore object construction: \n";
-  int used_before = print_segment(segment_manager);
-
-  
-  segment_manager.find_or_construct<char>("OBJ")[obj_size]();
-
-  std::cout << "\nafter object construction: \n";
-  int used_after = print_segment(segment_manager);
-  std::cout << "\n";
-
-  std::cout << "* usage jump: " << used_after-used_before << "\n\n";
-  
-  boost::interprocess::shared_memory_object::remove(SEGMENT);
-
-}
 
 int main()
 {
 
-  boost::interprocess::shared_memory_object::remove(SEGMENT);
+  shared_memory::clear_shared_memory(SEG);
 
-  //int size = 1024*64;
+  shared_memory::SegmentInfo si
+    = shared_memory::get_segment_info(SEG);
 
-  // ok -> padding of 292?
-  //test_memory_size(size,size-292);
-  // no ok
-  //test_memory_size(size,size-291);
+  int previous_free = si.get_free_memory(); 
 
-  int size = 1024*64*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-  test_memory_size(size,size-292);
+  std::cout << "initial free: " << previous_free
+	    << " (" << si.get_size() << ") -> used: "
+	    << si.get_size() - previous_free <<"\n";
+  
+  std::cout << "\nmemory used by creating new char objects\n";
+      
+  for(int i=0;i<3;i++)
+    {
+      shared_memory::set<char>(SEG,
+			       std::to_string(i),
+			       'a');
 
-  // conclusion : memory size should be a multiple of 1024
-  // with padding 292 for object size
+      si
+	= shared_memory::get_segment_info(SEG);
+
+      int free = si.get_free_memory();
+      int diff = previous_free-free;
+      
+      std::cout << "\tmemory used: " << diff << "\n";
+
+      previous_free = free;
+      
+    }
+
+  std::cout << "\nmemory used by creating new double objects\n";
+
+  for(int i=3;i<6;i++)
+    {
+      shared_memory::set<double>(SEG,
+				 std::to_string(i),
+				 static_cast<double>(i));
+
+      si = shared_memory::get_segment_info(SEG);
+
+      int free = si.get_free_memory();
+      int diff = previous_free-free;
+      
+      std::cout << "\tmemory used: " << diff << "\n";
+
+      previous_free = free;
+      
+    }
+
+  std::cout << "\nmemory used by creating new vector<char> of ...\n";
+
+  int index=6;
+  for(int i=1;i<20;i++)
+    {
+      std::cout << "size:\t" << i << "\n";
+      std::vector<char> v(i);
+      shared_memory::set(SEG,std::to_string(index),v);
+      si = shared_memory::get_segment_info(SEG);
+      int free = si.get_free_memory();
+      int diff = previous_free-free;
+      int computed_required = 64+sizeof(char)*i;
+      std::cout << "\tmemory used: " << diff
+		<< " computed: " << computed_required << "\n";
+      previous_free = free;
+      index++;
+    }
+
+  std::cout << "\nmemory used by creating new vector<double> of ...\n";
+
+  for(int i=1;i<20;i++)
+    {
+      std::cout << "size:\t" << i << "\n";
+      std::vector<double> v(i);
+      shared_memory::set(SEG,std::to_string(index),v);
+      si = shared_memory::get_segment_info(SEG);
+      int free = si.get_free_memory();
+      int diff = previous_free-free;
+      int computed_required = 64+sizeof(double)*i;
+      std::cout << "\tmemory used: " << diff
+		<< " computed: " << computed_required << "\n";
+      previous_free = free;
+      index++;
+    }
+
+  
+
+  
+  /*
+  std::cout << "\nmemory used by creating new vector<double> of ...\n";
+
+  for(int i=50;i<350;i+=50)
+    {
+      std::cout << "size:\t" << i << "\n";
+      std::vector<double> v(i);
+      shared_memory::set(SEG,std::to_string(index),v);
+      si = shared_memory::get_segment_info(SEG);
+      int free = si.get_free_memory();
+      int diff = previous_free-free;
+      std::cout << "\tmemory used: " << diff << "\n";
+      previous_free = free;
+      index++;
+    }
+  */
+  
+
+  std::cout << "\nfinal:\n";
+  si = shared_memory::get_segment_info(SEG);
+  si.print();
+  
 }

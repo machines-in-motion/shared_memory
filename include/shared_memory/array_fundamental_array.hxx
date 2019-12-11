@@ -6,8 +6,10 @@ template<typename T, int SIZE>
 void array<T,SIZE>::init( FUNDAMENTAL_ARRAY )
 {
   this->total_size_ = size_*SIZE;
+
   
   uint segment_size = get_segment_size(this->total_size_,sizeof(T));
+
   segment_manager_ =
     boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create,
 					       segment_id_.c_str(),
@@ -55,8 +57,8 @@ void array<T,SIZE>::get(uint index,T& t,FUNDAMENTAL_ARRAY)
       mutex_.lock();
     }
   std::memcpy(&t,
-	      this->shared_+sizeof(T)*abs_index,
-	      sizeof(T)*SIZE);
+  	      this->shared_+sizeof(T)*abs_index,
+  	      sizeof(T)*SIZE);
   if(multiprocess_safe_)
     {
       mutex_.unlock();

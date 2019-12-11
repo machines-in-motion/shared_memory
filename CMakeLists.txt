@@ -13,32 +13,12 @@ search_for_boost()
 search_for_cereal_required()
 
 include_directories(
+    ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIRS}
     ${cereal_INCLUDE_DIRS}
     include
 )
-
-###############
-# add library #
-###############
-
-add_library(shared_memory 
-  src/shared_memory.cpp
-  src/locked_condition_variable.cpp
-  src/condition_variable.cpp
-  src/mutex.cpp
-  src/lock.cpp
-  src/exceptions.cpp)
-target_link_libraries(shared_memory
-  ${Boost_LIBRARIES}
-)
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries(shared_memory
-  -lrt
-  -pthread
-)  
-endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###################################
 # Declare the libraries to export #
@@ -49,6 +29,29 @@ catkin_package(
     CATKIN_DEPENDS
     LIBRARIES shared_memory ${protobuf_cmake_target}
 )
+
+###############
+# add library #
+###############
+
+add_library(shared_memory
+  src/shared_memory.cpp
+  src/locked_condition_variable.cpp
+  src/condition_variable.cpp
+  src/mutex.cpp
+  src/lock.cpp
+  src/exceptions.cpp
+  src/segment_info.cpp)
+target_link_libraries(shared_memory
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries(shared_memory
+  -lrt
+  -pthread
+)
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #########
 # demos #
@@ -112,6 +115,14 @@ target_link_libraries(demo_read_array shared_memory)
 add_executable(demo_array_constructions
   demos/demo_array_constructions.cpp)
 target_link_libraries(demo_array_constructions shared_memory)
+
+add_executable(demo_failing
+  demos/demo_failing.cpp)
+target_link_libraries(demo_failing shared_memory)
+
+add_executable(demo_failing_instance
+  demos/demo_failing_instance.cpp)
+target_link_libraries(demo_failing_instance shared_memory)
 
 
 #add_executable(write_int_array
@@ -212,17 +223,16 @@ add_executable(serialization_frequency
   benchmarks/serialization_frequency.cpp)
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 
-# not really a benchmark
-# testing for memory issues
-add_executable(memory_size
-  benchmarks/memory_size.cpp)
-target_link_libraries(memory_size ${BENCHMARK_DEPENDENCIES})
-
-
 # comparing std::array and shared_memory::array
 #add_executable(benchmark_array
 #  benchmarks/array.cpp)
 #target_link_libraries(benchmark_array ${BENCHMARK_DEPENDENCIES} shared_memory)
+
+# not really a benchmark, just to get an idea
+# spaces used by memory objects in a memory segment
+add_executable(memory_size
+  benchmarks/memory_size.cpp)
+target_link_libraries(memory_size shared_memory ${BENCHMARK_DEPENDENCIES})
 
 
 ##########################

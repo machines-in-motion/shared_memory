@@ -133,6 +133,17 @@ namespace shared_memory
      * @brief read element at index into t
      */
     void get(uint index, T& t);
+
+    /**
+     * @brief max number of elements in the array
+     */
+    std::size_t size() const;
+    
+    /**
+     * @brief print in terminal info about array's
+     * memory usage
+     */
+    void print();
     
   private:
 

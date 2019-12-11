@@ -54,12 +54,18 @@ namespace shared_memory {
    * Until this function is called, segments are created
    * with a size of 65536 bytes.
    * This function is not interprocess : it will set 
-   * the size of segment created in the current process
-   * @param multiplyer_1025 the size of create segment
-   * will be multiplyer_1025 * 1025 bytes (because memory 
-   * segment size have to be a multiple of 1025)
+   * the size of segments created in the current process
+   * @param multiplier_1025 the size of create segment
+   * will be multiplier_1025 * 1025 bytes (because memory 
+   * segment sizes have to be a multiple of 1025)
    */
   void set_segment_sizes(uint multiplier_1025);
+
+  /**
+   * @brief set the size of segment newly 
+   * created to the default size value of 65536
+   */
+  void set_default_segment_sizes();
   
   /***********************
    * Typdef declarations *

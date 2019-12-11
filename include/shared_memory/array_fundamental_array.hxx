@@ -22,9 +22,7 @@ void array<T,SIZE>::init( FUNDAMENTAL_ARRAY )
 template<typename T, int SIZE>
 void array<T,SIZE>::set(uint index, const T& t, FUNDAMENTAL_ARRAY) 
 {
-
-  uint abs_index = index*SIZE;
-  if(abs_index<0 || index>=this->total_size_)
+  if(index>=this->size_)
     {
       throw std::runtime_error("invalid index");
     }
@@ -32,11 +30,12 @@ void array<T,SIZE>::set(uint index, const T& t, FUNDAMENTAL_ARRAY)
     {
       mutex_.lock();
     }
-
-  std::memcpy(this->shared_+sizeof(T)*abs_index,
-	      &t,
-	      sizeof(T)*SIZE);
-
+  uint abs_index = index*SIZE;
+  uint c=0;
+  for(uint i=abs_index;i<abs_index+SIZE;i++)
+    {
+      this->shared_[i]=(&t)[c++];
+    }
   if(multiprocess_safe_)
     {
       mutex_.unlock();
@@ -47,8 +46,7 @@ void array<T,SIZE>::set(uint index, const T& t, FUNDAMENTAL_ARRAY)
 template<typename T, int SIZE>
 void array<T,SIZE>::get(uint index,T& t,FUNDAMENTAL_ARRAY) 
 {
-  uint abs_index = index*SIZE;
-  if(abs_index<0 || abs_index>=this->total_size_)
+  if(index>size_)
     {
       throw std::runtime_error("invalid index");
     }
@@ -56,9 +54,12 @@ void array<T,SIZE>::get(uint index,T& t,FUNDAMENTAL_ARRAY)
     {
       mutex_.lock();
     }
-  std::memcpy(&t,
-  	      this->shared_+sizeof(T)*abs_index,
-  	      sizeof(T)*SIZE);
+  uint abs_index = index*SIZE;
+  uint c=0;
+  for(uint i=abs_index;i<abs_index+SIZE;i++)
+    {
+      (&t)[c++]=this->shared_[i];
+    }
   if(multiprocess_safe_)
     {
       mutex_.unlock();

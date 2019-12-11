@@ -64,7 +64,7 @@ void run()
 					 clear_on_destruction );
 
   // array of array : SIZE * SIZE
-  shared_memory::array<int,SIZE> fundamental_array( SEGMENT_FUNDAMENTAL,
+  shared_memory::array<int,SIZE> fundamental_array( SEGMENT_FUNDAMENTAL_ARRAY,
 						    SIZE,
 						    mutex_protected,
 						    clear_on_destruction );

@@ -38,10 +38,10 @@ namespace shared_memory {
 						     get_.second);
     }
 
-    //if (registered){
-    //std::cout << "registration of " << object_id
-    //		<< " of size " << get_.second << std:: endl;
-    //}
+    if (registered){
+      std::cout << "registration of " << object_id
+    		<< " of size " << get_.second << std:: endl;
+    }
     
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     std::size_t shared_data_size = objects_[object_id].second;
@@ -61,10 +61,10 @@ namespace shared_memory {
 
     bool registered = register_object(object_id, set_);
 
-    //if (registered){
-    //std::cout << "registration of " << object_id
-    //		<< " of size " << objects_[object_id].second << std:: endl;
-    //}
+    if (registered){
+      std::cout << "registration of " << object_id
+    		<< " of size " << objects_[object_id].second << std:: endl;
+    }
 
     ElemType* shared_data = static_cast<ElemType*>(objects_[object_id].first);
     std::size_t shared_data_size = objects_[object_id].second;

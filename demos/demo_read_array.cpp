@@ -62,11 +62,10 @@ void run()
 					 mutex_protected,
 					 clear_on_destruction );
 
-  shared_memory::array<int,SIZE> fundamental_array( SEGMENT_FUNDAMENTAL,
+  shared_memory::array<int,SIZE> fundamental_array( SEGMENT_FUNDAMENTAL_ARRAY,
 						    SIZE,
 						    mutex_protected,
 						    clear_on_destruction );
-
 
   shared_memory::Item<SIZE> item;
   int values[SIZE];

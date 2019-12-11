@@ -112,24 +112,6 @@ add_executable(demo_read_array
   demos/demo_read_array.cpp)
 target_link_libraries(demo_read_array shared_memory)
 
-add_executable(demo_array_constructions
-  demos/demo_array_constructions.cpp)
-target_link_libraries(demo_array_constructions shared_memory)
-
-add_executable(demo_failing
-  demos/demo_failing.cpp)
-target_link_libraries(demo_failing shared_memory)
-
-add_executable(demo_failing_instance
-  demos/demo_failing_instance.cpp)
-target_link_libraries(demo_failing_instance shared_memory)
-
-
-#add_executable(write_int_array
-#  demos/write_int_array.cpp)
-#target_link_libraries(write_int_array shared_memory)
-
-
 
 ##############
 # Python wrapper #

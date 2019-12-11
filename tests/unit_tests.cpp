@@ -752,7 +752,6 @@ TEST_F(Shared_memory_tests,array_array_int){
 	{
 	  ASSERT_EQ(values[j],i+j);
 	}
-      // fails here
       b.get(i,*values);
       for(uint j=0;j<10;j++)
 	{
@@ -820,6 +819,8 @@ TEST_F(Shared_memory_tests,segment_memory_size)
 TEST_F(Shared_memory_tests,segment_info){
 
   shared_memory::clear_shared_memory("test_info");
+
+  shared_memory::set_default_segment_sizes();
   
   shared_memory::set<double>("test_info","d1",5.0);
   shared_memory::set<double>("test_info","d2",10.0);
@@ -830,7 +831,7 @@ TEST_F(Shared_memory_tests,segment_info){
   bool issues = si.has_issues();
   uint nb_objects = si.nb_objects();
 
-  ASSERT_EQ(size,SHARED_MEMORY_SIZE);
+  ASSERT_EQ(size,DEFAULT_SHARED_MEMORY_SIZE);
   ASSERT_GT(size,free);
   ASSERT_GT(free,0);
   ASSERT_EQ(nb_objects,2);

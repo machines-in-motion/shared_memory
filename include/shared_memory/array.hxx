@@ -103,7 +103,13 @@ void array<T,SIZE>::print()
 template<typename T, int SIZE>
 std::size_t array<T,SIZE>::size() const
 {
-  
+  return size_;
+}
+
+template<typename T, int SIZE>
+void* array<T,SIZE>::get_raw()
+{
+  return (void*)(this->shared_);
 }
 
 void clear_array(std::string segment_id)

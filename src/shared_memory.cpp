@@ -22,6 +22,13 @@ namespace shared_memory {
     SEGMENT_SIZE = multiplier_1025 * 1025;
     SEGMENT_SIZE_MUTEX.unlock();
   }
+
+  void set_default_segment_sizes()
+  { 
+    SEGMENT_SIZE_MUTEX.lock();
+    SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
+    SEGMENT_SIZE_MUTEX.unlock();
+  }
   
   /***********************************************
    * Definition of the SharedMemorySegment class *

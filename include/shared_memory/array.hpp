@@ -144,6 +144,9 @@ namespace shared_memory
      * memory usage
      */
     void print();
+
+    // for debug
+    void* get_raw();
     
   private:
 

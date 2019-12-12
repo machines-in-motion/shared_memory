@@ -40,7 +40,7 @@ namespace shared_memory {
      * with the consequence the mutex can be locked and unlocked exclusively
      * through other instances of LockedConditionVariable.
      */
-    LockedConditionVariable(const std::string segment_id,
+    LockedConditionVariable(const std::string object_id,
 			    bool clean_memory_on_destruction=true);
     
     ~LockedConditionVariable();

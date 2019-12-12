@@ -205,16 +205,6 @@ add_executable(serialization_frequency
   benchmarks/serialization_frequency.cpp)
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 
-# comparing std::array and shared_memory::array
-#add_executable(benchmark_array
-#  benchmarks/array.cpp)
-#target_link_libraries(benchmark_array ${BENCHMARK_DEPENDENCIES} shared_memory)
-
-# not really a benchmark, just to get an idea
-# spaces used by memory objects in a memory segment
-add_executable(memory_size
-  benchmarks/memory_size.cpp)
-target_link_libraries(memory_size shared_memory ${BENCHMARK_DEPENDENCIES})
 
 
 ##########################

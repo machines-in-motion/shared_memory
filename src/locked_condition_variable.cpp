@@ -4,10 +4,10 @@
 namespace shared_memory {
 
   
-  LockedConditionVariable::LockedConditionVariable(const std::string segment_id,
+  LockedConditionVariable::LockedConditionVariable(const std::string object_id,
 						   bool clean_memory_on_destruction)
-    :mutex_id_(segment_id + "_mtx")
-    ,condition_id_(segment_id + "_cond")
+    :mutex_id_(object_id + "_mtx")
+    ,condition_id_(object_id + "_cond")
     ,mutex_{
     boost::interprocess::open_or_create,
       mutex_id_.c_str()

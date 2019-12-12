@@ -127,6 +127,7 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
     locker_(std::string(segment_id+"_locker").c_str(),false),
     serializable_size_(Serializer<Serializable>::serializable_size())
 {
+
   object_id_producer_ = object_id+"_producer";
   object_id_consumer_ = object_id+"_consumer";
   object_id_status_ = object_id+"_status";
@@ -134,6 +135,48 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
   consumed_ = segment_.find_or_construct<consumer_queue>(object_id_consumer_.c_str())();
   segment_id_ = segment_id;
   values_ = new char[serializable_size_];
+
+  // dev note: not sure what is happening, but the queues
+  // (produced_ and consumed_) are not defined empty, despite
+  // their empty() function returning true (i.e. items can
+  // be poped from them). This results to various undefined behavior.
+  // This function removes all these items from the queues.
+  weird_purge();
+  
+}
+
+
+// in constructor, remove all items from the queue, which
+// can be poped from the queue despite the queue reporting
+// being empty (as it should). No idea what is going on.
+template <class Serializable, int QUEUE_SIZE>
+void Exchange_manager_memory<Serializable,QUEUE_SIZE>::weird_purge()
+{
+  lock();
+  
+  char foo;
+  int foo_;
+  
+  while(produced_->empty())
+    {
+      bool poped = produced_->pop(foo);
+      if(!poped)
+	{
+	  break;
+	}
+    }
+
+  while(consumed_->empty())
+    {
+      bool poped = consumed_->pop(foo_);
+      if(!poped)
+	{
+	  break;
+	}
+    }
+  
+  unlock();
+
 }
 
 
@@ -220,7 +263,7 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::clean_memory( std::string
 template <class Serializable, int QUEUE_SIZE>
 bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::read_serialized(Serializable &serializable) {
 
-  while (true){
+  while (!produced_->empty()){
     char value;
     bool poped = produced_->pop(value);
     if (poped) {
@@ -229,22 +272,36 @@ bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::read_serialized(Serializa
     } else {
       break;
     }
-
   }
 
   bool read = serialized_read_.read(serializable);
+  
   return read;
 
 }
 
 
 template <class Serializable, int QUEUE_SIZE>
-void Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Serializable &serializable) {
+void
+Exchange_manager_memory<Serializable,QUEUE_SIZE>::clear() {
+  char foo;
+  while(!produced_->empty())
+    {
+      produced_->pop(foo);
+    }
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool
+Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Serializable &serializable) {
+
+  bool everything_shared=true;
   
   serialized_write_.write(serializable,serializable_size_);
   
   while(! serialized_write_.empty() ){
-
+    
     char value = serialized_write_.front();
     bool pushed = produced_->bounded_push( value );
 
@@ -252,11 +309,14 @@ void Exchange_manager_memory<Serializable,QUEUE_SIZE>::write_serialized(const Se
       nb_char_written_++;
       serialized_write_.pop();
     } else {
+      everything_shared=false;
       break;
     }
     
   }
 
+  return everything_shared;
+  
 }
 
 
@@ -332,4 +392,20 @@ template <class Serializable, int QUEUE_SIZE>
 int Exchange_manager_memory<Serializable,QUEUE_SIZE>::nb_char_read() {
   return nb_char_read_;
 }
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::consumer_queue_empty() const
+{
+  return consumed_->empty();
+}
+
+
+template <class Serializable, int QUEUE_SIZE>
+bool Exchange_manager_memory<Serializable,QUEUE_SIZE>::producer_queue_empty() const
+{
+  return produced_->empty();
+}
+
+
 

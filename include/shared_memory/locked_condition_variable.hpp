@@ -41,8 +41,7 @@ namespace shared_memory {
      * through other instances of LockedConditionVariable.
      */
     LockedConditionVariable(const std::string segment_id,
-		      const std::string object_id,
-		      bool clean_memory_on_destruction=true);
+			    bool clean_memory_on_destruction=true);
     
     ~LockedConditionVariable();
 
@@ -104,15 +103,10 @@ namespace shared_memory {
      * But the destructor may have failed to be called if for some reason
      * the program crashed.
      */
-    static void clean(const std::string segment_id,
-		      const std::string object_id);
+    static void clean(const std::string segment_id);
     
   private:
-    /**
-     * @brief segment_id_ is the segment name
-     */
-    std::string segment_id_;
-
+    
     /**
      * @brief mutex_id_ is the mutex name in the shared memory
      */

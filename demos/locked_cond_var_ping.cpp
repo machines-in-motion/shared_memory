@@ -19,9 +19,9 @@ void stop(int){
 
 void execute(){
 
-  shared_memory::LockedConditionVariable::clean("main_memory", "cond_var");
+  shared_memory::LockedConditionVariable::clean("main_memory");
 
-  shared_memory::LockedConditionVariable cv ("main_memory", "cond_var");
+  shared_memory::LockedConditionVariable cv ("main_memory");
 
   int count = 0;
   shared_memory::set<int>("main_memory","count",count);

@@ -145,8 +145,7 @@ int main(int, char *argv[]){
     double d[shared_memory_test::test_array_size];
 
     // get a condition variable
-    shared_memory::LockedConditionVariable cond_var (segment,
-                                               shared_memory_test::cond_var_id);
+    shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id);
 
     // from here all variables are protected
     cond_var.lock_scope();

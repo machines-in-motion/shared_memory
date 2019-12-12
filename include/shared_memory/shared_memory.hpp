@@ -12,7 +12,6 @@
  */
 
 #pragma once
-
 #ifndef SHARED_MEMORY_HPP
 #define SHARED_MEMORY_HPP
 
@@ -20,6 +19,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <mutex>
 
 #include <eigen3/Eigen/Core>
 
@@ -33,7 +33,8 @@
 #include "shared_memory/exceptions.h"
 #include "shared_memory/segment_info.hpp"
 
-#define SHARED_MEMORY_SIZE 65536
+#define DEFAULT_SHARED_MEMORY_SIZE 65536
+
 #define MAP_STRING_KEY_SEPARATOR ';'
 
 // cool doc:
@@ -47,6 +48,25 @@
  */
 namespace shared_memory {
 
+  /** 
+   * @brief sets the size of the segments that will be newly 
+   * created via the set methods. 
+   * Until this function is called, segments are created
+   * with a size of 65536 bytes.
+   * This function is not interprocess : it will set 
+   * the size of segments created in the current process
+   * @param multiplier_1025 the size of create segment
+   * will be multiplier_1025 * 1025 bytes (because memory 
+   * segment sizes have to be a multiple of 1025)
+   */
+  void set_segment_sizes(uint multiplier_1025);
+
+  /**
+   * @brief set the size of segment newly 
+   * created to the default size value of 65536
+   */
+  void set_default_segment_sizes();
+  
   /***********************
    * Typdef declarations *
    ***********************/
@@ -248,7 +268,6 @@ namespace shared_memory {
       SegmentInfo si(segment_manager_);
       return si;
     }
-
 
   private:
 
@@ -630,14 +649,7 @@ namespace shared_memory {
     serializer.deserialize(data,serializable);
   }
 
-
-  /**
-   * @brief if verbose mode set to true (starting default is false), 
-   * informaton about newly created objects will be displayed in the 
-   * terminal. Call to this function will change the verbose mode
-   * only for the current process.
-   */
-  void set_verbose(bool mode);
+  
   
 } // namespace shared_memory
 

@@ -7,19 +7,22 @@
  * 
  * @brief Shared memroy API unittests.
  */
+
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/locked_condition_variable.hpp"
 #include "shared_memory/condition_variable.hpp"
 #include "shared_memory/lock.hpp"
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/exchange_manager_producer.hpp"
-#include "shared_memory/exchange_manager_consumer.hpp"
+#include "shared_memory/array.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
+#include "shared_memory/demos/item.hpp"
 #include "gtest/gtest.h"
 #include <cstdlib>
 #include <unistd.h>
 #include <sstream>
+
 
 // set in the CMakeLists.txt file
 // see tests/support/tests_executable.cpp
@@ -36,7 +39,6 @@ class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
-    shared_memory::set_verbose(false);
     shared_memory::get_segment_mutex(shared_memory_test::segment_id).unlock();
   }
   void TearDown() {
@@ -293,7 +295,7 @@ TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
 
 TEST_F(Shared_memory_tests,test_memory_overflow){
 
-  unsigned int max_size = SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
+  unsigned int max_size = DEFAULT_SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
   for(size_t i=0;i<v.size();i++) v[i]=1;
 
@@ -392,7 +394,8 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
   double d[shared_memory_test::test_array_size];
 
   // get a condition variable
-  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id);
+  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id,
+                                             shared_memory_test::cond_var_id);
 
   _call_executable(shared_memory_test::locked_condition_variable);
 
@@ -429,8 +432,9 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
 TEST_F(Shared_memory_tests,test_timed_wait){
 
   // get a condition variable
-  shared_memory::LockedConditionVariable
-    cond_var (shared_memory_test::segment_id);
+  shared_memory::LockedConditionVariable cond_var (
+        shared_memory_test::segment_id,
+        shared_memory_test::cond_var_id);
   cond_var.lock_scope();
   ASSERT_FALSE(cond_var.timed_wait(10));
   cond_var.unlock_scope();
@@ -513,16 +517,17 @@ TEST_F(Shared_memory_tests,exchange_manager){
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
 
-  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
 
-  Producer::clean_mutex(shared_memory_test::segment_id);
-  Producer::clean_memory(shared_memory_test::segment_id);
+  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
+									       shared_memory_test::object_id,
+									       leading,
+									       autolock );
 
-  Producer producer( shared_memory_test::segment_id,
-		    shared_memory_test::object_id,
-		    leading,
-		    autolock );
   
   // several iterations to make sure the producer can manage 2 consumers running in a row
   
@@ -627,41 +632,6 @@ TEST_F(Shared_memory_tests,exchange_manager){
   
 }
 
-
-TEST_F(Shared_memory_tests,exchange_manager_init){
-
-  bool leading = true;
-  bool autolock = true; // we will not need to call producer.lock()
-
-  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
-
-  typedef shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
-						   DATA_EXCHANGE_QUEUE_SIZE> Consumer;
-
-  
-  Producer::clean_mutex(shared_memory_test::segment_id);
-  Producer::clean_memory(shared_memory_test::segment_id);
-
-  Producer producer( shared_memory_test::segment_id,
-		     shared_memory_test::object_id,
-		     leading,
-		     autolock );
-
-  Consumer consumer( shared_memory_test::segment_id,
-		     shared_memory_test::object_id,
-		     !leading);
-
-  bool consumed;
-  if (consumer.ready_to_consume())
-    {
-      shared_memory::Four_int_values fiv;
-      consumed = consumer.consume(fiv);
-    }
-
-  ASSERT_EQ(consumed,false);
-}
-
 TEST_F(Shared_memory_tests,serialization){
 
   shared_memory::clear_shared_memory("test_ser");
@@ -682,10 +652,175 @@ TEST_F(Shared_memory_tests,serialization){
   ASSERT_EQ(in2.same(out2),true);
 
 }
+
+
+TEST_F(Shared_memory_tests,serialization2){
+
+  shared_memory::clear_shared_memory("test_ser");
+
+  shared_memory::Serializer<shared_memory::Item<10>> serializer;
   
+  for(int v=1;v<100;v++)
+    {
+      shared_memory::Item<10> in(v);
+      shared_memory::Item<10> out;
+      const std::string& s = serializer.serialize(in);
+      serializer.deserialize(s,out);
+      ASSERT_EQ(in.get(),out.get());
+    }
+  
+}
+
+
+static shared_memory::array<int> get_array_int()
+{
+  shared_memory::array<int> a("test_array",10,true,true);
+  int value = 5;
+  a.set(2,value);
+  return a;
+}
+
+
+TEST_F(Shared_memory_tests,array_int){
+
+  shared_memory::clear_array("test_array");
+
+  shared_memory::array<int> a("test_array",10,true,true);
+  int value = 5;
+  a.set(2,value);
+  a.get(2,value);
+  ASSERT_EQ(value,5);
+
+  shared_memory::array<int> b(a);
+  b.get(2,value);
+  ASSERT_EQ(value,5);
+
+  shared_memory::array<int> c = std::move(a);
+  c.get(2,value);
+  ASSERT_EQ(value,5);
+
+  shared_memory::array<int> d = get_array_int(); 
+  d.get(2,value);
+  ASSERT_EQ(value,5);
+  
+}
+
+
+TEST_F(Shared_memory_tests,array_array_int){
+
+  shared_memory::clear_array("test_array");
+
+  int size=100;
+
+  shared_memory::array<int,10> a("test_array",size,true,true);
+
+  int values0[10];
+  int values1[10];
+  for(uint j=0;j<10;j++)
+    {
+      values0[j]=2;
+      values1[j]=3;
+    }
+  a.set(0,*values0);
+  a.set(1,*values1);
+
+  a.get(0,*values1);
+  a.get(1,*values0);
+
+  for(uint j=0;j<10;j++)
+    {
+      ASSERT_EQ(values0[j],3);
+      ASSERT_EQ(values1[j],2);
+    }
+
+  int values[10];
+  for(int i=0;i<size;i++)
+    {
+      for(uint j=0;j<10;j++)
+	{
+	  values[j]=(i+j);
+	}
+      a.set(i,*values);
+    }
+
+  shared_memory::array<int,10> b(a);
+  
+  for(int i=0;i<size;i++)
+    {
+      a.get(i,*values);
+      for(uint j=0;j<10;j++)
+	{
+	  ASSERT_EQ(values[j],i+j);
+	}
+      b.get(i,*values);
+      for(uint j=0;j<10;j++)
+	{
+	  ASSERT_EQ(values[j],i+j);
+	}
+    }
+  
+}
+
+TEST_F(Shared_memory_tests,array_serializable)
+{
+
+  shared_memory::clear_array("test_array");
+
+  int size=100;
+  
+  shared_memory::array<shared_memory::Item<10>> a("test_array",size,true,true);
+
+  for(int i=0;i<size;i++)
+    {
+      shared_memory::Item<10> item(i);
+      a.set(i,item);
+    }
+
+  shared_memory::Item<10> item;
+  for(int i=0;i<size;i++)
+    {
+      a.get(i,item);
+      ASSERT_EQ(item.get(),i);
+    }
+
+  shared_memory::array<shared_memory::Item<10>> b(a);
+  for(int i=0;i<size;i++)
+    {
+      b.get(i,item);
+      ASSERT_EQ(item.get(),i);
+    }
+  
+}
+
+
+TEST_F(Shared_memory_tests,segment_memory_size)
+{
+
+  shared_memory::clear_array("ut_sg_mem_size");
+
+  bool error = false;
+  for(int i = 1; i<10; i++)
+    {
+      try
+	{
+	  shared_memory::set_segment_sizes(i);
+	  shared_memory::clear_array("ut_sg_mem_size");
+	}
+      catch (...)
+	{
+	  error = true;
+	}
+      ASSERT_EQ(error,false);
+    }
+
+}
+
+
 TEST_F(Shared_memory_tests,segment_info){
 
   shared_memory::clear_shared_memory("test_info");
+
+  shared_memory::set_default_segment_sizes();
   
   shared_memory::set<double>("test_info","d1",5.0);
   shared_memory::set<double>("test_info","d2",10.0);
@@ -696,7 +831,7 @@ TEST_F(Shared_memory_tests,segment_info){
   bool issues = si.has_issues();
   uint nb_objects = si.nb_objects();
 
-  ASSERT_EQ(size,SHARED_MEMORY_SIZE);
+  ASSERT_EQ(size,DEFAULT_SHARED_MEMORY_SIZE);
   ASSERT_GT(size,free);
   ASSERT_GT(free,0);
   ASSERT_EQ(nb_objects,2);
@@ -730,4 +865,3 @@ TEST_F(Shared_memory_tests,segment_info){
   ASSERT_TRUE(exception);
 
 }
-

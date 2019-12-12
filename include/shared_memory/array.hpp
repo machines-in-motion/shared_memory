@@ -7,9 +7,9 @@
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/mutex.hpp"
 
-// support code exclusive for array
-// define types SERIALIZABLE, FUNDAMENTAL and FUNDAMENTAL_ARRAY
-// define super class array_member, which defines the private class
+// This header
+// - defines types SERIALIZABLE, FUNDAMENTAL and FUNDAMENTAL_ARRAY
+// - defines super class array_member, which declares the private
 // members specific for each implementation (serializable,
 // fundamental and fundamental array)
 #include "shared_memory/internal/array_members.hpp"
@@ -34,9 +34,6 @@ namespace shared_memory
    * type (e.g. int, double, char), (2) array of fundamental type
    * (e.g. int[10]); or (3) instances of a class implementing a 
    * serializable function (see shared_memory::serializer).
-   * For (3), due to the cost of serializing, a shared_memory::array
-   * is expected to be around 50 times slower compared to a std::array.
-   * For (1) and (2), performances are similar to std::array.
    */
   template<typename T, int SIZE=0>
   class array : public internal::array_members<T,SIZE>

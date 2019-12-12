@@ -711,7 +711,7 @@ TEST_F(Shared_memory_tests,array_array_int){
   shared_memory::clear_array("test_array");
 
   int size=100;
-  
+
   shared_memory::array<int,10> a("test_array",size,true,true);
 
   int values0[10];

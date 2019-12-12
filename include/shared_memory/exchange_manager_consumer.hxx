@@ -164,13 +164,13 @@ int Exchange_manager_consumer<Serializable,QUEUE_SIZE>::nb_char_read() {
 
 
 template <class Serializable, int QUEUE_SIZE>
-bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::producer_queue_empty() const
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::is_producer_queue_empty() const
 {
   return memory_->producer_queue_empty();
 }
 
 template <class Serializable, int QUEUE_SIZE>
-bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::consumer_queue_empty() const
+bool Exchange_manager_consumer<Serializable,QUEUE_SIZE>::is_consumer_queue_empty() const
 {
   return memory_->consumer_queue_empty();
 }

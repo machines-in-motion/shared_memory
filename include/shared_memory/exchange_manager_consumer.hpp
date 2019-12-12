@@ -95,8 +95,8 @@ namespace shared_memory {
      */
     int nb_char_read();
 
-    bool producer_queue_empty() const;
-    bool consumer_queue_empty() const;
+    bool is_producer_queue_empty() const;
+    bool is_consumer_queue_empty() const;
 
     
   public:

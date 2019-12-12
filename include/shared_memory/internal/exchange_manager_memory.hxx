@@ -136,7 +136,11 @@ Exchange_manager_memory<Serializable,QUEUE_SIZE>::Exchange_manager_memory( std::
   segment_id_ = segment_id;
   values_ = new char[serializable_size_];
 
-  // dev note: no idea why this could be required
+  // dev note: not sure what is happening, but the queues
+  // (produced_ and consumed_) are not defined empty, despite
+  // their empty() function returning true (i.e. items can
+  // be poped from them). This results to various undefined behavior.
+  // This function removes all these items from the queues.
   weird_purge();
   
 }

@@ -21,6 +21,8 @@ int main(int, char *argv[]){
 
   int command = atoi(argv[1]);
 
+  shared_memory::set_verbose(false);
+  
   std::string segment = shared_memory_test::segment_id;
   std::string object = shared_memory_test::object_id;
   

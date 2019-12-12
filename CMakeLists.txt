@@ -40,7 +40,8 @@ add_library(shared_memory
   src/condition_variable.cpp
   src/mutex.cpp
   src/lock.cpp
-  src/exceptions.cpp)
+  src/exceptions.cpp
+  src/segment_info.cpp)
 target_link_libraries(shared_memory
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -102,6 +103,11 @@ target_link_libraries(std_string_vector shared_memory)
 add_executable(serialization
   demos/serialization.cpp)
 target_link_libraries(serialization shared_memory)
+
+add_executable(demo_verbose
+  demos/demo_verbose.cpp)
+target_link_libraries(demo_verbose shared_memory)
+
 
 ##############
 # Python wrapper #

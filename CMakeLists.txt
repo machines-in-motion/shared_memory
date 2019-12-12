@@ -13,32 +13,12 @@ search_for_boost()
 search_for_cereal_required()
 
 include_directories(
+    ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIRS}
     ${cereal_INCLUDE_DIRS}
     include
 )
-
-###############
-# add library #
-###############
-
-add_library(shared_memory 
-  src/shared_memory.cpp
-  src/locked_condition_variable.cpp
-  src/condition_variable.cpp
-  src/mutex.cpp
-  src/lock.cpp
-  src/exceptions.cpp)
-target_link_libraries(shared_memory
-  ${Boost_LIBRARIES}
-)
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries(shared_memory
-  -lrt
-  -pthread
-)  
-endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###################################
 # Declare the libraries to export #
@@ -49,6 +29,29 @@ catkin_package(
     CATKIN_DEPENDS
     LIBRARIES shared_memory ${protobuf_cmake_target}
 )
+
+###############
+# add library #
+###############
+
+add_library(shared_memory
+  src/shared_memory.cpp
+  src/locked_condition_variable.cpp
+  src/condition_variable.cpp
+  src/mutex.cpp
+  src/lock.cpp
+  src/exceptions.cpp
+  src/segment_info.cpp)
+target_link_libraries(shared_memory
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries(shared_memory
+  -lrt
+  -pthread
+)
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #########
 # demos #
@@ -100,6 +103,11 @@ target_link_libraries(std_string_vector shared_memory)
 add_executable(serialization
   demos/serialization.cpp)
 target_link_libraries(serialization shared_memory)
+
+add_executable(demo_verbose
+  demos/demo_verbose.cpp)
+target_link_libraries(demo_verbose shared_memory)
+
 
 ##############
 # Python wrapper #

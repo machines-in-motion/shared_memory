@@ -12,6 +12,7 @@
  */
 
 #pragma once
+
 #ifndef SHARED_MEMORY_HPP
 #define SHARED_MEMORY_HPP
 
@@ -29,8 +30,8 @@
 #include <boost/interprocess/allocators/allocator.hpp>
 
 #include "shared_memory/serializer.hpp"
-
 #include "shared_memory/exceptions.h"
+#include "shared_memory/segment_info.hpp"
 
 #define SHARED_MEMORY_SIZE 65536
 #define MAP_STRING_KEY_SEPARATOR ';'
@@ -45,6 +46,7 @@
  * int, double, float, char*, ...
  */
 namespace shared_memory {
+
   /***********************
    * Typdef declarations *
    ***********************/
@@ -235,6 +237,19 @@ namespace shared_memory {
       return segment_id_;
     }
 
+    /**
+     * @brief performs introspection on the segment
+     * and return related information
+     */
+    // dev notes: boost api does not allow for this method
+    // to be const 
+    SegmentInfo get_info() 
+    {
+      SegmentInfo si(segment_manager_);
+      return si;
+    }
+
+
   private:
 
     /**
@@ -280,6 +295,14 @@ namespace shared_memory {
       const std::string &segment_id,
       const bool clear_upon_destruction=false);
 
+  /**
+   * @brief performs introspection on the segment
+   * and return related information. If the segment does not 
+   * exists, creates it first.
+   */
+  SegmentInfo get_segment_info(const std::string &segment_id,
+			       const bool clear_upon_destruction=false);
+  
   /**
    * @brief returns true if a segment exists under this id
    * @param segment_id is the name of the shared memory segment.
@@ -607,7 +630,14 @@ namespace shared_memory {
     serializer.deserialize(data,serializable);
   }
 
-  
+
+  /**
+   * @brief if verbose mode set to true (starting default is false), 
+   * informaton about newly created objects will be displayed in the 
+   * terminal. Call to this function will change the verbose mode
+   * only for the current process.
+   */
+  void set_verbose(bool mode);
   
 } // namespace shared_memory
 

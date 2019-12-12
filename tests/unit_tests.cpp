@@ -36,6 +36,7 @@ class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
+    shared_memory::set_verbose(false);
     shared_memory::get_segment_mutex(shared_memory_test::segment_id).unlock();
   }
   void TearDown() {
@@ -682,4 +683,51 @@ TEST_F(Shared_memory_tests,serialization){
 
 }
   
+TEST_F(Shared_memory_tests,segment_info){
+
+  shared_memory::clear_shared_memory("test_info");
+  
+  shared_memory::set<double>("test_info","d1",5.0);
+  shared_memory::set<double>("test_info","d2",10.0);
+
+  shared_memory::SegmentInfo si = shared_memory::get_segment_info("test_info");
+  uint size = si.get_size();
+  uint free = si.get_free_memory();
+  bool issues = si.has_issues();
+  uint nb_objects = si.nb_objects();
+
+  ASSERT_EQ(size,SHARED_MEMORY_SIZE);
+  ASSERT_GT(size,free);
+  ASSERT_GT(free,0);
+  ASSERT_EQ(nb_objects,2);
+  ASSERT_FALSE(issues);
+
+  shared_memory::set<double>("test_info","d3",2.0);
+  shared_memory::set<double>("test_info","d4",3.0);
+
+  shared_memory::SegmentInfo si2 = shared_memory::get_segment_info("test_info");
+  uint size2 = si2.get_size();
+  uint free2 = si2.get_free_memory();
+  bool issues2 = si2.has_issues();
+  uint nb_objects2 = si2.nb_objects();
+
+  ASSERT_EQ(size,size2);
+  ASSERT_LT(free2,free);
+  ASSERT_FALSE(issues2);
+  ASSERT_EQ(nb_objects2,4);
+
+  // memory overflow on purpose
+  std::vector<char> v(free2+1);
+  bool exception=false;
+  try
+    {
+      shared_memory::set("test_info","unreasonable",v);
+    }
+  catch (...)
+    {
+      exception = true;
+    }
+  ASSERT_TRUE(exception);
+
+}
 

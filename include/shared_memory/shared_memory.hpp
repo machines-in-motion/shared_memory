@@ -632,7 +632,7 @@ namespace shared_memory {
 
 
   /**
-   * @brief if verbose mode set to true (the starting default), 
+   * @brief if verbose mode set to true (starting default is false), 
    * informaton about newly created objects will be displayed in the 
    * terminal. Call to this function will change the verbose mode
    * only for the current process.

@@ -13,7 +13,7 @@ namespace bi=boost::interprocess;
 
 namespace shared_memory {
 
-  bool VERBOSE=true;
+  bool VERBOSE=false;
   void set_verbose(bool mode)
   {
     VERBOSE = mode;

@@ -46,7 +46,7 @@ namespace shared_memory {
 
 
     if (registered && VERBOSE){
-      std::cout << "registration of " << object_id
+      std::cout << "shared_memory::SharedMemoryObject | registration of " << object_id
     		<< " of size " << get_.second << std:: endl;
     }
     
@@ -69,7 +69,7 @@ namespace shared_memory {
     bool registered = register_object(object_id, set_);
 
     if (registered && VERBOSE){
-      std::cout << "registration of " << object_id
+      std::cout << "shared_memory::SharedMemoryObject | registration of " << object_id
     		<< " of size " << objects_[object_id].second << std:: endl;
     }
 

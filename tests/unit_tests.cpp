@@ -36,7 +36,7 @@ static inline void clear_memory(){
   shared_memory::clear_shared_memory(shared_memory_test::segment_id);
 }
 
-class Shared_memory_tests : public ::testing::Test {
+class SharedMemoryTests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
@@ -48,7 +48,7 @@ protected:
   }
 };
 
-class DISABLED_Shared_memory_tests: public ::testing::Test
+class DISABLED_SharedMemoryTests: public ::testing::Test
 {};
 
 static bool _call_executable(int action,bool blocking=false);
@@ -71,13 +71,13 @@ static bool _call_executable(int action,bool blocking){
 }
 
 
-TEST_F(Shared_memory_tests,spawn_thread_test){
+TEST_F(SharedMemoryTests,spawn_thread_test){
   bool called = _call_executable(shared_memory_test::set_double,true);
   ASSERT_EQ(called,true);
 }
 
 
-TEST_F(Shared_memory_tests,double_test){
+TEST_F(SharedMemoryTests,double_test){
 
   _call_executable(shared_memory_test::set_double);
 
@@ -92,7 +92,7 @@ TEST_F(Shared_memory_tests,double_test){
 }
 
 
-TEST_F(Shared_memory_tests,int_test){
+TEST_F(SharedMemoryTests,int_test){
 
   _call_executable(shared_memory_test::set_int);
 
@@ -107,7 +107,7 @@ TEST_F(Shared_memory_tests,int_test){
 }
 
 
-TEST_F(Shared_memory_tests,test_float){
+TEST_F(SharedMemoryTests,test_float){
 
   _call_executable(shared_memory_test::set_float);
 
@@ -122,7 +122,7 @@ TEST_F(Shared_memory_tests,test_float){
 }
 
 
-TEST_F(Shared_memory_tests,test_string){
+TEST_F(SharedMemoryTests,test_string){
 
   _call_executable(shared_memory_test::set_string);
 
@@ -137,7 +137,7 @@ TEST_F(Shared_memory_tests,test_string){
 }
 
 
-TEST_F(Shared_memory_tests,test_array){
+TEST_F(SharedMemoryTests,test_array){
 
   _call_executable(shared_memory_test::set_double_array);
 
@@ -156,7 +156,7 @@ TEST_F(Shared_memory_tests,test_array){
 }
 
 
-TEST_F(Shared_memory_tests,test_vector){
+TEST_F(SharedMemoryTests,test_vector){
 
   _call_executable(shared_memory_test::set_vector);
 
@@ -174,7 +174,7 @@ TEST_F(Shared_memory_tests,test_vector){
 
 }
 
-TEST_F(Shared_memory_tests,test_eigen_vector){
+TEST_F(SharedMemoryTests,test_eigen_vector){
 
   _call_executable(shared_memory_test::set_vector);
 
@@ -192,7 +192,7 @@ TEST_F(Shared_memory_tests,test_eigen_vector){
 
 }
 
-TEST_F(Shared_memory_tests,test_int_double_map){
+TEST_F(SharedMemoryTests,test_int_double_map){
 
   _call_executable(shared_memory_test::set_int_double_map);
 
@@ -212,7 +212,7 @@ TEST_F(Shared_memory_tests,test_int_double_map){
 }
 
 
-TEST_F(Shared_memory_tests,test_string_double_map){
+TEST_F(SharedMemoryTests,test_string_double_map){
 
   _call_executable(shared_memory_test::set_string_double_map);
 
@@ -232,7 +232,7 @@ TEST_F(Shared_memory_tests,test_string_double_map){
 }
 
 
-TEST_F(Shared_memory_tests,test_string_vector_double_map){
+TEST_F(SharedMemoryTests,test_string_vector_double_map){
 
   _call_executable(shared_memory_test::set_string_vector_double_map);
 
@@ -267,7 +267,7 @@ TEST_F(Shared_memory_tests,test_string_vector_double_map){
 
 }
 
-TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
+TEST_F(SharedMemoryTests,test_string_vector_eigen_map){
 
   _call_executable(shared_memory_test::set_string_vector_eigen_map);
 
@@ -295,7 +295,7 @@ TEST_F(Shared_memory_tests,test_string_vector_eigen_map){
   ASSERT_EQ(m[shared_memory_test::map_string_keys2][1],shared_memory_test::map_value_1);
 }
 
-TEST_F(Shared_memory_tests,test_memory_overflow){
+TEST_F(SharedMemoryTests,test_memory_overflow){
 
   unsigned int max_size = DEFAULT_SHARED_MEMORY_SIZE / sizeof(int) + 1 ;
   std::vector<int> v(max_size);
@@ -310,7 +310,7 @@ TEST_F(Shared_memory_tests,test_memory_overflow){
 }
 
 
-TEST_F(Shared_memory_tests,test_wrong_size_vector){
+TEST_F(SharedMemoryTests,test_wrong_size_vector){
 
   _call_executable(shared_memory_test::set_vector);
 
@@ -333,7 +333,7 @@ static inline bool is_one_of(double v, double a1, double a2){
   return false;
 }
 
-TEST_F(Shared_memory_tests,test_concurrency){
+TEST_F(SharedMemoryTests,test_concurrency){
 
   _call_executable(shared_memory_test::concurrent_1);
   _call_executable(shared_memory_test::concurrent_2);
@@ -388,7 +388,7 @@ TEST_F(Shared_memory_tests,test_concurrency){
 }
 
 
-TEST_F(Shared_memory_tests,test_locked_condition_variable){
+TEST_F(SharedMemoryTests,test_locked_condition_variable){
 
   usleep(TIME_SLEEP);
 
@@ -430,7 +430,7 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
   cond_var.unlock_scope();
 }
 
-TEST_F(Shared_memory_tests,test_timed_wait){
+TEST_F(SharedMemoryTests,test_timed_wait){
 
   // get a condition variable
   shared_memory::LockedConditionVariable
@@ -440,7 +440,7 @@ TEST_F(Shared_memory_tests,test_timed_wait){
   cond_var.unlock_scope();
 }
 
-TEST_F(Shared_memory_tests,test_condition_variable){
+TEST_F(SharedMemoryTests,test_condition_variable){
 
   clear_memory();
 
@@ -512,7 +512,7 @@ TEST_F(Shared_memory_tests,test_condition_variable){
 }
 
 
-TEST_F(Shared_memory_tests,exchange_manager){
+TEST_F(SharedMemoryTests,exchange_manager){
 
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
@@ -632,7 +632,7 @@ TEST_F(Shared_memory_tests,exchange_manager){
 }
 
 
-TEST_F(Shared_memory_tests,exchange_manager_init){
+TEST_F(SharedMemoryTests,exchange_manager_init){
 
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
@@ -666,7 +666,7 @@ TEST_F(Shared_memory_tests,exchange_manager_init){
   ASSERT_EQ(consumed,false);
 }
 
-TEST_F(Shared_memory_tests,serialization){
+TEST_F(SharedMemoryTests,serialization){
 
   shared_memory::clear_shared_memory("test_ser");
     
@@ -688,7 +688,7 @@ TEST_F(Shared_memory_tests,serialization){
 }
 
 
-TEST_F(Shared_memory_tests,serialization2){
+TEST_F(SharedMemoryTests,serialization2){
 
   shared_memory::clear_shared_memory("test_ser");
 
@@ -705,55 +705,6 @@ TEST_F(Shared_memory_tests,serialization2){
   
 }
 
-TEST_F(Shared_memory_tests,segment_info){
-
-  shared_memory::clear_shared_memory("test_info");
-  
-  shared_memory::set<double>("test_info","d1",5.0);
-  shared_memory::set<double>("test_info","d2",10.0);
-
-  shared_memory::SegmentInfo si = shared_memory::get_segment_info("test_info");
-  uint size = si.get_size();
-  uint free = si.get_free_memory();
-  bool issues = si.has_issues();
-  uint nb_objects = si.nb_objects();
-
-  ASSERT_EQ(size,SHARED_MEMORY_SIZE);
-  ASSERT_GT(size,free);
-  ASSERT_GT(free,0);
-  ASSERT_EQ(nb_objects,2);
-  ASSERT_FALSE(issues);
-
-  shared_memory::set<double>("test_info","d3",2.0);
-  shared_memory::set<double>("test_info","d4",3.0);
-
-  shared_memory::SegmentInfo si2 = shared_memory::get_segment_info("test_info");
-  uint size2 = si2.get_size();
-  uint free2 = si2.get_free_memory();
-  bool issues2 = si2.has_issues();
-  uint nb_objects2 = si2.nb_objects();
-
-  ASSERT_EQ(size,size2);
-  ASSERT_LT(free2,free);
-  ASSERT_FALSE(issues2);
-  ASSERT_EQ(nb_objects2,4);
-
-  // memory overflow on purpose
-  std::vector<char> v(free2+1);
-  bool exception=false;
-  try
-    {
-      shared_memory::set("test_info","unreasonable",v);
-    }
-  catch (...)
-    {
-      exception = true;
-    }
-  ASSERT_TRUE(exception);
-
-}
-
-
 static shared_memory::array<int> get_array_int()
 {
   shared_memory::array<int> a("test_array",10,true,true);
@@ -763,7 +714,7 @@ static shared_memory::array<int> get_array_int()
 }
 
 
-TEST_F(Shared_memory_tests,array_int){
+TEST_F(SharedMemoryTests,array_int){
 
   shared_memory::clear_array("test_array");
 
@@ -788,7 +739,7 @@ TEST_F(Shared_memory_tests,array_int){
 }
 
 
-TEST_F(Shared_memory_tests,array_array_int){
+TEST_F(SharedMemoryTests,array_array_int){
 
   shared_memory::clear_array("test_array");
 
@@ -843,7 +794,7 @@ TEST_F(Shared_memory_tests,array_array_int){
   
 }
 
-TEST_F(Shared_memory_tests,array_serializable)
+TEST_F(SharedMemoryTests,array_serializable)
 {
 
   shared_memory::clear_array("test_array");
@@ -875,7 +826,7 @@ TEST_F(Shared_memory_tests,array_serializable)
 }
 
 
-TEST_F(Shared_memory_tests,segment_memory_size)
+TEST_F(SharedMemoryTests,segment_memory_size)
 {
 
   shared_memory::clear_array("ut_sg_mem_size");
@@ -898,7 +849,7 @@ TEST_F(Shared_memory_tests,segment_memory_size)
 }
 
 
-TEST_F(Shared_memory_tests,segment_info){
+TEST_F(SharedMemoryTests,segment_info){
 
   shared_memory::clear_shared_memory("test_info");
 

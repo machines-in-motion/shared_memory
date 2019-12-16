@@ -28,7 +28,8 @@ namespace shared_memory {
     SEGMENT_SIZE_MUTEX.lock();
     SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
     SEGMENT_SIZE_MUTEX.unlock();
-
+  }
+    
   bool VERBOSE=false;
   void set_verbose(bool mode)
   {

@@ -12,6 +12,7 @@
  */
 
 #pragma once
+
 #ifndef SHARED_MEMORY_HPP
 #define SHARED_MEMORY_HPP
 
@@ -34,7 +35,6 @@
 #include "shared_memory/segment_info.hpp"
 
 #define DEFAULT_SHARED_MEMORY_SIZE 65536
-
 #define MAP_STRING_KEY_SEPARATOR ';'
 
 // cool doc:
@@ -649,7 +649,14 @@ namespace shared_memory {
     serializer.deserialize(data,serializable);
   }
 
-  
+
+  /**
+   * @brief if verbose mode set to true (starting default is false), 
+   * informaton about newly created objects will be displayed in the 
+   * terminal. Call to this function will change the verbose mode
+   * only for the current process.
+   */
+  void set_verbose(bool mode);
   
 } // namespace shared_memory
 

@@ -112,6 +112,9 @@ add_executable(demo_read_array
   demos/demo_read_array.cpp)
 target_link_libraries(demo_read_array shared_memory)
 
+add_executable(demo_verbose
+  demos/demo_verbose.cpp)
+target_link_libraries(demo_verbose shared_memory)
 
 ##############
 # Python wrapper #

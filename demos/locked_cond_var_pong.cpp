@@ -19,7 +19,7 @@ void stop(int){
 
 void execute(){
 
-  shared_memory::LockedConditionVariable cv ("main_memory", "cond_var",false);
+  shared_memory::LockedConditionVariable cv ("main_memory", false);
 
   cv.lock_scope();
   

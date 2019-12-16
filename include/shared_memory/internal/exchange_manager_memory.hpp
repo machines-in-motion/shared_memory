@@ -103,8 +103,9 @@ namespace shared_memory {
       ~Exchange_manager_memory();
 
       bool read_serialized(Serializable &serializable);
-      void write_serialized(const Serializable &serializable);
+      bool write_serialized(const Serializable &serializable);
       void write_serialized_id(int id);
+      void clear();
       void get_consumed_ids(std::deque<int> &get_ids);
 
       void set_status(Status status);
@@ -117,7 +118,11 @@ namespace shared_memory {
       void lock();
       void unlock();
 
-    
+      bool consumer_queue_empty() const;
+      bool producer_queue_empty() const;
+
+      void weird_purge();
+      
     public:
 
       // for monitoring the number of characters written/read

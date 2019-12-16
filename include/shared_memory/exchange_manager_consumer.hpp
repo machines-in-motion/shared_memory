@@ -94,6 +94,10 @@ namespace shared_memory {
      *  from the exchange queue. For debugging purposes
      */
     int nb_char_read();
+
+    bool is_producer_queue_empty() const;
+    bool is_consumer_queue_empty() const;
+
     
   public:
 

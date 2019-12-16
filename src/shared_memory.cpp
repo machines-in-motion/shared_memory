@@ -28,6 +28,11 @@ namespace shared_memory {
     SEGMENT_SIZE_MUTEX.lock();
     SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
     SEGMENT_SIZE_MUTEX.unlock();
+
+  bool VERBOSE=false;
+  void set_verbose(bool mode)
+  {
+    VERBOSE = mode;
   }
   
   /***********************************************
@@ -36,8 +41,6 @@ namespace shared_memory {
 
   SharedMemorySegment::SharedMemorySegment(std::string segment_id,
                                            bool clear_upon_destruction)
-//    : named_mtx_{boost::interprocess::open_or_create,
-//                 (segment_id_ + "_mutex").c_str()}
   {
     // save the id the of the segment
     segment_id_ = segment_id;

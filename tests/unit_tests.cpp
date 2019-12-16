@@ -14,6 +14,7 @@
 #include "shared_memory/lock.hpp"
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/exchange_manager_producer.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 #include "shared_memory/array.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/tests/tests.h"
@@ -39,6 +40,7 @@ class Shared_memory_tests : public ::testing::Test {
 protected:
   void SetUp() {
     clear_memory();
+    shared_memory::set_verbose(false);
     shared_memory::get_segment_mutex(shared_memory_test::segment_id).unlock();
   }
   void TearDown() {
@@ -394,8 +396,7 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
   double d[shared_memory_test::test_array_size];
 
   // get a condition variable
-  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id,
-                                             shared_memory_test::cond_var_id);
+  shared_memory::LockedConditionVariable cond_var (shared_memory_test::segment_id);
 
   _call_executable(shared_memory_test::locked_condition_variable);
 
@@ -432,9 +433,8 @@ TEST_F(Shared_memory_tests,test_locked_condition_variable){
 TEST_F(Shared_memory_tests,test_timed_wait){
 
   // get a condition variable
-  shared_memory::LockedConditionVariable cond_var (
-        shared_memory_test::segment_id,
-        shared_memory_test::cond_var_id);
+  shared_memory::LockedConditionVariable
+    cond_var (shared_memory_test::segment_id);
   cond_var.lock_scope();
   ASSERT_FALSE(cond_var.timed_wait(10));
   cond_var.unlock_scope();
@@ -517,17 +517,16 @@ TEST_F(Shared_memory_tests,exchange_manager){
   bool leading = true;
   bool autolock = true; // we will not need to call producer.lock()
 
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					 DATA_EXCHANGE_QUEUE_SIZE>::clean_mutex(shared_memory_test::segment_id);
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					 DATA_EXCHANGE_QUEUE_SIZE>::clean_memory(shared_memory_test::segment_id);
+  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
 
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					   DATA_EXCHANGE_QUEUE_SIZE> producer( shared_memory_test::segment_id,
-									       shared_memory_test::object_id,
-									       leading,
-									       autolock );
+  Producer::clean_mutex(shared_memory_test::segment_id);
+  Producer::clean_memory(shared_memory_test::segment_id);
 
+  Producer producer( shared_memory_test::segment_id,
+		    shared_memory_test::object_id,
+		    leading,
+		    autolock );
   
   // several iterations to make sure the producer can manage 2 consumers running in a row
   
@@ -632,6 +631,41 @@ TEST_F(Shared_memory_tests,exchange_manager){
   
 }
 
+
+TEST_F(Shared_memory_tests,exchange_manager_init){
+
+  bool leading = true;
+  bool autolock = true; // we will not need to call producer.lock()
+
+  typedef shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Producer;
+
+  typedef shared_memory::Exchange_manager_consumer<shared_memory::Four_int_values,
+						   DATA_EXCHANGE_QUEUE_SIZE> Consumer;
+
+  
+  Producer::clean_mutex(shared_memory_test::segment_id);
+  Producer::clean_memory(shared_memory_test::segment_id);
+
+  Producer producer( shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     leading,
+		     autolock );
+
+  Consumer consumer( shared_memory_test::segment_id,
+		     shared_memory_test::object_id,
+		     !leading);
+
+  bool consumed;
+  if (consumer.ready_to_consume())
+    {
+      shared_memory::Four_int_values fiv;
+      consumed = consumer.consume(fiv);
+    }
+
+  ASSERT_EQ(consumed,false);
+}
+
 TEST_F(Shared_memory_tests,serialization){
 
   shared_memory::clear_shared_memory("test_ser");
@@ -669,6 +703,54 @@ TEST_F(Shared_memory_tests,serialization2){
       ASSERT_EQ(in.get(),out.get());
     }
   
+}
+
+TEST_F(Shared_memory_tests,segment_info){
+
+  shared_memory::clear_shared_memory("test_info");
+  
+  shared_memory::set<double>("test_info","d1",5.0);
+  shared_memory::set<double>("test_info","d2",10.0);
+
+  shared_memory::SegmentInfo si = shared_memory::get_segment_info("test_info");
+  uint size = si.get_size();
+  uint free = si.get_free_memory();
+  bool issues = si.has_issues();
+  uint nb_objects = si.nb_objects();
+
+  ASSERT_EQ(size,SHARED_MEMORY_SIZE);
+  ASSERT_GT(size,free);
+  ASSERT_GT(free,0);
+  ASSERT_EQ(nb_objects,2);
+  ASSERT_FALSE(issues);
+
+  shared_memory::set<double>("test_info","d3",2.0);
+  shared_memory::set<double>("test_info","d4",3.0);
+
+  shared_memory::SegmentInfo si2 = shared_memory::get_segment_info("test_info");
+  uint size2 = si2.get_size();
+  uint free2 = si2.get_free_memory();
+  bool issues2 = si2.has_issues();
+  uint nb_objects2 = si2.nb_objects();
+
+  ASSERT_EQ(size,size2);
+  ASSERT_LT(free2,free);
+  ASSERT_FALSE(issues2);
+  ASSERT_EQ(nb_objects2,4);
+
+  // memory overflow on purpose
+  std::vector<char> v(free2+1);
+  bool exception=false;
+  try
+    {
+      shared_memory::set("test_info","unreasonable",v);
+    }
+  catch (...)
+    {
+      exception = true;
+    }
+  ASSERT_TRUE(exception);
+
 }
 
 

@@ -17,6 +17,12 @@
 
 namespace shared_memory {
 
+  // value will change with called
+  // to shared_memory::set_verbose
+  // used to turn off print console
+  // in code below
+  extern bool VERBOSE;
+  
   /***********************************************
    * Definition of the SharedMemorySegment class *
    ***********************************************/
@@ -38,8 +44,8 @@ namespace shared_memory {
 						     get_.second);
     }
 
-    if (registered){
-      std::cout << "registration of " << object_id
+    if (registered && VERBOSE){
+      std::cout << "shared_memory::SharedMemoryObject | registration of " << object_id
     		<< " of size " << get_.second << std:: endl;
     }
     
@@ -61,8 +67,8 @@ namespace shared_memory {
 
     bool registered = register_object(object_id, set_);
 
-    if (registered){
-      std::cout << "registration of " << object_id
+    if (registered && VERBOSE){
+      std::cout << "shared_memory::SharedMemoryObject | registration of " << object_id
     		<< " of size " << objects_[object_id].second << std:: endl;
     }
 
@@ -97,8 +103,6 @@ namespace shared_memory {
     objects_[object_id].second = obj_size;
 
     return true;
-    //std::cout << "registration of " << object_id
-    //        << " of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>
@@ -125,9 +129,6 @@ namespace shared_memory {
     objects_[object_id].second = obj_size;
 
     return true;
-    
-    //std::cout << "registration of " << object_id
-    //        << " of size " << obj_size << std:: endl;
   }
 
   template<typename ElemType>
@@ -351,4 +352,5 @@ namespace shared_memory {
     }
   }
 
+  
 } // namespace shared_memory

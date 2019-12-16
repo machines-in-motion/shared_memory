@@ -104,10 +104,17 @@ add_executable(serialization
   demos/serialization.cpp)
 target_link_libraries(serialization shared_memory)
 
+add_executable(demo_write_array
+  demos/demo_write_array.cpp)
+target_link_libraries(demo_write_array shared_memory)
+
+add_executable(demo_read_array
+  demos/demo_read_array.cpp)
+target_link_libraries(demo_read_array shared_memory)
+
 add_executable(demo_verbose
   demos/demo_verbose.cpp)
 target_link_libraries(demo_verbose shared_memory)
-
 
 ##############
 # Python wrapper #
@@ -200,6 +207,7 @@ add_executable(serialization_frequency
   demos/four_int_values.cpp
   benchmarks/serialization_frequency.cpp)
 target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
+
 
 
 ##########################

@@ -44,7 +44,6 @@ namespace shared_memory {
 						     get_.second);
     }
 
-
     if (registered && VERBOSE){
       std::cout << "shared_memory::SharedMemoryObject | registration of " << object_id
     		<< " of size " << get_.second << std:: endl;

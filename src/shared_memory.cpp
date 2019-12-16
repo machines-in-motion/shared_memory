@@ -13,6 +13,22 @@ namespace bi=boost::interprocess;
 
 namespace shared_memory {
 
+  static uint SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
+  static std::mutex SEGMENT_SIZE_MUTEX;
+
+  void set_segment_sizes(uint multiplier_1025)
+  {
+    SEGMENT_SIZE_MUTEX.lock();
+    SEGMENT_SIZE = multiplier_1025 * 1025;
+    SEGMENT_SIZE_MUTEX.unlock();
+  }
+
+  void set_default_segment_sizes()
+  { 
+    SEGMENT_SIZE_MUTEX.lock();
+    SEGMENT_SIZE = DEFAULT_SHARED_MEMORY_SIZE;
+    SEGMENT_SIZE_MUTEX.unlock();
+
   bool VERBOSE=false;
   void set_verbose(bool mode)
   {
@@ -33,10 +49,12 @@ namespace shared_memory {
     clear_upon_destruction_ = clear_upon_destruction;
 
     // create and/or map the memory segment
+    SEGMENT_SIZE_MUTEX.lock();
     segment_manager_ = boost::interprocess::managed_shared_memory(
                     boost::interprocess::open_or_create,
                     segment_id.c_str(),
-                    SHARED_MEMORY_SIZE);
+                    SEGMENT_SIZE);
+    SEGMENT_SIZE_MUTEX.unlock();
     create_mutex();
   }
 

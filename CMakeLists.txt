@@ -41,6 +41,7 @@ add_library(shared_memory
   src/mutex.cpp
   src/lock.cpp
   src/exceptions.cpp
+  src/array.cpp
   src/segment_info.cpp)
 target_link_libraries(shared_memory
   ${catkin_LIBRARIES}

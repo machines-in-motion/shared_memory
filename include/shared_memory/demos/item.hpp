@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <iostream>
 
 namespace shared_memory
 {

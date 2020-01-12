@@ -79,7 +79,7 @@ void run()
 	{
 	  serialized.get(i,item);
 	  fundamental.get(i,value);
-	  fundamental_array.get(i,*values);
+	  fundamental_array.get(i,values);
 	  item.compact_print();
 	  std::cout << " | " << value << " | ";
 	  print_array(values,SIZE);

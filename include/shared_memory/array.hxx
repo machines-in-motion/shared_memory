@@ -88,9 +88,21 @@ void array<T,SIZE>::set(uint index, const T& t)
 }
 
 template<typename T, int SIZE>
+void array<T,SIZE>::set(uint index, const T* t)
+{
+  set(index,*t,this->type_);
+}
+
+template<typename T, int SIZE>
 void array<T,SIZE>::get(uint index, T& t)
 {
   get(index,t,this->type_);
+}
+
+template<typename T, int SIZE>
+void array<T,SIZE>::get(uint index, T* t)
+{
+  get(index,*t,this->type_);
 }
 
 template<typename T, int SIZE>

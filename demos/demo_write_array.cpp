@@ -97,7 +97,7 @@ void run()
 	      values[j]=0;
 	    }
 	  values[i]=count;
-	  fundamental_array.set(i,*values);
+	  fundamental_array.set(i,values);
 	  
 	}
       

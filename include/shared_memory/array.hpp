@@ -64,7 +64,7 @@ namespace shared_memory
     void init( SERIALIZABLE );
     void set(uint index,const T& t, SERIALIZABLE);
     void get(uint index, T& t, SERIALIZABLE);
-
+    
   public:
 
     /**
@@ -127,10 +127,20 @@ namespace shared_memory
     void set(uint index, const T& t);
 
     /**
+     * @brief set element t at index 
+     */
+    void set(uint index, const T* t);
+    
+    /**
      * @brief read element at index into t
      */
     void get(uint index, T& t);
 
+    /**
+     * @brief read element at index into t
+     */
+    void get(uint index, T* t);
+    
     /**
      * @brief max number of elements in the array
      */

@@ -117,6 +117,10 @@ add_executable(demo_verbose
   demos/demo_verbose.cpp)
 target_link_libraries(demo_verbose shared_memory)
 
+add_executable(demo_eigen
+  demos/demo_eigen.cpp)
+target_link_libraries(demo_eigen shared_memory)
+
 ##############
 # Python wrapper #
 ##############

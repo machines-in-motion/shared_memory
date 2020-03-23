@@ -153,6 +153,7 @@ if (TARGET shared_memory_unit_tests)
     set_target_properties(shared_memory_unit_tests PROPERTIES
                           COMPILE_DEFINITIONS
                           SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable")
+    add_dependencies(shared_memory_unit_tests tests_executable)
 
 endif()
 

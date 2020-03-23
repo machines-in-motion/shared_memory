@@ -70,18 +70,15 @@ static bool _call_executable(int action,bool blocking){
   return true;
 }
 
-
 TEST_F(SharedMemoryTests,spawn_thread_test){
-  bool called = _call_executable(shared_memory_test::set_double,true);
+  bool called = _call_executable(shared_memory_test::set_double, true);
   ASSERT_EQ(called,true);
 }
 
 
 TEST_F(SharedMemoryTests,double_test){
 
-  _call_executable(shared_memory_test::set_double);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_double, true);
 
   double value;
   shared_memory::get(shared_memory_test::segment_id,
@@ -94,9 +91,7 @@ TEST_F(SharedMemoryTests,double_test){
 
 TEST_F(SharedMemoryTests,int_test){
 
-  _call_executable(shared_memory_test::set_int);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_int, true);
 
   int value;
   shared_memory::get(shared_memory_test::segment_id,
@@ -109,9 +104,7 @@ TEST_F(SharedMemoryTests,int_test){
 
 TEST_F(SharedMemoryTests,test_float){
 
-  _call_executable(shared_memory_test::set_float);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_float, true);
 
   float value;
   shared_memory::get(shared_memory_test::segment_id,
@@ -124,9 +117,7 @@ TEST_F(SharedMemoryTests,test_float){
 
 TEST_F(SharedMemoryTests,test_string){
 
-  _call_executable(shared_memory_test::set_string);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_string, true);
 
   std::string str;
   shared_memory::get(shared_memory_test::segment_id,
@@ -139,9 +130,7 @@ TEST_F(SharedMemoryTests,test_string){
 
 TEST_F(SharedMemoryTests,test_array){
 
-  _call_executable(shared_memory_test::set_double_array);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_double_array, true);
 
   double a[shared_memory_test::test_array_size];
   shared_memory::get(shared_memory_test::segment_id,
@@ -158,9 +147,7 @@ TEST_F(SharedMemoryTests,test_array){
 
 TEST_F(SharedMemoryTests,test_vector){
 
-  _call_executable(shared_memory_test::set_vector);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_vector, true);
 
   std::vector<double> v(shared_memory_test::test_array_size);
   shared_memory::get(shared_memory_test::segment_id,
@@ -176,9 +163,7 @@ TEST_F(SharedMemoryTests,test_vector){
 
 TEST_F(SharedMemoryTests,test_eigen_vector){
 
-  _call_executable(shared_memory_test::set_vector);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_vector, true);
 
   Eigen::VectorXd v(shared_memory_test::test_array_size);
   shared_memory::get(shared_memory_test::segment_id,
@@ -194,9 +179,7 @@ TEST_F(SharedMemoryTests,test_eigen_vector){
 
 TEST_F(SharedMemoryTests,test_int_double_map){
 
-  _call_executable(shared_memory_test::set_int_double_map);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_int_double_map, true);
 
   std::map<int,double> m;
   m[shared_memory_test::map_int_keys1]=0.0;
@@ -214,9 +197,7 @@ TEST_F(SharedMemoryTests,test_int_double_map){
 
 TEST_F(SharedMemoryTests,test_string_double_map){
 
-  _call_executable(shared_memory_test::set_string_double_map);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_string_double_map, true);
 
   std::map<std::string,double> m;
   m[shared_memory_test::map_string_keys1]=0.0;
@@ -234,9 +215,7 @@ TEST_F(SharedMemoryTests,test_string_double_map){
 
 TEST_F(SharedMemoryTests,test_string_vector_double_map){
 
-  _call_executable(shared_memory_test::set_string_vector_double_map);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_string_vector_double_map, true);
 
   std::map<std::string,std::vector<double>> m;
 
@@ -269,9 +248,7 @@ TEST_F(SharedMemoryTests,test_string_vector_double_map){
 
 TEST_F(SharedMemoryTests,test_string_vector_eigen_map){
 
-  _call_executable(shared_memory_test::set_string_vector_eigen_map);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_string_vector_eigen_map, true);
 
   std::map<std::string,Eigen::VectorXd> m;
 
@@ -312,9 +289,7 @@ TEST_F(SharedMemoryTests,test_memory_overflow){
 
 TEST_F(SharedMemoryTests,test_wrong_size_vector){
 
-  _call_executable(shared_memory_test::set_vector);
-
-  usleep(TIME_SLEEP);
+  _call_executable(shared_memory_test::set_vector, true);
 
   std::vector<double> v(shared_memory_test::test_array_size + 1); // !
 
@@ -334,11 +309,34 @@ static inline bool is_one_of(double v, double a1, double a2){
 }
 
 TEST_F(SharedMemoryTests,test_concurrency){
+  // condition variables' names
+  std::stringstream cond_var_name1;
+  cond_var_name1 << shared_memory_test::segment_id << "_"
+                 << shared_memory_test::concurrent_1;
+  std::stringstream cond_var_name2;
+  cond_var_name2 << shared_memory_test::segment_id << "_"
+                 << shared_memory_test::concurrent_2;
+  // destroy the condition variables
+  {
+    shared_memory::LockedConditionVariable
+        cond_var1 (cond_var_name1.str(), true);
+    shared_memory::LockedConditionVariable
+        cond_var2 (cond_var_name2.str(), true);
+  }
 
   _call_executable(shared_memory_test::concurrent_1);
   _call_executable(shared_memory_test::concurrent_2);
 
   usleep(TIME_SLEEP);
+
+  // Prepare the condition variables
+  shared_memory::LockedConditionVariable
+    cond_var1 (cond_var_name1.str());
+  cond_var1.lock_scope();
+  //
+  shared_memory::LockedConditionVariable
+    cond_var2 (cond_var_name2.str());
+  cond_var2.lock_scope();
 
   bool set_1_observed = false;
   bool set_2_observed = false;
@@ -347,6 +345,13 @@ TEST_F(SharedMemoryTests,test_concurrency){
   int nb_2 = 0;
 
   double a[shared_memory_test::test_array_size];
+
+  cond_var1.notify_all();
+  cond_var2.notify_all();
+  cond_var1.wait();
+  cond_var2.wait();
+  cond_var1.unlock_scope();
+  cond_var2.unlock_scope();
 
   while (true){
 
@@ -378,20 +383,15 @@ TEST_F(SharedMemoryTests,test_concurrency){
       ASSERT_EQ(a[0],a[i]);
     }
 
-    usleep(50);
+    usleep(5);
 
   }
-
   ASSERT_EQ(set_1_observed,true);
   ASSERT_EQ(set_2_observed,true);
-
 }
 
 
 TEST_F(SharedMemoryTests,test_locked_condition_variable){
-
-  usleep(TIME_SLEEP);
-
   // create a data vector
   double d[shared_memory_test::test_array_size];
 
@@ -428,6 +428,7 @@ TEST_F(SharedMemoryTests,test_locked_condition_variable){
 
   cond_var.notify_all();
   cond_var.unlock_scope();
+  usleep(TIME_SLEEP);
 }
 
 TEST_F(SharedMemoryTests,test_timed_wait){
@@ -441,9 +442,6 @@ TEST_F(SharedMemoryTests,test_timed_wait){
 }
 
 TEST_F(SharedMemoryTests,test_condition_variable){
-
-  clear_memory();
-
   // initializing shared array
   int value = 1;
   double v[shared_memory_test::test_array_size];
@@ -467,7 +465,7 @@ TEST_F(SharedMemoryTests,test_condition_variable){
 
   // starting another process with same condition variable
   _call_executable(shared_memory_test::condition_variable);
-  usleep(100000);
+  usleep(3 * TIME_SLEEP);
 
   // other process should be hanging, freeing it
   condition.notify_one();
@@ -508,7 +506,8 @@ TEST_F(SharedMemoryTests,test_condition_variable){
   }
 
   condition.notify_one();
-
+  // Wait to make sure the executable is done
+  usleep(3 * TIME_SLEEP);
 }
 
 
@@ -549,7 +548,7 @@ TEST_F(SharedMemoryTests,exchange_manager){
       usleep(100);
       waited += 100;
       if(waited>max_wait){
-	failed_to_start = true;
+	    failed_to_start = true;
       }
     }
     ASSERT_EQ(failed_to_start,false);

@@ -107,6 +107,15 @@ int main(int, char *argv[]){
   }
     
   if(command==shared_memory_test::Actions::concurrent_1){
+    std::stringstream cond_var_name;
+    cond_var_name << shared_memory_test::segment_id << "_"
+                  << shared_memory_test::concurrent_1;
+    shared_memory::LockedConditionVariable
+        cond_var (cond_var_name.str());
+    cond_var.lock_scope();
+    cond_var.wait();
+
+    // Send shared_memory_test::concurrent_value_1
     double d[shared_memory_test::test_array_size];
     for(int i=0;i<shared_memory_test::test_array_size;i++){
       d[i]=shared_memory_test::concurrent_value_1;
@@ -114,8 +123,14 @@ int main(int, char *argv[]){
     for(int i=0;i<5000;i++){
       shared_memory::set(segment,object,
 			 d,shared_memory_test::test_array_size);
+      if(i==0)
+      {
+        cond_var.unlock_scope();
+        cond_var.notify_all();
+      }
       usleep(50);
     }
+    // Send stop
     for(int i=0;i<shared_memory_test::test_array_size;i++){
       d[i]=shared_memory_test::concurrent_stop_value;
     }
@@ -124,6 +139,14 @@ int main(int, char *argv[]){
   }
 
   if(command==shared_memory_test::Actions::concurrent_2){
+    std::stringstream cond_var_name;
+    cond_var_name << shared_memory_test::segment_id << "_"
+                  << shared_memory_test::concurrent_2;
+    shared_memory::LockedConditionVariable
+        cond_var (cond_var_name.str());
+    cond_var.lock_scope();
+    cond_var.wait();
+
     double d[shared_memory_test::test_array_size];
     for(int i=0;i<shared_memory_test::test_array_size;i++){
       d[i]=shared_memory_test::concurrent_value_2;
@@ -131,6 +154,11 @@ int main(int, char *argv[]){
     for(int i=0;i<5000;i++){
       shared_memory::set(segment,object,
 			 d,shared_memory_test::test_array_size);
+      if(i==0)
+      {
+        cond_var.unlock_scope();
+        cond_var.notify_all();
+      }
       usleep(50);
     }
     for(int i=0;i<shared_memory_test::test_array_size;i++){
@@ -278,7 +306,8 @@ int main(int, char *argv[]){
 
     
   }
-  
+
+  return 0;
 }
 
 

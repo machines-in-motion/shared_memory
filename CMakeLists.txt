@@ -220,3 +220,8 @@ target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 # building documentation #
 ##########################
 build_doxygen_documentation()
+
+#####################################################################
+# Format the code upon build with the cmake option -DFORMAT_CODE=ON #
+#####################################################################
+format_code()

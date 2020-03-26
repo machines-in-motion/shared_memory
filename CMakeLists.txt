@@ -153,6 +153,7 @@ if (TARGET shared_memory_unit_tests)
     set_target_properties(shared_memory_unit_tests PROPERTIES
                           COMPILE_DEFINITIONS
                           SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable")
+    add_dependencies(shared_memory_unit_tests tests_executable)
 
 endif()
 
@@ -219,3 +220,8 @@ target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
 # building documentation #
 ##########################
 build_doxygen_documentation()
+
+#####################################################################
+# Format the code upon build with the cmake option -DFORMAT_CODE=ON #
+#####################################################################
+format_code()

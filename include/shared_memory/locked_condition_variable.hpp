@@ -3,46 +3,43 @@
 
 #pragma once
 
-#include <memory> // defines the unique_ptr
+#include <memory>  // defines the unique_ptr
 
-#include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-#include "shared_memory/shared_memory.hpp"
 #include "shared_memory/mutex.hpp"
+#include "shared_memory/shared_memory.hpp"
 
+namespace shared_memory
+{
+typedef boost::interprocess::named_condition SHMCondition;
+typedef boost::interprocess::scoped_lock<SHMMutex> SHMScopeLock;
 
-namespace shared_memory {
+typedef boost::interprocess::interprocess_mutex UnamedSHMMutex;
+typedef boost::interprocess::interprocess_condition UnamedSHMCondition;
+typedef boost::interprocess::scoped_lock<UnamedSHMMutex> UnamedSHMLock;
 
-  typedef boost::interprocess::named_condition SHMCondition;
-  typedef boost::interprocess::scoped_lock<SHMMutex> SHMScopeLock;
-
-  typedef boost::interprocess::interprocess_mutex UnamedSHMMutex;
-  typedef boost::interprocess::interprocess_condition UnamedSHMCondition;
-  typedef boost::interprocess::scoped_lock<UnamedSHMMutex> UnamedSHMLock;
-
-
-  /**
-   * @brief The LockedConditionVariable class is here as a anonymous layer on top
-   * of the boost intersprocess condition variable labrary.
-   * It creates a condition variable in a shared memory automatically.
-   */
-  class LockedConditionVariable
-  {
-  public:
-
+/**
+ * @brief The LockedConditionVariable class is here as a anonymous layer on top
+ * of the boost intersprocess condition variable labrary.
+ * It creates a condition variable in a shared memory automatically.
+ */
+class LockedConditionVariable
+{
+public:
     /**
      * @brief A condition variable shared over the memory
      * The condition variable is cleaned from the memory
-     * on destruction if clean_memory_on_destruction 
+     * on destruction if clean_memory_on_destruction
      * is set to true. Contrary to shared_memory::ConditionVariable,
      * instances of this class manages their mutex and lock internally,
      * with the consequence the mutex can be locked and unlocked exclusively
      * through other instances of LockedConditionVariable.
      */
     LockedConditionVariable(const std::string object_id,
-			    bool clean_memory_on_destruction=true);
-    
+                            bool clean_memory_on_destruction = true);
+
     ~LockedConditionVariable();
 
     /**
@@ -96,17 +93,15 @@ namespace shared_memory {
      */
     void unlock_scope();
 
-  public:
-
+public:
     /**
      * @brief LockedConditionVariable clean their shared memory on destruction.
      * But the destructor may have failed to be called if for some reason
      * the program crashed.
      */
     static void clean(const std::string segment_id);
-    
-  private:
-    
+
+private:
     /**
      * @brief mutex_id_ is the mutex name in the shared memory
      */
@@ -123,7 +118,7 @@ namespace shared_memory {
      */
     boost::interprocess::managed_shared_memory segment_manager_;
 
-  public:
+public:
     /**
      * @brief mutex_ is the mutex associated to the condition variable
      */
@@ -142,12 +137,9 @@ namespace shared_memory {
 
     /**
      * @brief if true (the default), clean the shared memory of the
-     * hosted mutex and condition. 
+     * hosted mutex and condition.
      */
     bool clean_memory_on_destruction_;
-    
-  };
-  
-}
+};
 
-
+}  // namespace shared_memory

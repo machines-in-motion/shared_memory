@@ -67,7 +67,48 @@ PYBIND11_MODULE(shared_memory_py,m){
 	  return value;
 	});
 
+  m.def("set_int",[](std::string segment,
+		      std::string object,
+		      int value){
+	  shared_memory::set<int>(segment,object,value);
+	});
+  m.def("get_int",[](std::string segment,
+		      std::string object){
+	  int value;
+	  shared_memory::get<int>(segment,object,value);
+	  return value;
+	});
+
+  m.def("set_double",[](std::string segment,
+		      std::string object,
+		      double value){
+	  shared_memory::set<double>(segment,object,value);
+	});
+  m.def("get_double",[](std::string segment,
+		      std::string object){
+	  double value;
+	  shared_memory::get<double>(segment,object,value);
+	  return value;
+	});
+
+  m.def("set_string",[](std::string segment,
+		      std::string object,
+		      std::string value){
+	  shared_memory::set<std::string>(segment,object,value);
+	});
   
+  m.def("get_string",[](std::string segment,
+		      std::string object){
+	  std::string value;
+	  shared_memory::get<std::string>(segment,object,value);
+	  return value;
+	});
+
+    
+  m.def("clear_shared_memory",[](std::string segment)
+    {
+      shared_memory::clear_shared_memory(segment);
+    });
   
   
 }

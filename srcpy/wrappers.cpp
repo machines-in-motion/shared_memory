@@ -11,8 +11,7 @@
 
 using namespace shared_memory;
 
-PYBIND11_MODULE(shared_memory_py,m){
-
+PYBIND11_MODULE(shared_memory,m){
 
   // Mutex
   

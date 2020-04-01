@@ -128,7 +128,8 @@ target_link_libraries(demo_eigen shared_memory)
 pybind11_add_module(shared_memory_py srcpy/wrappers.cpp)
 target_link_libraries(shared_memory_py PRIVATE shared_memory ${catkin_LIBRARIES})
 set_target_properties(shared_memory_py PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
+  OUTPUT_NAME shared_memory)
 install(TARGETS shared_memory_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 ##############

@@ -2,142 +2,142 @@
  * @file exchange_manager_producer.cpp
  * @author Vincent Berenz
  * @license License BSD-3-Clause
- * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+ * @copyright Copyright (c) 2019, New York University and Max Planck
+ * Gesellschaft.
  * @date 2019-05-22
- * 
+ *
  * @brief Demonstrate the use of the exhange manager producer
  */
 #include "shared_memory/exchange_manager_producer.hpp"
-#include "shared_memory/exchange_manager_consumer.hpp"
-#include "shared_memory/demos/four_int_values.hpp"
+#include <signal.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
-#include <signal.h>
-
+#include "shared_memory/demos/four_int_values.hpp"
+#include "shared_memory/exchange_manager_consumer.hpp"
 
 #define SEGMENT_ID "exchange_demo_segment"
 #define OBJECT_ID "exchange_demo_object"
-#define QUEUE_SIZE 2000*4
+#define QUEUE_SIZE 2000 * 4
 
 static bool RUNNING = true;
 
-void stop(int){
-  RUNNING=false;
+void stop(int)
+{
+    RUNNING = false;
 }
 
-static int _get_int(int max){
-  return rand()%max;
+static int _get_int(int max)
+{
+    return rand() % max;
 }
 
-void execute(){
+void execute()
+{
+    srand(time(NULL));
 
-  srand(time(NULL));
+    // Four_int_values is a subclass of shared_memory/serializable,
+    // i.e an object which can be serialized as an array of double
+    bool autolock = false;  // we need to "manually" call lock, in order to
+                            // write several item in a single shot
+    bool leading = true;    // producer expected to start first, and to survive
+                            // several consumers
+    shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
+                                             QUEUE_SIZE>
+        exchange(SEGMENT_ID, OBJECT_ID, leading, autolock);
 
-  // Four_int_values is a subclass of shared_memory/serializable,
-  // i.e an object which can be serialized as an array of double
-  bool autolock = false; // we need to "manually" call lock, in order to write several item in a single shot
-  bool leading = true; // producer expected to start first, and to survive several consumers
-  shared_memory::Exchange_manager_producer<shared_memory::Four_int_values,
-					   QUEUE_SIZE> exchange ( SEGMENT_ID,
-								  OBJECT_ID,
-								  leading,
-								  autolock );
+    // will be used to track ids that has been consumed
+    // by the consummer
+    std::deque<int> consumed_ids;
 
+    int c = 1;
 
+    // to be used to inform user producer is waiting because
+    // memory is full
 
+    bool waiting_warning_printed = false;
 
-  // will be used to track ids that has been consumed
-  // by the consummer
-  std::deque<int> consumed_ids;
+    while (RUNNING)
+    {
+        // pushing to memory a random number of instances of Four_int_values
 
-  int c = 1;
+        int nb_items = _get_int(5);
 
-  // to be used to inform user producer is waiting because
-  // memory is full
-    
-  bool waiting_warning_printed = false;
+        if (exchange.ready_to_produce())
+        {
+            // necessary because autolock is false
+            exchange.lock();
 
-  while(RUNNING){
+            for (int item = 0; item < nb_items; item++)
+            {
+                shared_memory::Four_int_values fiv(c, c, c, c);
 
-    
-    // pushing to memory a random number of instances of Four_int_values
+                // serializing fiv and writing it to shared memory
+                try
+                {
+                    exchange.set(fiv);
+                    waiting_warning_printed = false;
+                    std::cout << "produced: " << fiv.get_id() << " | " << c
+                              << "\n";
+                    c++;
+                }
+                catch (shared_memory::Memory_overflow_exception)
+                {
+                    if (!waiting_warning_printed)
+                    {
+                        waiting_warning_printed = true;
+                        std::cout
+                            << "shared memory full, waiting for consumer ...\n";
+                    }
+                }
+            }
 
-    int nb_items = _get_int(5);
+            exchange.unlock();
+        }
+        else
+        {
+            if (!waiting_warning_printed)
+            {
+                waiting_warning_printed = true;
+                std::cout << "waiting for consumer to start ...\n";
+            }
+        }
 
-    if ( exchange.ready_to_produce() ){
-    
-      // necessary because autolock is false
-      exchange.lock();
-    
-      for(int item=0;item<nb_items;item++){
+        // reading from shared_memory which
+        // items have been consumed
 
-	shared_memory::Four_int_values fiv(c,c,c,c);
+        exchange.lock();
+        exchange.get(consumed_ids);
+        exchange.unlock();
 
-	// serializing fiv and writing it to shared memory
-	try {
-	
-	  exchange.set(fiv);
-	  waiting_warning_printed = false;
-	  std::cout << "produced: " << fiv.get_id() << " | " << c << "\n";
-	  c++;
-	
-	} catch (shared_memory::Memory_overflow_exception){
+        // printing consumed item ids to console
 
-	  if (!waiting_warning_printed){
-	    waiting_warning_printed = true;
-	    std::cout << "shared memory full, waiting for consumer ...\n";
-	  }
-	} 
-      
-      }
+        while (!consumed_ids.empty())
+        {
+            int id = consumed_ids.front();
+            consumed_ids.pop_front();
+            std::cout << "\t\tconsumed: " << id << "\n";
+        }
 
-      exchange.unlock();
+        // note : slower than consumer,
+        //        as otherwise the buffer
+        //        would end up overflowing
 
-    } else {
-      if (!waiting_warning_printed){
-	waiting_warning_printed = true;
-	std::cout << "waiting for consumer to start ...\n" ;
-      }
+        usleep(2000);
     }
-
-    // reading from shared_memory which
-    // items have been consumed
-
-    exchange.lock();
-    exchange.get(consumed_ids);
-    exchange.unlock();
-    
-    // printing consumed item ids to console
-
-    while (!consumed_ids.empty()){
-      int id = consumed_ids.front();
-      consumed_ids.pop_front();
-      std::cout << "\t\tconsumed: " << id << "\n";
-    }
-
-    // note : slower than consumer,
-    //        as otherwise the buffer
-    //        would end up overflowing
-
-    usleep(2000);
-
-  }
-  
 }
 
-int main(){
+int main()
+{
+    RUNNING = true;
 
-  RUNNING = true;
+    // cleaning and exit on ctrl+c
+    struct sigaction cleaning;
+    cleaning.sa_handler = stop;
+    sigemptyset(&cleaning.sa_mask);
+    cleaning.sa_flags = 0;
+    sigaction(SIGINT, &cleaning, nullptr);
 
-  // cleaning and exit on ctrl+c 
-  struct sigaction cleaning;
-  cleaning.sa_handler = stop;
-  sigemptyset(&cleaning.sa_mask);
-  cleaning.sa_flags = 0;
-  sigaction(SIGINT, &cleaning, nullptr);
-
-  execute();
-
+    execute();
 }

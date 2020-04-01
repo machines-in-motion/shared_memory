@@ -2,11 +2,11 @@
 
 namespace shared_memory
 {
-
-  void clear_array(std::string segment_id)
-  {
+void clear_array(std::string segment_id)
+{
     boost::interprocess::shared_memory_object::remove(segment_id.c_str());
-    boost::interprocess::named_mutex::remove((segment_id+std::string("_mutex")).c_str());
-  }
-
+    boost::interprocess::named_mutex::remove(
+        (segment_id + std::string("_mutex")).c_str());
 }
+
+}  // namespace shared_memory

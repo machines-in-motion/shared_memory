@@ -1,3 +1,5 @@
+[![continuous integration](https://raw.githubusercontent.com/MPI-IS-BambooAgent/sw_badges/master/badges/plans/corerobotics/tag.svg?sanitize=true)](url)
+
 # Shared Memory
 
 ## what it is

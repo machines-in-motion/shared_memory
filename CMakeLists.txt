@@ -24,10 +24,14 @@ include_directories(
 # Declare the libraries to export #
 ###################################
 
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(NON_DARWIN_LIBRARIES rt pthread)
+endif()
+
 catkin_package(
     INCLUDE_DIRS include
     CATKIN_DEPENDS
-    LIBRARIES shared_memory ${protobuf_cmake_target}
+    LIBRARIES shared_memory ${protobuf_cmake_target} ${NON_DARWIN_LIBRARIES}
 )
 
 ###############
@@ -46,13 +50,8 @@ add_library(shared_memory
 target_link_libraries(shared_memory
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${NON_DARWIN_LIBRARIES}
 )
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries(shared_memory
-  -lrt
-  -pthread
-)
-endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #########
 # demos #

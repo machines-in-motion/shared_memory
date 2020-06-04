@@ -61,7 +61,7 @@ array<T, SIZE>& array<T, SIZE>::operator=(array<T, SIZE>&& other) noexcept
     other.clear_on_destruction_ = false;
     multiprocess_safe_ = other.multiprocess_safe_;
     init(this->type);
-    std::swap(mutex_, other.mutex_);
+    mutex_ = other.mutex_;
     other.shared_ = nullptr;
     return *this;
 }

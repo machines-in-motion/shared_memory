@@ -3,7 +3,7 @@
  * @author Vincent Berenz
  * license License BSD-3-Clause
  * @copyright Copyright (c) 2019, New York University and Max Planck
- * Gesellshaft.
+ * Gesellschaft.
  * @date 2019-05-22
  *
  * @brief example of writing into interprocesses arrays

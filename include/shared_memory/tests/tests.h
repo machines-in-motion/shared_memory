@@ -30,7 +30,7 @@ const float test_float = 4.4;
 const int test_int = 3;
 const std::string test_string("test_string");
 const double test_array[4] = {1.1, 2.2, 3.3, 4.4};
-const int test_array_size = 4;
+const unsigned int test_array_size = 4;
 const int map_int_keys1 = 0;
 const int map_int_keys2 = 1;
 const std::string map_string_keys1("s1");
@@ -41,7 +41,7 @@ const double concurrent_value_1 = 1.0;
 const double concurrent_value_2 = 2.0;
 const double concurrent_stop_value = 3.0;
 
-const int test_map_size = 2;
+const unsigned int test_map_size = 2;
 
 const int nb_to_consume = 100;
 

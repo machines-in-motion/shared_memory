@@ -59,4 +59,5 @@ int main()
             std::cout << meas_time << std::endl;
         }
     }
+    return 0;
 }

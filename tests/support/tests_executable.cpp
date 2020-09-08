@@ -50,7 +50,7 @@ int main(int, char *argv[])
     if (command == shared_memory_test::Actions::set_vector)
     {
         std::vector<double> v;
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             v.push_back(shared_memory_test::test_array[i]);
         }
@@ -132,7 +132,7 @@ int main(int, char *argv[])
 
         // Send shared_memory_test::concurrent_value_1
         double d[shared_memory_test::test_array_size];
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_value_1;
         }
@@ -148,7 +148,7 @@ int main(int, char *argv[])
             usleep(50);
         }
         // Send stop
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_stop_value;
         }
@@ -166,7 +166,7 @@ int main(int, char *argv[])
         cond_var.wait();
 
         double d[shared_memory_test::test_array_size];
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_value_2;
         }
@@ -181,7 +181,7 @@ int main(int, char *argv[])
             }
             usleep(50);
         }
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_stop_value;
         }
@@ -205,7 +205,7 @@ int main(int, char *argv[])
         usleep(500000);
 
         // fill d with a starting value
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_value_2;
         }
@@ -219,7 +219,7 @@ int main(int, char *argv[])
         cond_var.wait();
 
         // fill d with an end value
-        for (int i = 0; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_stop_value;
         }
@@ -249,7 +249,7 @@ int main(int, char *argv[])
                 shared_memory::Lock lock(mutex);
                 condition.wait(lock);
 
-                for (int i = 0; i < shared_memory_test::test_array_size; i++)
+                for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
                 {
                     v[i] = value;
                 }

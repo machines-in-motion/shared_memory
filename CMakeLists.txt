@@ -1,44 +1,52 @@
-cmake_minimum_required(VERSION 2.8.3)
+#
+# Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+#
+# License BSD-3 clause
+#
+
+#
+# set up the project
+#
+cmake_minimum_required(VERSION 3.10.2)
+
 project(shared_memory)
 
-# required to use std::shared_ptr in code and to link the python bindings
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+# Using C++17
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
 endif()
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
-
-find_package(catkin REQUIRED COMPONENTS mpi_cmake_modules pybind11_catkin)
-search_for_eigen()
-search_for_boost()
-search_for_cereal_required()
-
-include_directories(
-    ${catkin_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    ${Eigen_INCLUDE_DIRS}
-    ${cereal_INCLUDE_DIRS}
-    include
-)
-
-###################################
-# Declare the libraries to export #
-###################################
-
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(NON_DARWIN_LIBRARIES rt pthread)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
-catkin_package(
-    INCLUDE_DIRS include
-    CATKIN_DEPENDS
-    LIBRARIES shared_memory ${protobuf_cmake_target} ${NON_DARWIN_LIBRARIES}
-)
+#
+# Dependencies
+#
+# depend on ament macros
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
-###############
-# add library #
-###############
+find_package(mpi_cmake_modules REQUIRED)
+find_package(pybind11_vendor REQUIRED)
+find_package(pybind11 REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Boost "1.65" REQUIRED)
+find_package(cereal REQUIRED)
+find_package(Threads REQUIRED)
+find_package(rt REQUIRED)
 
-add_library(shared_memory
+# export de dependencies
+ament_export_dependencies(Boost Threads Eigen3 cereal pybind11 rt)
+
+# prepare to export all needed targets
+set(all_targets)
+set(all_target_exports)
+
+#
+# Add the main library
+#
+add_library(
+  ${PROJECT_NAME} SHARED
   src/shared_memory.cpp
   src/locked_condition_variable.cpp
   src/condition_variable.cpp
@@ -47,181 +55,185 @@ add_library(shared_memory
   src/exceptions.cpp
   src/array.cpp
   src/segment_info.cpp)
-target_link_libraries(shared_memory
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${NON_DARWIN_LIBRARIES}
-)
+# Add the include dependencies
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                         $<INSTALL_INTERFACE:include>)
+# Link the dependencies
+ament_target_dependencies(${PROJECT_NAME} Boost)
+ament_target_dependencies(${PROJECT_NAME} cereal)
+ament_target_dependencies(${PROJECT_NAME} rt)
+ament_target_dependencies(${PROJECT_NAME} Eigen3)
+target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
-#########
-# demos #
-#########
+# Export the target.
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+list(APPEND all_targets ${PROJECT_NAME})
+list(APPEND all_target_exports export_${PROJECT_NAME})
 
-add_executable(set_data demos/set_data.cpp)
-target_link_libraries(set_data shared_memory ${protobuf_cmake_target})
-
-add_executable(get_data demos/get_data.cpp)
-target_link_libraries(get_data shared_memory ${protobuf_cmake_target})
-
-add_executable(cond_var_timeout demos/cond_var_timeout.cpp)
-target_link_libraries(cond_var_timeout shared_memory)
-
-add_executable(cond_var_demo demos/cond_var_demo.cpp)
-target_link_libraries(cond_var_demo shared_memory)
-
-add_executable(locked_cond_var_ping demos/locked_cond_var_ping.cpp)
-target_link_libraries(locked_cond_var_ping shared_memory)
-
-add_executable(locked_cond_var_pong demos/locked_cond_var_pong.cpp)
-target_link_libraries(locked_cond_var_pong shared_memory)
-
-add_executable(cond_var_ping demos/cond_var_ping.cpp)
-target_link_libraries(cond_var_ping shared_memory)
-
-add_executable(cond_var_pong demos/cond_var_pong.cpp)
-target_link_libraries(cond_var_pong shared_memory)
-
-add_executable(exchange_manager_producer
-  demos/four_int_values.cpp
-  demos/exchange_manager_producer.cpp)
-target_link_libraries(exchange_manager_producer shared_memory)
-
-add_executable(exchange_manager_consumer
-  demos/four_int_values.cpp
-  demos/exchange_manager_consumer.cpp)
-target_link_libraries(exchange_manager_consumer shared_memory)
-
-add_executable(exchange_manager_clean
-  demos/four_int_values.cpp
-  demos/exchange_manager_clean.cpp)
-target_link_libraries(exchange_manager_clean shared_memory)
-
-add_executable(std_string_vector
-  demos/std_string_vector.cpp)
-target_link_libraries(std_string_vector shared_memory)
-
-add_executable(serialization
-  demos/serialization.cpp)
-target_link_libraries(serialization shared_memory)
-
-add_executable(demo_write_array
-  demos/demo_write_array.cpp)
-target_link_libraries(demo_write_array shared_memory)
-
-add_executable(demo_read_array
-  demos/demo_read_array.cpp)
-target_link_libraries(demo_read_array shared_memory)
-
-add_executable(demo_verbose
-  demos/demo_verbose.cpp)
-target_link_libraries(demo_verbose shared_memory)
-
-add_executable(demo_eigen
-  demos/demo_eigen.cpp)
-target_link_libraries(demo_eigen shared_memory)
-
-##################
+#
 # Python wrapper #
-##################
+#
+add_library(${PROJECT_NAME}_cpp_bindings MODULE srcpy/shared_memory.cpp)
+target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE pybind11::module)
+target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PYTHON_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_cpp_bindings
+                      PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_include_directories(
+  ${PROJECT_NAME}_cpp_bindings
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include> SYSTEM
+  PUBLIC ${PYTHON_INCLUDE_DIRS})
+_ament_cmake_python_get_python_install_dir()
+install(TARGETS ${PROJECT_NAME}_cpp_bindings DESTINATION ${PYTHON_INSTALL_DIR})
+install(FILES srcpy/__init__.py
+        DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
 
-pybind11_add_module(shared_memory_py srcpy/wrappers.cpp)
-target_link_libraries(shared_memory_py PRIVATE shared_memory ${catkin_LIBRARIES})
-set_target_properties(shared_memory_py PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
-  OUTPUT_NAME shared_memory)
-install(TARGETS shared_memory_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+#
+# Unit tests
+#
+# add unit tests #
+#
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest)
 
-##############
-# Unit tests #
-##############
+  # Set a general config folder path for all tests
+  set(TEST_CONFIG_PATH ${PROJECT_SOURCE_DIR}/tests/config/)
 
-add_executable(tests_executable
-  tests/support/tests_executable.cpp
-  demos/four_int_values.cpp)
-target_link_libraries(tests_executable shared_memory)
-set_target_properties(tests_executable PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
+  # Add an executable that populate the shared memory.
+  add_executable(tests_executable tests/support/tests_executable.cpp
+                                  demos/four_int_values.cpp)
+  target_link_libraries(tests_executable shared_memory)
+  set_target_properties(
+    tests_executable PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
 
-catkin_add_gtest(shared_memory_unit_tests
-  tests/main.cpp
-  tests/unit_tests.cpp
-  demos/four_int_values.cpp)
+  # Add the test
+  ament_add_gtest(test_shared_memory tests/main.cpp tests/unit_tests.cpp
+                  demos/four_int_values.cpp)
 
-if (TARGET shared_memory_unit_tests)
-
-    target_link_libraries(shared_memory_unit_tests shared_memory)
-    set_target_properties(shared_memory_unit_tests PROPERTIES
-                          COMPILE_DEFINITIONS
-                          SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable")
-    add_dependencies(shared_memory_unit_tests tests_executable)
-
+  # Link the dependecies to it.
+  target_link_libraries(test_shared_memory shared_memory)
+  set_target_properties(
+    test_shared_memory
+    PROPERTIES
+      COMPILE_DEFINITIONS
+      SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable"
+  )
+  add_dependencies(test_shared_memory tests_executable)
 endif()
 
-##############
-# BENCHMARKS #
-##############
+#
+# demos
+#
+function(add_demo demo_name)
+  # Deal with args
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs ADDITIONNAL_SOURCES)
+  cmake_parse_arguments(add_demo "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" ${ARGN})
 
-set(BENCHMARK_DEPENDENCIES
-  ${Boost_LIBRARIES}
-)
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-set(BENCHMARK_DEPENDENCIES
-  ${BENCHMARK_DEPENDENCIES}
-  -lrt
-  -pthread
-)
-endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  # set(demo_target_name ${PROJECT_NAME}_${demo_name})
+  set(demo_target_name ${demo_name})
+  # add the executable.
+  add_executable(${demo_target_name} demos/${demo_name}.cpp
+                                     ${add_demo_ADDITIONNAL_SOURCES})
+  # save the name for installation
+  set(all_targets ${all_targets} ${demo_target_name})
+  # dependencies
+  target_include_directories(
+    ${demo_target_name}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  target_link_libraries(${demo_target_name} ${PROJECT_NAME})
 
-#find_package(benchmark REQUIRED)
+endfunction(add_demo demo_name)
+
+add_demo(set_data)
+add_demo(get_data)
+add_demo(cond_var_timeout)
+add_demo(cond_var_demo)
+add_demo(locked_cond_var_ping)
+add_demo(locked_cond_var_pong)
+add_demo(cond_var_ping)
+add_demo(cond_var_pong)
+add_demo(exchange_manager_producer ADDITIONNAL_SOURCES
+         demos/four_int_values.cpp)
+add_demo(exchange_manager_consumer ADDITIONNAL_SOURCES
+         demos/four_int_values.cpp)
+add_demo(exchange_manager_clean ADDITIONNAL_SOURCES demos/four_int_values.cpp)
+add_demo(std_string_vector)
+add_demo(serialization)
+add_demo(demo_write_array)
+add_demo(demo_read_array)
+add_demo(demo_verbose)
+add_demo(demo_eigen)
+
+#
+# BENCHMARKS
+#
+function(add_benchmark benchmark_name)
+  # Deal with args
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs ADDITIONNAL_SOURCES)
+  cmake_parse_arguments(add_benchmark "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" ${ARGN})
+
+  # set(benchmark_target_name ${PROJECT_NAME}_${benchmark_name})
+  set(benchmark_target_name ${benchmark_name})
+  # add the executable.
+  add_executable(${benchmark_target_name} benchmarks/${benchmark_name}.cpp
+                                          ${add_benchmark_ADDITIONNAL_SOURCES})
+  # save the name for installation
+  set(all_targets ${all_targets} ${benchmark_target_name})
+  # dependencies
+  target_include_directories(
+    ${benchmark_target_name}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  target_link_libraries(${benchmark_target_name} ${PROJECT_NAME})
+endfunction(add_benchmark benchmark_name)
 
 # benchmarks on the raw boost api
-add_executable(stress_set_raw_boost_efficient
-#  benchmarks/main.cpp
-  benchmarks/stress_set_raw_boost_efficient.cpp)
-target_link_libraries(stress_set_raw_boost_efficient ${BENCHMARK_DEPENDENCIES})
-
-add_executable(stress_get_raw_boost_efficient
-#  benchmarks/main.cpp
-  benchmarks/stress_get_raw_boost_efficient.cpp)
-target_link_libraries(stress_get_raw_boost_efficient ${BENCHMARK_DEPENDENCIES})
-
-add_executable(stress_set_raw_boost_inefficient
-#  benchmarks/main.cpp
-  benchmarks/stress_set_raw_boost_inefficient.cpp)
-target_link_libraries(stress_set_raw_boost_inefficient ${BENCHMARK_DEPENDENCIES})
-
-add_executable(stress_get_raw_boost_inefficient
-#  benchmarks/main.cpp
-  benchmarks/stress_get_raw_boost_inefficient.cpp)
-target_link_libraries(stress_get_raw_boost_inefficient ${BENCHMARK_DEPENDENCIES})
+add_benchmark(stress_set_raw_boost_efficient)
+add_benchmark(stress_get_raw_boost_efficient)
+add_benchmark(stress_set_raw_boost_inefficient)
+add_benchmark(stress_get_raw_boost_inefficient)
 
 # benchmark using the current api
-add_executable(stress_set_api benchmarks/stress_set_api.cpp)
-target_link_libraries(stress_set_api shared_memory ${BENCHMARK_DEPENDENCIES})
-
-add_executable(stress_get_api benchmarks/stress_get_api.cpp)
-target_link_libraries(stress_get_api
-  shared_memory ${Boost_LIBRARIES} ${BENCHMARK_DEPENDENCIES})
+add_benchmark(stress_set_api)
+add_benchmark(stress_get_api)
 
 # simple executable to clean the benchmarks shared memory
-add_executable(clean_shared_memory benchmarks/clean_shared_memory.cpp)
-target_link_libraries(clean_shared_memory ${BENCHMARK_DEPENDENCIES})
+add_benchmark(clean_shared_memory)
 
-# not really a benchmark, just to get an idea how fast or slow
-# serialization is
-add_executable(serialization_frequency
-  demos/four_int_values.cpp
-  benchmarks/serialization_frequency.cpp)
-target_link_libraries(serialization_frequency ${BENCHMARK_DEPENDENCIES})
+# not really a benchmark, just to get an idea how fast or slow serialization is
+add_benchmark(serialization_frequency ADDITIONNAL_SOURCES
+              demos/four_int_values.cpp)
 
+#
+# building documentation
+#
+add_documentation()
 
+#
+# Install the package
+#
+install(DIRECTORY include/ DESTINATION include)
 
-##########################
-# building documentation #
-##########################
-build_doxygen_documentation()
+install(
+  TARGETS ${all_targets}
+  EXPORT ${all_target_exports}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
 
-#####################################################################
-# Format the code upon build with the cmake option -DFORMAT_CODE=ON #
-#####################################################################
-format_code()
+#
+# Export the package as ament
+#
+ament_package()

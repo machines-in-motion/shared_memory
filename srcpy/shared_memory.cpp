@@ -11,7 +11,7 @@
 
 using namespace shared_memory;
 
-PYBIND11_MODULE(shared_memory,m){
+PYBIND11_MODULE(shared_memory_cpp_bindings, m){
 
   // Mutex
   

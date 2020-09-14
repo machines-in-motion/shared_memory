@@ -30,7 +30,7 @@ find_package(mpi_cmake_modules REQUIRED)
 find_package(pybind11_vendor REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost "1.65" REQUIRED)
+find_package(Boost REQUIRED)
 find_package(cereal REQUIRED)
 find_package(Threads REQUIRED)
 find_package(rt REQUIRED)
@@ -148,6 +148,7 @@ function(add_demo demo_name)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   target_link_libraries(${demo_target_name} ${PROJECT_NAME})
+  install(TARGETS ${demo_target_name} DESTINATION lib/${PROJECT_NAME})
 
 endfunction(add_demo demo_name)
 

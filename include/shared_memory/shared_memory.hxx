@@ -292,11 +292,11 @@ template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          ElemType& get_,
-	 bool create)
+         bool create)
 {
     try
     {
-      SharedMemorySegment& segment = get_segment(segment_id,false,create);
+        SharedMemorySegment& segment = get_segment(segment_id, false, create);
         std::pair<ElemType*, std::size_t> get_ref;
         get_ref.first = &get_;
         get_ref.second = 1;
@@ -306,10 +306,6 @@ void get(const std::string& segment_id,
     {
         throw shared_memory::Allocation_exception(segment_id, object_id);
     }
-    catch (const boost::interprocess::interprocess_exception&)
-    {
-        return;
-    }
 }
 
 template <typename ElemType>
@@ -317,11 +313,11 @@ void get(const std::string& segment_id,
          const std::string& object_id,
          ElemType* get_,
          const std::size_t expected_size,
-	 bool create)
+         bool create)
 {
     try
     {
-      SharedMemorySegment& segment = get_segment(segment_id,false,create);
+        SharedMemorySegment& segment = get_segment(segment_id, false, create);
         std::pair<ElemType*, std::size_t> get_ref;
         get_ref.first = get_;
         get_ref.second = expected_size;
@@ -331,45 +327,41 @@ void get(const std::string& segment_id,
     {
         throw shared_memory::Allocation_exception(segment_id, object_id);
     }
-    catch (const boost::interprocess::interprocess_exception&)
-    {
-        return;
-    }
 }
 
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::vector<ElemType>& get_,
-	 bool create)
+         bool create)
 {
-  get<ElemType>(segment_id, object_id, &(get_[0]), get_.size(),create);
+    get<ElemType>(segment_id, object_id, &(get_[0]), get_.size(), create);
 }
 
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_,
-	 bool create)
+         bool create)
 {
-  get(segment_id, object_id, get_.data(), get_.size(),create);
+    get(segment_id, object_id, get_.data(), get_.size(), create);
 }
 
 template <typename FirstType, typename SecondType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::pair<FirstType, SecondType>& get_,
-	 bool create)
+         bool create)
 {
-  get<FirstType>(segment_id, object_id + "_first", get_.first,create);
-  get<SecondType>(segment_id, object_id + "_second", get_.second,create);
+    get<FirstType>(segment_id, object_id + "_first", get_.first, create);
+    get<SecondType>(segment_id, object_id + "_second", get_.second, create);
 }
 
 template <typename KeyType, typename ValueType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::map<KeyType, ValueType>& get_,
-	 bool create)
+         bool create)
 {
     try
     {
@@ -382,7 +374,7 @@ void get(const std::string& segment_id,
             get(segment_id,
                 object_id + "_" + std::to_string(i),
                 map_it->second,
-		create);
+                create);
             ++i;
         }
     }

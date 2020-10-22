@@ -37,49 +37,50 @@ void set_verbose(bool mode)
     VERBOSE = mode;
 }
 
-  /*
-static std::chrono::microseconds time_now()
+static std::chrono::milliseconds time_now()
 {
-    std::chrono::steady_clock::time_point now = Clock::now();
-    std::chrono::microseconds m =
-        std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+    std::chrono::steady_clock::time_point now =
+        std::chrono::steady_clock::now();
+    std::chrono::milliseconds m =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            now.time_since_epoch());
     return m;
 }
-  
-bool GET_CREATES_SEGMENT = true;  
-void wait_for_segment(const string& segment_id, int timeout_us)
-  {
-    GET_CREATES_SEGMENT = false;
-    std::chrono::microseconds start = time_now();
-    std::chrono::microseconds timeout{timeout_is};
-    bool created=false;
-    while(!created)
-      {
-	try
-	  {
-	    get_segment(segment_id,false);
-	  }
-	catch (Non_existing_segment)
-	  {
-	    usleep(5);
-	  }
-	if(time_now()-start>timeout)
-	  {
-	    GET_CREATES_SEGMENT = true;
-	    throw Non_existing_segment(segment_id);
-	  }
-      }
-    GET_CREATES_SEGMENT = true;
-  }*/
-  
+
+bool wait_for_segment(const std::string &segment_id, int timeout_ms)
+{
+    std::chrono::milliseconds start = time_now();
+    std::chrono::milliseconds timeout{timeout_ms};
+    bool created = false;
+    while (!created)
+    {
+        try
+        {
+            get_segment(segment_id, false, false);
+            return true;
+        }
+        catch (Non_existing_segment_exception)
+        {
+            usleep(5);
+        }
+        if (timeout_ms > 0)
+        {
+            if (time_now() - start > timeout)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 /***********************************************
  * Definition of the SharedMemorySegment class *
  ***********************************************/
 
 SharedMemorySegment::SharedMemorySegment(std::string segment_id,
                                          bool clear_upon_destruction,
-					 bool create)
-  : ravioli_(-1)
+                                         bool create)
 {
     // save the id the of the segment
     segment_id_ = segment_id;
@@ -87,39 +88,29 @@ SharedMemorySegment::SharedMemorySegment(std::string segment_id,
     // check if we should delete the memory upon destruction.
     clear_upon_destruction_ = clear_upon_destruction;
 
-    std::cout << "shared memory segment 1" << std::endl;
-    
     // create and/or map the memory segment
     SEGMENT_SIZE_MUTEX.lock();
-    if(create)
-      {
-	std::cout << "shared memory segment 2" << std::endl;
-	
-	segment_manager_ =
-	  boost::interprocess::managed_shared_memory(
-						     boost::interprocess::open_or_create,
-						     segment_id.c_str(), SEGMENT_SIZE);
-	std::cout << "shared memory segment 3" << std::endl;
-      }
+    if (create)
+    {
+        segment_manager_ = boost::interprocess::managed_shared_memory(
+            boost::interprocess::open_or_create,
+            segment_id.c_str(),
+            SEGMENT_SIZE);
+    }
     else
-      {
-	ravioli_+=1;
-	std::cout << "shared memory segment 4 "<< ravioli_ << std::endl;;
-	try
-	  {
-	    segment_manager_ =
-	      boost::interprocess::managed_shared_memory(
-							 boost::interprocess::open_only,
-							 segment_id.c_str());
-	  }
-	catch(...)
-	  {
-	    std::cout << "banana !" << std::endl;
-	  }
-	std::cout << "shared memory segment 5 " << ravioli_ << std::endl;
-	std::cout << "shared_memory segment 6 " << segment_manager_.check_sanity() << "" << std::endl;
-      }
-	SEGMENT_SIZE_MUTEX.unlock();
+    {
+        try
+        {
+            segment_manager_ = boost::interprocess::managed_shared_memory(
+                boost::interprocess::open_only, segment_id.c_str());
+        }
+        catch (boost::interprocess::interprocess_exception)
+        {
+            SEGMENT_SIZE_MUTEX.unlock();
+            throw Non_existing_segment_exception(segment_id);
+        }
+    }
+    SEGMENT_SIZE_MUTEX.unlock();
     create_mutex();
 }
 
@@ -143,33 +134,23 @@ void SharedMemorySegment::get_object(const std::string &object_id,
 
 SharedMemorySegment &get_segment(const std::string &segment_id,
                                  const bool clear_upon_destruction,
-				 const bool create)
+                                 const bool create)
 {
-  std::cout << "get segment 1" << std::endl;
     if (GLOBAL_SHM_SEGMENTS.count(segment_id) == 0)
     {
-      std::cout << "get segment 2" << std::endl;
-      GLOBAL_SHM_SEGMENTS[segment_id].reset(
-					    new SharedMemorySegment(segment_id,
-								    clear_upon_destruction,
-								    create));
-      std::cout << "get segment 3" << std::endl;
+        SharedMemorySegment *s =
+            new SharedMemorySegment(segment_id, clear_upon_destruction, create);
+        GLOBAL_SHM_SEGMENTS[segment_id].reset(s);
     }
-    std::cout << "get segment 4" << std::endl;
     GLOBAL_SHM_SEGMENTS[segment_id]->set_clear_upon_destruction(
         clear_upon_destruction);
-    std::cout << "get segment 5" << std::endl;
     return *GLOBAL_SHM_SEGMENTS[segment_id];
 }
 
-  SegmentInfo get_segment_info(const std::string &segment_id)
+SegmentInfo get_segment_info(const std::string &segment_id)
 {
-  std::cout << "get segment info 1" << std::endl;
-    SharedMemorySegment &segment =
-      get_segment(segment_id, false, false);
-    std::cout << "get segment info 2" << std::endl;
+    SharedMemorySegment &segment = get_segment(segment_id, false, false);
     SegmentInfo si = segment.get_info();
-    std::cout << "get segment info 3" << std::endl;
     return si;
 }
 
@@ -230,11 +211,11 @@ void set(const std::string &segment_id,
 void get(const std::string &segment_id,
          const std::string &object_id,
          std::string &get_,
-	 bool create)
+         bool create)
 {
     try
     {
-      SharedMemorySegment &segment = get_segment(segment_id,false,create);
+        SharedMemorySegment &segment = get_segment(segment_id, false, create);
         segment.get_object(object_id, get_);
     }
     catch (const boost::interprocess::bad_alloc &)

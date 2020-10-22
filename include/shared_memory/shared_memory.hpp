@@ -17,6 +17,7 @@
 #ifndef SHARED_MEMORY_HPP
 #define SHARED_MEMORY_HPP
 
+#include <chrono>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -31,7 +32,7 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 
-#include "shared_memory/exceptions.h"
+#include "shared_memory/exceptions.hpp"
 #include "shared_memory/segment_info.hpp"
 #include "shared_memory/serializer.hpp"
 
@@ -132,8 +133,8 @@ public:
      * @brief SharedMemorySegment constructor.
      */
     SharedMemorySegment(std::string segment_id,
-			bool clear_upon_destruction,
-			bool create);
+                        bool clear_upon_destruction,
+                        bool create);
 
     /**
      * @brief SharedMemorySegment destructor.
@@ -309,8 +310,7 @@ private:
      */
     bool clear_upon_destruction_;
 
-
-  int ravioli_;
+    int ravioli_;
 };
 
 /**************************************************
@@ -324,14 +324,14 @@ private:
  */
 SharedMemorySegment& get_segment(const std::string& segment_id,
                                  const bool clear_upon_destruction = false,
-				 const bool create=true);
+                                 const bool create = true);
 
 /**
  * @brief performs introspection on the segment
  * and return related information. If the segment does not
  * exists, creates it first.
  */
-  SegmentInfo get_segment_info(const std::string& segment_id);
+SegmentInfo get_segment_info(const std::string& segment_id);
 
 /**
  * @brief returns true if a segment exists under this id
@@ -516,7 +516,7 @@ template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          ElemType& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get gets a pointer to a fixed sized
@@ -530,13 +530,15 @@ void get(const std::string& segment_id,
  * @param[in] get_ is the pointer to the array of objects to set in the
  * memory.
  * @param[in] size is the array size.
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          ElemType* get_,
          const std::size_t expected_size,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get gets a pointer to a string in the shared memory.
@@ -547,11 +549,13 @@ void get(const std::string& segment_id,
  * @param[in] segment_id is the name of the shared memory segment.
  * @param[in] object_id is the name of the shared memory object to set.
  * @param[in] get_ is the string to be created in the shared memory
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::string& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get gets a pointer to a std::vector<ElemType>
@@ -564,12 +568,14 @@ void get(const std::string& segment_id,
  * @param[in] segment_id is the name of the shared memory segment.
  * @param[in] object_id is the name of the shared memory object to set.
  * @param[in] set_ is the string to be created in the shared memory
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::vector<ElemType>& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get gets a pointer to a
@@ -582,12 +588,14 @@ void get(const std::string& segment_id,
  * @param[in] segment_id is the name of the shared memory segment.
  * @param[in] object_id is the name of the shared memory object to set.
  * @param[in] set_ is the string to be created in the shared memory
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get instanciates or get pointer to a
@@ -600,12 +608,14 @@ void get(const std::string& segment_id,
  * @param[in] segment_id is the name of the shared memory segment.
  * @param[in] object_id is the name of the shared memory object to set.
  * @param[in] get_ is the string to be created in the shared memory
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 template <typename FirstType, typename SecondType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::pair<FirstType, SecondType>& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief get gets a pointer to a std::vector<ElemType> or an
@@ -618,12 +628,14 @@ void get(const std::string& segment_id,
  * @param[in] segment_id is the name of the shared memory segment.
  * @param[in] object_id is the name of the shared memory object to set.
  * @param[in] get_ is the string to be created in the shared memory
+ * @param[in] create : if false, raise a Non_existing_segment_exception
+              if the segment does not already exist
  */
 template <typename KeyType, typename ValueType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          std::map<KeyType, ValueType>& get_,
-	 bool create=true);
+         bool create = true);
 
 /**
  * @brief Serialize the instance into a string which is
@@ -673,6 +685,15 @@ void deserialize(const std::string& segment,
  */
 void set_verbose(bool mode);
 
+/**
+ * @brief wait until the segment is created either via
+ * call to a get or set function.
+ * @param[in] segment_id is the name of the shared memory segment.
+ * @param[in] timeout_ms is a timeout in ms
+ * @return true if the segment has been created before the timeout
+ *         expired, false otherwise.
+ */
+bool wait_for_segment(const std::string& segment_id, int timeout_ms = -1);
 
 }  // namespace shared_memory
 

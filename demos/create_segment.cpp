@@ -18,18 +18,13 @@
 
 int main()
 {
-    std::string segment_id{"non_existing_segment_demo"};
-
+    std::string segment_id{"wait_for_segment_demo"};
     shared_memory::clear_shared_memory(segment_id);
 
-    double value;
-    try
-    {
-        shared_memory::get<double>(segment_id, segment_id, value, false);
-    }
-    catch (shared_memory::Non_existing_segment_exception)
-    {
-    }
+    std::cout << "\nsegment created !\n";
+    shared_memory::set<double>(segment_id, segment_id, 1.0);
 
-    shared_memory::get<double>(segment_id, segment_id, value, true);
+    usleep(1000000);
+    std::cout << "\ndestroying segment\n\n";
+    shared_memory::clear_shared_memory(segment_id);
 }

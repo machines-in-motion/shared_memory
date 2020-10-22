@@ -8,18 +8,13 @@ namespace shared_memory
 // dev note : the boost api does not allow for msm to be const
 SegmentInfo::SegmentInfo(boost::interprocess::managed_shared_memory &msm)
 {
-  std::cout << "A\n";
-  size_ = msm.get_size();
-  std::cout << "B\n";
+    size_ = msm.get_size();
     free_memory_ = msm.get_free_memory();
-    std::cout << "C\n";
     has_issues_ = !msm.check_sanity();
     // -1 : there is one default object per segment.
     // it is clearer to returns the number of objects created
     // by users
-    std::cout << "D\n";
     nb_objects_ = msm.get_num_named_objects() - 1;
-    std::cout << "E\n";
 }
 
 uint SegmentInfo::get_size() const

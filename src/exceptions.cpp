@@ -29,7 +29,8 @@ const char *Allocation_exception::what() const throw()
 {
     return this->error_message_.c_str();
 }
-  Non_existing_segment_exception::Non_existing_segment_exception(const std::string &segment_id)
+Non_existing_segment_exception::Non_existing_segment_exception(
+    const std::string &segment_id)
 {
     std::ostringstream s;
     s << "shared_memory segment does not exist: " << segment_id;

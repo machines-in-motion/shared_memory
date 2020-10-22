@@ -120,6 +120,9 @@ add_executable(demo_eigen
   demos/demo_eigen.cpp)
 target_link_libraries(demo_eigen shared_memory)
 
+add_executable(non_existing_segment demos/non_existing_segment.cpp)
+target_link_libraries(non_existing_segment shared_memory)
+
 ##################
 # Python wrapper #
 ##################

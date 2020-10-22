@@ -131,7 +131,9 @@ public:
     /**
      * @brief SharedMemorySegment constructor.
      */
-    SharedMemorySegment(std::string segment_id, bool clear_upon_destruction);
+    SharedMemorySegment(std::string segment_id,
+			bool clear_upon_destruction,
+			bool create);
 
     /**
      * @brief SharedMemorySegment destructor.
@@ -306,6 +308,9 @@ private:
      * Usage: typically only one process should set this flag to true.
      */
     bool clear_upon_destruction_;
+
+
+  int ravioli_;
 };
 
 /**************************************************
@@ -318,15 +323,15 @@ private:
  * @param segment_id is the name of the shared memory segment.
  */
 SharedMemorySegment& get_segment(const std::string& segment_id,
-                                 const bool clear_upon_destruction = false);
+                                 const bool clear_upon_destruction = false,
+				 const bool create=true);
 
 /**
  * @brief performs introspection on the segment
  * and return related information. If the segment does not
  * exists, creates it first.
  */
-SegmentInfo get_segment_info(const std::string& segment_id,
-                             const bool clear_upon_destruction = false);
+  SegmentInfo get_segment_info(const std::string& segment_id);
 
 /**
  * @brief returns true if a segment exists under this id
@@ -510,7 +515,8 @@ void set(const std::string& segment_id,
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
-         ElemType& get_);
+         ElemType& get_,
+	 bool create=true);
 
 /**
  * @brief get gets a pointer to a fixed sized
@@ -529,7 +535,8 @@ template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
          ElemType* get_,
-         const std::size_t expected_size);
+         const std::size_t expected_size,
+	 bool create=true);
 
 /**
  * @brief get gets a pointer to a string in the shared memory.
@@ -543,7 +550,8 @@ void get(const std::string& segment_id,
  */
 void get(const std::string& segment_id,
          const std::string& object_id,
-         std::string& get_);
+         std::string& get_,
+	 bool create=true);
 
 /**
  * @brief get gets a pointer to a std::vector<ElemType>
@@ -560,7 +568,8 @@ void get(const std::string& segment_id,
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
-         std::vector<ElemType>& get_);
+         std::vector<ElemType>& get_,
+	 bool create=true);
 
 /**
  * @brief get gets a pointer to a
@@ -577,7 +586,8 @@ void get(const std::string& segment_id,
 template <typename ElemType>
 void get(const std::string& segment_id,
          const std::string& object_id,
-         Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_);
+         Eigen::Matrix<ElemType, Eigen::Dynamic, 1>& get_,
+	 bool create=true);
 
 /**
  * @brief get instanciates or get pointer to a
@@ -594,7 +604,8 @@ void get(const std::string& segment_id,
 template <typename FirstType, typename SecondType>
 void get(const std::string& segment_id,
          const std::string& object_id,
-         std::pair<FirstType, SecondType>& get_);
+         std::pair<FirstType, SecondType>& get_,
+	 bool create=true);
 
 /**
  * @brief get gets a pointer to a std::vector<ElemType> or an
@@ -611,7 +622,8 @@ void get(const std::string& segment_id,
 template <typename KeyType, typename ValueType>
 void get(const std::string& segment_id,
          const std::string& object_id,
-         std::map<KeyType, ValueType>& get_);
+         std::map<KeyType, ValueType>& get_,
+	 bool create=true);
 
 /**
  * @brief Serialize the instance into a string which is
@@ -660,6 +672,7 @@ void deserialize(const std::string& segment,
  * only for the current process.
  */
 void set_verbose(bool mode);
+
 
 }  // namespace shared_memory
 

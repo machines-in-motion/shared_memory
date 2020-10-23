@@ -8,7 +8,7 @@
  *
  * @brief Defines some exception specific to this API
  */
-#include "shared_memory/exceptions.h"
+#include "shared_memory/exceptions.hpp"
 
 namespace shared_memory
 {
@@ -29,7 +29,21 @@ const char *Allocation_exception::what() const throw()
 {
     return this->error_message_.c_str();
 }
+Non_existing_segment_exception::Non_existing_segment_exception(
+    const std::string &segment_id)
+{
+    std::ostringstream s;
+    s << "shared_memory segment does not exist: " << segment_id;
+    this->error_message_ = s.str();
+}
 
+Non_existing_segment_exception::~Non_existing_segment_exception() throw()
+{
+}
+const char *Non_existing_segment_exception::what() const throw()
+{
+    return this->error_message_.c_str();
+}
 Memory_overflow_exception::Memory_overflow_exception(
     const std::string error_message)
 {

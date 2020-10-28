@@ -72,7 +72,7 @@ list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
 #
-# Python wrapper #
+# Python wrapper
 #
 add_library(${PROJECT_NAME}_cpp_bindings MODULE srcpy/shared_memory.cpp)
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE pybind11::module)

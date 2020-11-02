@@ -8,7 +8,7 @@
  *
  * @brief Defines some exception specific to this API
  */
-#include "shared_memory/exceptions.h"
+#include "shared_memory/exceptions.hpp"
 
 namespace shared_memory
 {

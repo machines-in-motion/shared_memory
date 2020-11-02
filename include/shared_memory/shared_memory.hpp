@@ -31,7 +31,7 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 
-#include "shared_memory/exceptions.h"
+#include "shared_memory/exceptions.hpp"
 #include "shared_memory/segment_info.hpp"
 #include "shared_memory/serializer.hpp"
 

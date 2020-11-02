@@ -66,7 +66,7 @@ int main()
     {
         shared_memory::get("main_memory", "d1", d1);
         shared_memory::get("main_memory", "d2", d2);
-        shared_memory::get("main_memory", "v1", v1, 2);
+        shared_memory::get("main_memory", "v1", v1, std::size_t{2});
         shared_memory::get("main_memory", "v2", v2);
         shared_memory::get("main_memory", "v3", v3);
         shared_memory::get("main_memory", "m1", m1);

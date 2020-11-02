@@ -37,12 +37,50 @@ void set_verbose(bool mode)
     VERBOSE = mode;
 }
 
+static std::chrono::milliseconds time_now()
+{
+    std::chrono::steady_clock::time_point now =
+        std::chrono::steady_clock::now();
+    std::chrono::milliseconds m =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            now.time_since_epoch());
+    return m;
+}
+
+bool wait_for_segment(const std::string &segment_id, int timeout_ms)
+{
+    std::chrono::milliseconds start = time_now();
+    std::chrono::milliseconds timeout{timeout_ms};
+    bool created = false;
+    while (!created)
+    {
+        try
+        {
+            get_segment(segment_id, false, false);
+            return true;
+        }
+        catch (Non_existing_segment_exception)
+        {
+            usleep(5);
+        }
+        if (timeout_ms > 0)
+        {
+            if (time_now() - start > timeout)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 /***********************************************
  * Definition of the SharedMemorySegment class *
  ***********************************************/
 
 SharedMemorySegment::SharedMemorySegment(std::string segment_id,
-                                         bool clear_upon_destruction)
+                                         bool clear_upon_destruction,
+                                         bool create)
 {
     // save the id the of the segment
     segment_id_ = segment_id;
@@ -52,8 +90,26 @@ SharedMemorySegment::SharedMemorySegment(std::string segment_id,
 
     // create and/or map the memory segment
     SEGMENT_SIZE_MUTEX.lock();
-    segment_manager_ = boost::interprocess::managed_shared_memory(
-        boost::interprocess::open_or_create, segment_id.c_str(), SEGMENT_SIZE);
+    if (create)
+    {
+        segment_manager_ = boost::interprocess::managed_shared_memory(
+            boost::interprocess::open_or_create,
+            segment_id.c_str(),
+            SEGMENT_SIZE);
+    }
+    else
+    {
+        try
+        {
+            segment_manager_ = boost::interprocess::managed_shared_memory(
+                boost::interprocess::open_only, segment_id.c_str());
+        }
+        catch (boost::interprocess::interprocess_exception)
+        {
+            SEGMENT_SIZE_MUTEX.unlock();
+            throw Non_existing_segment_exception(segment_id);
+        }
+    }
     SEGMENT_SIZE_MUTEX.unlock();
     create_mutex();
 }
@@ -77,24 +133,25 @@ void SharedMemorySegment::get_object(const std::string &object_id,
 }
 
 SharedMemorySegment &get_segment(const std::string &segment_id,
-                                 const bool clear_upon_destruction)
+                                 const bool clear_upon_destruction,
+                                 const bool create)
 {
     if (GLOBAL_SHM_SEGMENTS.count(segment_id) == 0)
     {
-        GLOBAL_SHM_SEGMENTS[segment_id].reset(
-            new SharedMemorySegment(segment_id, clear_upon_destruction));
+        SharedMemorySegment *s =
+            new SharedMemorySegment(segment_id, clear_upon_destruction, create);
+        GLOBAL_SHM_SEGMENTS[segment_id].reset(s);
     }
     GLOBAL_SHM_SEGMENTS[segment_id]->set_clear_upon_destruction(
         clear_upon_destruction);
     return *GLOBAL_SHM_SEGMENTS[segment_id];
 }
 
-SegmentInfo get_segment_info(const std::string &segment_id,
-                             const bool clear_upon_destruction)
+SegmentInfo get_segment_info(const std::string &segment_id)
 {
-    SharedMemorySegment &segment =
-        get_segment(segment_id, clear_upon_destruction);
-    return segment.get_info();
+    SharedMemorySegment &segment = get_segment(segment_id, false, false);
+    SegmentInfo si = segment.get_info();
+    return si;
 }
 
 bool segment_exists(const std::string &segment_id)
@@ -153,11 +210,12 @@ void set(const std::string &segment_id,
 
 void get(const std::string &segment_id,
          const std::string &object_id,
-         std::string &get_)
+         std::string &get_,
+         bool create)
 {
     try
     {
-        SharedMemorySegment &segment = get_segment(segment_id);
+        SharedMemorySegment &segment = get_segment(segment_id, false, create);
         segment.get_object(object_id, get_);
     }
     catch (const boost::interprocess::bad_alloc &)

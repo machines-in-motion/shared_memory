@@ -95,6 +95,25 @@ TEST_F(SharedMemoryTests, double_test)
     ASSERT_EQ(value, shared_memory_test::test_double);
 }
 
+TEST_F(SharedMemoryTests, non_existing_segment_exception)
+{
+    clear_memory();
+    bool thrown = false;
+    double value;
+    try
+    {
+        shared_memory::get<double>(shared_memory_test::segment_id,
+                                   shared_memory_test::object_id,
+                                   value,
+                                   false);
+    }
+    catch (shared_memory::Non_existing_segment_exception)
+    {
+        thrown = true;
+    }
+    ASSERT_TRUE(thrown);
+}
+
 TEST_F(SharedMemoryTests, int_test)
 {
     _call_executable(shared_memory_test::set_int, true);
@@ -133,7 +152,7 @@ TEST_F(SharedMemoryTests, test_array)
     shared_memory::get(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        a,
-                       shared_memory_test::test_array_size);
+                       std::size_t{shared_memory_test::test_array_size});
 
     for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
@@ -351,7 +370,7 @@ TEST_F(SharedMemoryTests, test_concurrency)
         shared_memory::get(shared_memory_test::segment_id,
                            shared_memory_test::object_id,
                            a,
-                           shared_memory_test::test_array_size);
+                           std::size_t{shared_memory_test::test_array_size});
 
         if (a[0] == shared_memory_test::concurrent_stop_value)
         {
@@ -403,7 +422,7 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     shared_memory::get(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        d,
-                       shared_memory_test::test_array_size);
+                       std::size_t{shared_memory_test::test_array_size});
 
     ASSERT_EQ(d[0], shared_memory_test::concurrent_value_2);
     for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
@@ -417,7 +436,7 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     shared_memory::get(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        d,
-                       shared_memory_test::test_array_size);
+                       std::size_t{shared_memory_test::test_array_size});
 
     ASSERT_EQ(d[0], shared_memory_test::concurrent_stop_value);
     for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
@@ -452,7 +471,7 @@ TEST_F(SharedMemoryTests, test_condition_variable)
     shared_memory::set(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        v,
-                       shared_memory_test::test_array_size);
+                       std::size_t{shared_memory_test::test_array_size});
 
     // in case previous run crashed without cleaning up
     std::string segment_mutex(shared_memory_test::segment_mutex_id);
@@ -481,17 +500,19 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                 v[i] = value;
             }
 
-            shared_memory::set(shared_memory_test::segment_id,
-                               shared_memory_test::object_id,
-                               v,
-                               shared_memory_test::test_array_size);
+            shared_memory::set(
+                shared_memory_test::segment_id,
+                shared_memory_test::object_id,
+                v,
+                std::size_t{shared_memory_test::test_array_size});
 
             usleep(500);
 
-            shared_memory::get(shared_memory_test::segment_id,
-                               shared_memory_test::object_id,
-                               v,
-                               shared_memory_test::test_array_size);
+            shared_memory::get(
+                shared_memory_test::segment_id,
+                shared_memory_test::object_id,
+                v,
+                std::size_t{shared_memory_test::test_array_size});
 
             for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
             {

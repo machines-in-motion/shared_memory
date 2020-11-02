@@ -29,7 +29,16 @@ public:
 private:
     std::string error_message_;
 };
+class Non_existing_segment_exception : public std::exception
+{
+public:
+    Non_existing_segment_exception(const std::string &segment_id);
+    ~Non_existing_segment_exception() throw();
+    const char *what() const throw();
 
+private:
+    std::string error_message_;
+};
 class Memory_overflow_exception : public std::exception
 {
 public:

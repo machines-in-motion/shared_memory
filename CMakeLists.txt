@@ -171,6 +171,9 @@ add_demo(demo_write_array)
 add_demo(demo_read_array)
 add_demo(demo_verbose)
 add_demo(demo_eigen)
+add_demo(non_existing_segment)
+add_demo(create_segment)
+add_demo(wait_for_segment)
 
 #
 # BENCHMARKS

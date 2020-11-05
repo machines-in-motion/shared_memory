@@ -1,0 +1,8 @@
+Package: mpi-is-core-robotics
+Version: 1.00-1
+Section: base
+Priority: optional
+Architecture: amd64
+Depends: libcereal-dev, libboost-all-dev, libeigen3-dev
+Maintainer: Vincent Berenz <vberenz@tuebingen.mpg.de>
+Description: core-robotics, see https://github.com/machines-in-motion

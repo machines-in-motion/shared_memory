@@ -79,7 +79,8 @@ target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME}_cpp_bindings
-                      PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
+  PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}"
+  OUTPUT_NAME ${PROJECT_NAME})
 target_include_directories(
   ${PROJECT_NAME}_cpp_bindings
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -87,8 +88,8 @@ target_include_directories(
   PUBLIC ${PYTHON_INCLUDE_DIRS})
 _ament_cmake_python_get_python_install_dir()
 install(TARGETS ${PROJECT_NAME}_cpp_bindings DESTINATION ${PYTHON_INSTALL_DIR})
-install(FILES srcpy/__init__.py
-        DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
+#install(FILES srcpy/__init__.py
+#        DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
 
 #
 # Unit tests
@@ -127,7 +128,7 @@ endif()
 #
 # demos
 #
-function(add_demo demo_name)
+macro(add_demo demo_name)
   # Deal with args
   set(options)
   set(oneValueArgs)
@@ -148,9 +149,8 @@ function(add_demo demo_name)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   target_link_libraries(${demo_target_name} ${PROJECT_NAME})
-  install(TARGETS ${demo_target_name} DESTINATION lib/${PROJECT_NAME})
-
-endfunction(add_demo demo_name)
+  #install(TARGETS ${demo_target_name} DESTINATION lib/${PROJECT_NAME})
+endmacro(add_demo demo_name)
 
 add_demo(set_data)
 add_demo(get_data)
@@ -217,6 +217,15 @@ add_benchmark(clean_shared_memory)
 # not really a benchmark, just to get an idea how fast or slow serialization is
 add_benchmark(serialization_frequency ADDITIONNAL_SOURCES
               demos/four_int_values.cpp)
+
+
+#
+# Debian control file #
+#
+
+# see: https://github.com/intelligent-soft-robots/isr_debian
+install(FILES debian/control DESTINATION debian)
+
 
 #
 # building documentation

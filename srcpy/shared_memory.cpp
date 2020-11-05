@@ -1,17 +1,17 @@
 // Copyright 2019 Max Planck Gesellschaft and New York University
 // Authors : Vincent Berenz, Maximilien Naveau
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
 #include "shared_memory/condition_variable.hpp"
 #include "shared_memory/lock.hpp"
 #include "shared_memory/locked_condition_variable.hpp"
 #include "shared_memory/mutex.hpp"
 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 using namespace shared_memory;
 
-PYBIND11_MODULE(shared_memory_cpp_bindings, m)
+PYBIND11_MODULE(shared_memory, m)
 {
     // Mutex
 
@@ -93,5 +93,9 @@ PYBIND11_MODULE(shared_memory_cpp_bindings, m)
 
     m.def("clear_shared_memory", [](std::string segment) {
         shared_memory::clear_shared_memory(segment);
+    });
+
+    m.def("wait_for_segment", [](std::string segment, int timeout_ms) {
+        return shared_memory::wait_for_segment(segment, timeout_ms);
     });
 }

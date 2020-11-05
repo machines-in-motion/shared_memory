@@ -1,6 +1,7 @@
 // Copyright 2019 Max Planck Gesellschaft and New York University
 // Authors : Vincent Berenz, Maximilien Naveau
 
+#include "shared_memory/shared_memory.hpp"
 #include "shared_memory/condition_variable.hpp"
 #include "shared_memory/lock.hpp"
 #include "shared_memory/locked_condition_variable.hpp"

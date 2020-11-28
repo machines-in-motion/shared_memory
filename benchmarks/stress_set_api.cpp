@@ -46,4 +46,5 @@ int main()
     }
 
     cleaning_memory(0);
+    return 0;
 }

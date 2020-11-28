@@ -154,7 +154,7 @@ TEST_F(SharedMemoryTests, test_array)
                        a,
                        std::size_t{shared_memory_test::test_array_size});
 
-    for (int i = 0; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
         ASSERT_EQ(a[i], shared_memory_test::test_array[i]);
     }
@@ -169,7 +169,7 @@ TEST_F(SharedMemoryTests, test_vector)
         shared_memory_test::segment_id, shared_memory_test::object_id, v);
 
     ASSERT_EQ(v.size(), shared_memory_test::test_array_size);
-    for (int i = 0; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
         ASSERT_EQ(v[i], shared_memory_test::test_array[i]);
     }
@@ -184,7 +184,7 @@ TEST_F(SharedMemoryTests, test_eigen_vector)
         shared_memory_test::segment_id, shared_memory_test::object_id, v);
 
     ASSERT_EQ(v.size(), shared_memory_test::test_array_size);
-    for (int i = 0; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
         ASSERT_EQ(v(i), shared_memory_test::test_array[i]);
     }
@@ -245,8 +245,10 @@ TEST_F(SharedMemoryTests, test_string_vector_double_map)
         shared_memory_test::segment_id, shared_memory_test::object_id, m);
 
     ASSERT_EQ(m.size(), shared_memory_test::test_map_size);
-    ASSERT_EQ(m[shared_memory_test::map_string_keys1].size(), 2);
-    ASSERT_EQ(m[shared_memory_test::map_string_keys2].size(), 2);
+    ASSERT_EQ(m[shared_memory_test::map_string_keys1].size(),
+              static_cast<unsigned int>(2));
+    ASSERT_EQ(m[shared_memory_test::map_string_keys2].size(),
+              static_cast<unsigned int>(2));
 
     ASSERT_EQ(m[shared_memory_test::map_string_keys1][0],
               shared_memory_test::map_value_1);
@@ -392,7 +394,7 @@ TEST_F(SharedMemoryTests, test_concurrency)
                             shared_memory_test::concurrent_value_2),
                   true);
 
-        for (int i = 1; i < shared_memory_test::test_array_size; i++)
+        for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
         {
             ASSERT_EQ(a[0], a[i]);
         }
@@ -423,7 +425,7 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
                        std::size_t{shared_memory_test::test_array_size});
 
     ASSERT_EQ(d[0], shared_memory_test::concurrent_value_2);
-    for (int i = 1; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
     {
         ASSERT_EQ(d[0], d[i]);
     }
@@ -437,7 +439,7 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
                        std::size_t{shared_memory_test::test_array_size});
 
     ASSERT_EQ(d[0], shared_memory_test::concurrent_stop_value);
-    for (int i = 1; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
     {
         ASSERT_EQ(d[0], d[i]);
     }
@@ -462,7 +464,7 @@ TEST_F(SharedMemoryTests, test_condition_variable)
     // initializing shared array
     int value = 1;
     double v[shared_memory_test::test_array_size];
-    for (int i = 0; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
         v[i] = value;
     }
@@ -493,7 +495,7 @@ TEST_F(SharedMemoryTests, test_condition_variable)
             shared_memory::Lock lock(mutex);
             condition.wait(lock);
 
-            for (int i = 0; i < shared_memory_test::test_array_size; i++)
+            for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
             {
                 v[i] = value;
             }
@@ -512,7 +514,7 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                 v,
                 std::size_t{shared_memory_test::test_array_size});
 
-            for (int i = 0; i < shared_memory_test::test_array_size; i++)
+            for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
             {
                 ASSERT_EQ(v[i], value);
             }
@@ -788,7 +790,7 @@ TEST_F(SharedMemoryTests, array_array_int)
     int values[10];
     for (int i = 0; i < size; i++)
     {
-        for (uint j = 0; j < 10; j++)
+        for (int j = 0; j < 10; j++)
         {
             values[j] = (i + j);
         }
@@ -800,12 +802,12 @@ TEST_F(SharedMemoryTests, array_array_int)
     for (int i = 0; i < size; i++)
     {
         a.get(i, *values);
-        for (uint j = 0; j < 10; j++)
+        for (int j = 0; j < 10; j++)
         {
             ASSERT_EQ(values[j], i + j);
         }
         b.get(i, *values);
-        for (uint j = 0; j < 10; j++)
+        for (int j = 0; j < 10; j++)
         {
             ASSERT_EQ(values[j], i + j);
         }
@@ -878,10 +880,10 @@ TEST_F(SharedMemoryTests, segment_info)
     bool issues = si.has_issues();
     uint nb_objects = si.nb_objects();
 
-    ASSERT_EQ(size, DEFAULT_SHARED_MEMORY_SIZE);
+    ASSERT_EQ(size, uint(DEFAULT_SHARED_MEMORY_SIZE));
     ASSERT_GT(size, free);
-    ASSERT_GT(free, 0);
-    ASSERT_EQ(nb_objects, 2);
+    ASSERT_GT(free, uint(0));
+    ASSERT_EQ(nb_objects, uint(2));
     ASSERT_FALSE(issues);
 
     shared_memory::set<double>("test_info", "d3", 2.0);
@@ -897,7 +899,7 @@ TEST_F(SharedMemoryTests, segment_info)
     ASSERT_EQ(size, size2);
     ASSERT_LT(free2, free);
     ASSERT_FALSE(issues2);
-    ASSERT_EQ(nb_objects2, 4);
+    ASSERT_EQ(nb_objects2, uint(4));
 
     // memory overflow on purpose
     std::vector<char> v(free2 + 1);

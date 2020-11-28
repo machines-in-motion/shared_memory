@@ -1,22 +1,37 @@
 <?xml version="1.0"?>
+<?xml-model
+   href="http://download.ros.org/schema/package_format3.xsd"
+   schematypens="http://www.w3.org/2001/XMLSchema"?>
 
-<package>
 
-  <name>shared_memory</name>
-  <version>1.0.0</version>
-  <description>convenience functions using (boost) interprocess data exchange</description>
-  <license>BSD 3-Clause</license>
-  <author email="vberenz@tuebingen.mpg.de">Vincent Berenz</author>
-  <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
+<package format="3">
 
-  <buildtool_depend>catkin</buildtool_depend>
+    <name>shared_memory</name>
+    <version>1.0.0</version>
+    
+    <description>
+        convenience functions using (boost) interprocess data exchange.
+    </description>
 
-  <!-- This provide cmake macros to help building the project. -->
-  <build_depend> mpi_cmake_modules </build_depend>
-  <run_depend>   mpi_cmake_modules </run_depend>
-  <build_depend> pybind11_catkin </build_depend>
+    <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
 
-  <export>
-  </export>
+    <license>BSD 3-clause</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+    <!-- CMake module containing helper to find the OS, boost, python, etc. -->
+    <depend>mpi_cmake_modules</depend>
+    <depend>pybind11_vendor</depend>
+    <depend>pybind11</depend>
+    <depend>Boost</depend>
+    <depend>Eigen3</depend>
+    <depend>Threads</depend>
+
+    <test_depend>ament_cmake_gtest</test_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
 
 </package>

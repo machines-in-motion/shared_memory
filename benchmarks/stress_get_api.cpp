@@ -47,4 +47,5 @@ int main()
             std::cout << meas_time << " | " << DATA[0] << std::endl;
         }
     }
+    return 0;
 }

@@ -99,4 +99,12 @@ PYBIND11_MODULE(shared_memory, m)
     m.def("wait_for_segment", [](std::string segment, int timeout_ms) {
         return shared_memory::wait_for_segment(segment, timeout_ms);
     });
+
+    m.def("disconnect_segment", [](std::string segment) {
+        return shared_memory::delete_segment(segment);
+    });
+
+    m.def("delete_segment", [](std::string segment) {
+        return shared_memory::delete_segment(segment);
+    });
 }

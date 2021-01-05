@@ -27,7 +27,6 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 
 find_package(mpi_cmake_modules REQUIRED)
-find_package(pybind11_vendor REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)

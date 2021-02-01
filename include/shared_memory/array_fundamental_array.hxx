@@ -59,3 +59,9 @@ void array<T, SIZE>::get(uint index, T& t, FUNDAMENTAL_ARRAY)
         mutex_.unlock();
     }
 }
+
+template<typename T, int SIZE>
+std::string array<T,SIZE>::get_serialized(uint index, FUNDAMENTAL_ARRAY)
+{
+  throw std::logic_error("function not implemented for shared memory arrays encapsulating array of fundamental types");
+}

@@ -100,6 +100,12 @@ void array<T, SIZE>::get(uint index, T* t)
 }
 
 template <typename T, int SIZE>
+std::string array<T, SIZE>::get_serialized(uint index)
+{
+    return get_serialized(index, this->type_);
+}
+
+template <typename T, int SIZE>
 void array<T, SIZE>::print()
 {
     SegmentInfo si(segment_manager_);

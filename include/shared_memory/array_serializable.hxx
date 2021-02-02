@@ -55,3 +55,23 @@ void array<T, SIZE>::get(uint index, T& t, SERIALIZABLE)
         mutex_.unlock();
     }
 }
+
+template<typename T, int SIZE>
+std::string array<T,SIZE>::get_serialized(uint index, SERIALIZABLE)
+{
+    uint abs_index = index * this->item_size_;
+    if (abs_index < 0 || abs_index >= this->total_size_)
+    {
+        throw std::runtime_error("invalid index");
+    }
+    if (multiprocess_safe_)
+    {
+        mutex_.lock();
+    }
+    std::string r(&this->shared_[abs_index], this->item_size_);
+    if (multiprocess_safe_)
+    {
+        mutex_.unlock();
+    }
+    return r;
+}

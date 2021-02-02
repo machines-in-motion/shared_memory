@@ -844,6 +844,33 @@ TEST_F(SharedMemoryTests, array_serializable)
     }
 }
 
+TEST_F(SharedMemoryTests, array_serializable_get_serializable)
+{
+    shared_memory::clear_array("test_array");
+
+    int size = 100;
+
+    shared_memory::array<shared_memory::Item<10>> a(
+        "test_array", size, true, true);
+
+    for (int i = 0; i < size; i++)
+    {
+        shared_memory::Item<10> item(i);
+        a.set(i, item);
+    }
+
+    shared_memory::Item<10> item;
+    shared_memory::Serializer<shared_memory::Item<10>> serializer;
+    for (int i = 0; i < size; i++)
+    {
+        a.get(i, item);
+	std::string item_serialized = a.get_serialized(i);
+	shared_memory::Item<10> item2;
+	serializer.deserialize(item_serialized,item2);
+        ASSERT_EQ(item.get(), item2.get());
+    }
+}
+
 TEST_F(SharedMemoryTests, segment_memory_size)
 {
     shared_memory::clear_array("ut_sg_mem_size");

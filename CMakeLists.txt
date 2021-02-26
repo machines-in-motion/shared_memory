@@ -92,9 +92,8 @@ if(BUILD_TESTING)
   add_executable(tests_executable tests/support/tests_executable.cpp
                                   demos/four_int_values.cpp)
   target_link_libraries(tests_executable shared_memory)
-  set_target_properties(
-    tests_executable PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-                                "${CMAKE_BINARY_DIR}/")
+  set_target_properties(tests_executable PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                                    "${CMAKE_BINARY_DIR}/")
 
   # C++ unit-tests framework used.
   find_package(GTest CONFIG REQUIRED)
@@ -109,8 +108,7 @@ if(BUILD_TESTING)
   # create 2 macro: the path to the config file and the path to the data file
   target_compile_definitions(
     test_shared_memory
-    PUBLIC
-    SHM_PATH_TO_SUPPORT_EXE="${CMAKE_BINARY_DIR}/tests_executable")
+    PUBLIC SHM_PATH_TO_SUPPORT_EXE="${CMAKE_BINARY_DIR}/tests_executable")
   # declare the test as gtest
   gtest_add_tests(TARGET test_shared_memory)
 endif()

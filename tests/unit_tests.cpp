@@ -495,7 +495,8 @@ TEST_F(SharedMemoryTests, test_condition_variable)
             shared_memory::Lock lock(mutex);
             condition.wait(lock);
 
-            for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
+            for (unsigned int i = 0; i < shared_memory_test::test_array_size;
+                 i++)
             {
                 v[i] = value;
             }
@@ -514,7 +515,8 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                 v,
                 std::size_t{shared_memory_test::test_array_size});
 
-            for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
+            for (unsigned int i = 0; i < shared_memory_test::test_array_size;
+                 i++)
             {
                 ASSERT_EQ(v[i], value);
             }
@@ -864,9 +866,9 @@ TEST_F(SharedMemoryTests, array_serializable_get_serializable)
     for (int i = 0; i < size; i++)
     {
         a.get(i, item);
-	std::string item_serialized = a.get_serialized(i);
-	shared_memory::Item<10> item2;
-	serializer.deserialize(item_serialized,item2);
+        std::string item_serialized = a.get_serialized(i);
+        shared_memory::Item<10> item2;
+        serializer.deserialize(item_serialized, item2);
         ASSERT_EQ(item.get(), item2.get());
     }
 }

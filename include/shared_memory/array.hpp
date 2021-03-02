@@ -14,8 +14,8 @@
 // fundamental and fundamental array)
 #include "shared_memory/internal/array_members.hpp"
 
-#include <stdexcept>
 #include <cstring>
+#include <stdexcept>
 
 namespace shared_memory
 {
@@ -47,8 +47,9 @@ private:
     void init(FUNDAMENTAL);
     void set(uint index, const T& t, FUNDAMENTAL);
     void get(uint index, T& t, FUNDAMENTAL);
-    std::string get_serialized(uint index, FUNDAMENTAL); // throws std::logic_error
-  
+    std::string get_serialized(uint index,
+                               FUNDAMENTAL);  // throws std::logic_error
+
     // ----------------------------------------------
     // implementation for arrays of fundamental types
     // ----------------------------------------------
@@ -56,8 +57,9 @@ private:
     void init(FUNDAMENTAL_ARRAY);
     void set(uint index, const T& t, FUNDAMENTAL_ARRAY);
     void get(uint index, T& t, FUNDAMENTAL_ARRAY);
-    std::string get_serialized(uint index, FUNDAMENTAL_ARRAY); // throws std::logic_error
-  
+    std::string get_serialized(uint index,
+                               FUNDAMENTAL_ARRAY);  // throws std::logic_error
+
     // -----------------------------------------
     // implementation for serializable instances
     // -----------------------------------------
@@ -147,12 +149,12 @@ public:
      */
     std::size_t size() const;
 
-     /**
+    /**
      * @brief return the serialized string representation of
      * the element if T is a serializable class. Throws a logic error otherwise.
      */
     std::string get_serialized(uint index);
-  
+
     /**
      * @brief print in terminal info about array's
      * memory usage

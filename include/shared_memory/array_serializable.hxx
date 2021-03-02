@@ -56,8 +56,8 @@ void array<T, SIZE>::get(uint index, T& t, SERIALIZABLE)
     }
 }
 
-template<typename T, int SIZE>
-std::string array<T,SIZE>::get_serialized(uint index, SERIALIZABLE)
+template <typename T, int SIZE>
+std::string array<T, SIZE>::get_serialized(uint index, SERIALIZABLE)
 {
     uint abs_index = index * this->item_size_;
     if (abs_index < 0 || abs_index >= this->total_size_)

@@ -9,7 +9,7 @@
 #
 cmake_minimum_required(VERSION 3.10.2)
 
-project(shared_memory)
+project(shared_memory VERSION 2.0.0)
 
 # Using C++17
 if(NOT CMAKE_C_STANDARD)
@@ -22,10 +22,6 @@ endif()
 #
 # Dependencies
 #
-# depend on ament macros
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-
 find_package(mpi_cmake_modules REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -34,12 +30,8 @@ find_package(cereal REQUIRED)
 find_package(Threads REQUIRED)
 find_package(rt REQUIRED)
 
-# export de dependencies
-ament_export_dependencies(Boost Threads Eigen3 cereal pybind11 rt)
-
 # prepare to export all needed targets
 set(all_targets)
-set(all_target_exports)
 
 #
 # Add the main library
@@ -59,16 +51,14 @@ target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                          $<INSTALL_INTERFACE:include>)
 # Link the dependencies
-ament_target_dependencies(${PROJECT_NAME} Boost)
-ament_target_dependencies(${PROJECT_NAME} cereal)
-ament_target_dependencies(${PROJECT_NAME} rt)
-ament_target_dependencies(${PROJECT_NAME} Eigen3)
+target_link_libraries(${PROJECT_NAME} Boost::boost)
+target_link_libraries(${PROJECT_NAME} cereal::cereal)
+target_link_libraries(${PROJECT_NAME} rt::rt)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 # Export the target.
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
-list(APPEND all_target_exports export_${PROJECT_NAME})
 
 #
 # Python wrapper
@@ -77,51 +67,47 @@ add_library(${PROJECT_NAME}_cpp_bindings MODULE srcpy/shared_memory.cpp)
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_cpp_bindings PRIVATE ${PROJECT_NAME})
-set_target_properties(${PROJECT_NAME}_cpp_bindings
-  PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}"
-  OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(
+  ${PROJECT_NAME}_cpp_bindings
+  PROPERTIES PREFIX ""
+             SUFFIX "${PYTHON_MODULE_EXTENSION}"
+             OUTPUT_NAME ${PROJECT_NAME})
 target_include_directories(
   ${PROJECT_NAME}_cpp_bindings
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include> SYSTEM
   PUBLIC ${PYTHON_INCLUDE_DIRS})
-_ament_cmake_python_get_python_install_dir()
-install(TARGETS ${PROJECT_NAME}_cpp_bindings DESTINATION ${PYTHON_INSTALL_DIR})
-#install(FILES srcpy/__init__.py
-#        DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME})
+get_python_install_dir(python_install_dir)
+install(TARGETS ${PROJECT_NAME}_cpp_bindings DESTINATION ${python_install_dir})
 
 #
 # Unit tests
 #
-# add unit tests #
-#
+include(CTest)
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest)
-
-  # Set a general config folder path for all tests
-  set(TEST_CONFIG_PATH ${PROJECT_SOURCE_DIR}/tests/config/)
-
-  # Add an executable that populate the shared memory.
+  # Add an executable that populates the shared memory.
   add_executable(tests_executable tests/support/tests_executable.cpp
                                   demos/four_int_values.cpp)
   target_link_libraries(tests_executable shared_memory)
-  set_target_properties(
-    tests_executable PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-                                "${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/")
+  set_target_properties(tests_executable PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                                    "${CMAKE_BINARY_DIR}/")
 
-  # Add the test
-  ament_add_gtest(test_shared_memory tests/main.cpp tests/unit_tests.cpp
-                  demos/four_int_values.cpp)
-
-  # Link the dependecies to it.
-  target_link_libraries(test_shared_memory shared_memory)
-  set_target_properties(
+  # C++ unit-tests framework used.
+  find_package(GTest CONFIG REQUIRED)
+  include(GoogleTest)
+  # Config folder
+  get_filename_component(CONFIG_PATH config ABSOLUTE)
+  # create the executable
+  add_executable(test_shared_memory tests/main.cpp tests/unit_tests.cpp
+                                    demos/four_int_values.cpp)
+  # link to the created librairies and its dependencies
+  target_link_libraries(test_shared_memory ${PROJECT_NAME} GTest::gtest)
+  # create 2 macro: the path to the config file and the path to the data file
+  target_compile_definitions(
     test_shared_memory
-    PROPERTIES
-      COMPILE_DEFINITIONS
-      SHM_PATH_TO_SUPPORT_EXE="${CMAKE_CURRENT_SOURCE_DIR}/tests/bin/tests_executable"
-  )
-  add_dependencies(test_shared_memory tests_executable)
+    PUBLIC SHM_PATH_TO_SUPPORT_EXE="${CMAKE_BINARY_DIR}/tests_executable")
+  # declare the test as gtest
+  gtest_add_tests(TARGET test_shared_memory)
 endif()
 
 #
@@ -136,7 +122,7 @@ macro(add_demo demo_name)
                         "${multiValueArgs}" ${ARGN})
 
   # set(demo_target_name ${PROJECT_NAME}_${demo_name})
-  set(demo_target_name ${demo_name})
+  set(demo_target_name ${PROJECT_NAME}_demo_${demo_name})
   # add the executable.
   add_executable(${demo_target_name} demos/${demo_name}.cpp
                                      ${add_demo_ADDITIONNAL_SOURCES})
@@ -148,13 +134,13 @@ macro(add_demo demo_name)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
            $<INSTALL_INTERFACE:include>)
   target_link_libraries(${demo_target_name} ${PROJECT_NAME})
-  #install(TARGETS ${demo_target_name} DESTINATION lib/${PROJECT_NAME})
+  # install(TARGETS ${demo_target_name} DESTINATION lib/${PROJECT_NAME})
 endmacro(add_demo demo_name)
 
 add_demo(set_data)
 add_demo(get_data)
 add_demo(cond_var_timeout)
-add_demo(cond_var_demo)
+add_demo(cond_var)
 add_demo(locked_cond_var_ping)
 add_demo(locked_cond_var_pong)
 add_demo(cond_var_ping)
@@ -166,10 +152,10 @@ add_demo(exchange_manager_consumer ADDITIONNAL_SOURCES
 add_demo(exchange_manager_clean ADDITIONNAL_SOURCES demos/four_int_values.cpp)
 add_demo(std_string_vector)
 add_demo(serialization)
-add_demo(demo_write_array)
-add_demo(demo_read_array)
-add_demo(demo_verbose)
-add_demo(demo_eigen)
+add_demo(write_array)
+add_demo(read_array)
+add_demo(verbose)
+add_demo(eigen)
 add_demo(non_existing_segment)
 add_demo(create_segment)
 add_demo(wait_for_segment)
@@ -217,14 +203,12 @@ add_benchmark(clean_shared_memory)
 add_benchmark(serialization_frequency ADDITIONNAL_SOURCES
               demos/four_int_values.cpp)
 
-
 #
 # Debian control file #
 #
 
 # see: https://github.com/intelligent-soft-robots/isr_debian
 install(FILES debian/control DESTINATION debian)
-
 
 #
 # building documentation
@@ -234,18 +218,19 @@ add_documentation()
 #
 # Install the package
 #
+
+# install the include directory
 install(DIRECTORY include/ DESTINATION include)
 
+# command to install the library and binaries
 install(
   TARGETS ${all_targets}
-  EXPORT ${all_target_exports}
+  EXPORT ${PROJECT_NAME}Targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES
   DESTINATION include)
 
-#
-# Export the package as ament
-#
-ament_package()
+# Export this package as a cmake package.
+generate_cmake_package()

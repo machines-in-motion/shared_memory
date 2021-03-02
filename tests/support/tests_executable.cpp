@@ -249,7 +249,9 @@ int main(int, char *argv[])
                 shared_memory::Lock lock(mutex);
                 condition.wait(lock);
 
-                for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
+                for (unsigned int i = 0;
+                     i < shared_memory_test::test_array_size;
+                     i++)
                 {
                     v[i] = value;
                 }

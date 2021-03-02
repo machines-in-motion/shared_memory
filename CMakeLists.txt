@@ -85,9 +85,6 @@ install(TARGETS ${PROJECT_NAME}_cpp_bindings DESTINATION ${python_install_dir})
 #
 include(CTest)
 if(BUILD_TESTING)
-
-  # Set a general config folder path for all tests
-  set(TEST_CONFIG_PATH ${PROJECT_SOURCE_DIR}/tests/config/)
   # Add an executable that populates the shared memory.
   add_executable(tests_executable tests/support/tests_executable.cpp
                                   demos/four_int_values.cpp)

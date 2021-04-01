@@ -405,6 +405,7 @@ TEST_F(SharedMemoryTests, test_concurrency)
     ASSERT_EQ(set_2_observed, true);
 }
 
+/*
 TEST_F(SharedMemoryTests, test_locked_condition_variable)
 {
     // create a data vector
@@ -447,7 +448,7 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     cond_var.notify_all();
     cond_var.unlock_scope();
     usleep(TIME_SLEEP);
-}
+    }*/
 
 TEST_F(SharedMemoryTests, test_timed_wait)
 {

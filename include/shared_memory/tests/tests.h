@@ -25,6 +25,9 @@ const std::string cond_var_id("unit_test_cond_var");
 const std::string exchange_manager_segment_id("em_test_segment");
 const std::string exchange_manager_object_id("em_test_object");
 
+const std::string concurrent_proc1_ready("concurrent_proc1_ready");
+const std::string concurrent_proc2_ready("concurrent_proc2_ready");
+
 const double test_double = 4.4;
 const float test_float = 4.4;
 const int test_int = 3;

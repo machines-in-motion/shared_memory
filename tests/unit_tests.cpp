@@ -338,16 +338,41 @@ TEST_F(SharedMemoryTests, test_concurrency)
                                                          true);
     }
 
+    // Prepare the condition variables
+    shared_memory::LockedConditionVariable cond_var1(cond_var_name1.str());
+    shared_memory::LockedConditionVariable cond_var2(cond_var_name2.str());
+
+    shared_memory::set(shared_memory_test::segment_id,
+                       shared_memory_test::concurrent_proc1_ready,
+                       false);
+    shared_memory::set(shared_memory_test::segment_id,
+                       shared_memory_test::concurrent_proc2_ready,
+                       false);
+
     _call_executable(shared_memory_test::concurrent_1);
     _call_executable(shared_memory_test::concurrent_2);
 
-    usleep(TIME_SLEEP);
+    // Wait until both sub process are waiting, i.e.
+    // wait until we lock both condition variables
+    bool subproc_ready = false;
+    while(!subproc_ready)
+    {
+        bool concurrent_proc1_ready = false;
+        bool concurrent_proc2_ready = false;
+        shared_memory::get(shared_memory_test::segment_id,
+                           shared_memory_test::concurrent_proc1_ready,
+                           concurrent_proc1_ready);
+        shared_memory::get(shared_memory_test::segment_id,
+                           shared_memory_test::concurrent_proc2_ready,
+                           concurrent_proc2_ready);
+        subproc_ready = concurrent_proc1_ready && concurrent_proc2_ready;
+        if(!subproc_ready)
+        {
+            usleep(TIME_SLEEP);
+        }
+    }
 
-    // Prepare the condition variables
-    shared_memory::LockedConditionVariable cond_var1(cond_var_name1.str());
     cond_var1.lock_scope();
-    //
-    shared_memory::LockedConditionVariable cond_var2(cond_var_name2.str());
     cond_var2.lock_scope();
 
     bool set_1_observed = false;

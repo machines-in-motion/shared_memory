@@ -127,6 +127,10 @@ int main(int, char *argv[])
         cond_var_name << shared_memory_test::segment_id << "_"
                       << shared_memory_test::concurrent_1;
         shared_memory::LockedConditionVariable cond_var(cond_var_name.str());
+
+        shared_memory::set(shared_memory_test::segment_id,
+                           shared_memory_test::concurrent_proc1_ready,
+                           true);
         cond_var.lock_scope();
         cond_var.wait();
 
@@ -162,6 +166,9 @@ int main(int, char *argv[])
         cond_var_name << shared_memory_test::segment_id << "_"
                       << shared_memory_test::concurrent_2;
         shared_memory::LockedConditionVariable cond_var(cond_var_name.str());
+        shared_memory::set(shared_memory_test::segment_id,
+                           shared_memory_test::concurrent_proc2_ready,
+                           true);
         cond_var.lock_scope();
         cond_var.wait();
 

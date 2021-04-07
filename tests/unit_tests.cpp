@@ -479,7 +479,7 @@ TEST_F(SharedMemoryTests, test_timed_wait)
 {
     // get a condition variable
     shared_memory::LockedConditionVariable cond_var(
-        shared_memory_test::segment_id);
+        shared_memory_test::segment_id + "_test_timed_wait");
     cond_var.lock_scope();
     ASSERT_FALSE(cond_var.timed_wait(10));
     cond_var.unlock_scope();

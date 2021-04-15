@@ -201,31 +201,31 @@ int main(int, char *argv[])
         // create a data vector
         double d[shared_memory_test::test_array_size];
 
-        // get a condition variable
+        std::cout << "TESTS_EXECUTABLE: Get the cond var." << std::endl;
         shared_memory::LockedConditionVariable cond_var(
             shared_memory_test::segment_id);
 
         // from here all variables are protected
+        std::cout << "TESTS_EXECUTABLE: Lock scope." << std::endl;
         cond_var.lock_scope();
 
-        // we wait that the client fetch its own condition variable
-        usleep(500000);
-
+        std::cout << "TESTS_EXECUTABLE: Set ShM." << std::endl;
         // fill d with a starting value
         for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_value_2;
         }
-
         // write d in the shared memory
         shared_memory::set(
             segment, object, d, shared_memory_test::test_array_size);
 
         // we wait that the value are read
+        std::cout << "TESTS_EXECUTABLE: notify." << std::endl;
         cond_var.notify_all();
+        std::cout << "TESTS_EXECUTABLE: wait." << std::endl;
         cond_var.wait();
 
-        // fill d with an end value
+        std::cout << "TESTS_EXECUTABLE: Set ShM." << std::endl;
         for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
         {
             d[i] = shared_memory_test::concurrent_stop_value;
@@ -234,8 +234,11 @@ int main(int, char *argv[])
             segment, object, d, shared_memory_test::test_array_size);
 
         // we wake the clients and finish
+        std::cout << "TESTS_EXECUTABLE: Notify." << std::endl;
         cond_var.notify_all();
+        std::cout << "TESTS_EXECUTABLE: Wait." << std::endl;
         cond_var.wait();
+        std::cout << "TESTS_EXECUTABLE: Unlock scope." << std::endl;
         cond_var.unlock_scope();
     }
 

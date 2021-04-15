@@ -84,8 +84,12 @@ class DISABLED_SharedMemoryTests : public ::testing::Test
 {
 protected:
     // Dummy methodes for compilation purposes
-    static void _call_executable_blocking(int){}
-    void _call_executable_non_blocking(int){}
+    static void _call_executable_blocking(int)
+    {
+    }
+    void _call_executable_non_blocking(int)
+    {
+    }
 };
 
 TEST_F(SharedMemoryTests, double_test)
@@ -438,44 +442,56 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     // create a data vector
     double d[shared_memory_test::test_array_size];
 
-    // get a condition variable
+    std::cout << "SHARED_MEMORY_TESTS: Destroy the cond var." << std::endl;
+    {
+        shared_memory::LockedConditionVariable cond_var1(
+            shared_memory_test::segment_id, true);
+    }
+    std::cout << "SHARED_MEMORY_TESTS: Create the cond var." << std::endl;
     shared_memory::LockedConditionVariable cond_var(
         shared_memory_test::segment_id);
 
+    std::cout << "SHARED_MEMORY_TESTS: Call test exec non blocking."
+              << std::endl;
     _call_executable_non_blocking(
         shared_memory_test::locked_condition_variable);
 
+    std::cout << "SHARED_MEMORY_TESTS: lock_scope." << std::endl;
     cond_var.lock_scope();
+    std::cout << "SHARED_MEMORY_TESTS: wait." << std::endl;
     cond_var.wait();
 
+    std::cout << "SHARED_MEMORY_TESTS: Test shared_memory content."
+              << std::endl;
     shared_memory::get(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        d,
                        std::size_t{shared_memory_test::test_array_size});
-
-    ASSERT_EQ(d[0], shared_memory_test::concurrent_value_2);
-    for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
-        ASSERT_EQ(d[0], d[i]);
+        ASSERT_EQ(d[i], shared_memory_test::concurrent_value_2);
     }
 
+    std::cout << "SHARED_MEMORY_TESTS: Notify." << std::endl;
     cond_var.notify_all();
+    std::cout << "SHARED_MEMORY_TESTS: Wait." << std::endl;
     cond_var.wait();
 
+    std::cout << "SHARED_MEMORY_TESTS: Test shared_memory content."
+              << std::endl;
     shared_memory::get(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        d,
                        std::size_t{shared_memory_test::test_array_size});
-
-    ASSERT_EQ(d[0], shared_memory_test::concurrent_stop_value);
-    for (unsigned int i = 1; i < shared_memory_test::test_array_size; i++)
+    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
     {
-        ASSERT_EQ(d[0], d[i]);
+        ASSERT_EQ(d[i], shared_memory_test::concurrent_stop_value);
     }
 
+    std::cout << "SHARED_MEMORY_TESTS: Notify." << std::endl;
     cond_var.notify_all();
+    std::cout << "SHARED_MEMORY_TESTS: Unlock scope." << std::endl;
     cond_var.unlock_scope();
-    usleep(TIME_SLEEP);
 }
 
 TEST_F(SharedMemoryTests, test_timed_wait)

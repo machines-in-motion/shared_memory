@@ -36,6 +36,31 @@ static unsigned int TIME_SLEEP = 20000;  // microseconds
 
 static inline void clear_memory()
 {
+    // destroy the condition variables and mutex
+    {
+        // Locked condition variables
+        std::stringstream cond_var_name1;
+        cond_var_name1 << shared_memory_test::segment_id << "_"
+                       << shared_memory_test::concurrent_1;
+        std::stringstream cond_var_name2;
+        cond_var_name2 << shared_memory_test::segment_id << "_"
+                       << shared_memory_test::concurrent_2;
+        shared_memory::LockedConditionVariable cond_var1(cond_var_name1.str(),
+                                                         true);
+        shared_memory::LockedConditionVariable cond_var2(cond_var_name2.str(),
+                                                         true);
+        shared_memory::LockedConditionVariable cond_var(
+            shared_memory_test::segment_id, true);
+        
+        // Mutex
+        shared_memory::Mutex::clean(shared_memory_test::segment_mutex_id);
+
+        // Condition variables
+        shared_memory::ConditionVariable condition(
+                shared_memory_test::segment_cv_id, true);
+    }
+
+
     shared_memory::clear_shared_memory(shared_memory_test::segment_id);
 }
 
@@ -337,13 +362,6 @@ TEST_F(SharedMemoryTests, test_concurrency)
     std::stringstream cond_var_name2;
     cond_var_name2 << shared_memory_test::segment_id << "_"
                    << shared_memory_test::concurrent_2;
-    // destroy the condition variables
-    {
-        shared_memory::LockedConditionVariable cond_var1(cond_var_name1.str(),
-                                                         true);
-        shared_memory::LockedConditionVariable cond_var2(cond_var_name2.str(),
-                                                         true);
-    }
 
     // Prepare the condition variables
     shared_memory::LockedConditionVariable cond_var1(cond_var_name1.str());
@@ -442,11 +460,6 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     // create a data vector
     double d[shared_memory_test::test_array_size];
 
-    std::cout << "SHARED_MEMORY_TESTS: Destroy the cond var." << std::endl;
-    {
-        shared_memory::LockedConditionVariable cond_var1(
-            shared_memory_test::segment_id, true);
-    }
     std::cout << "SHARED_MEMORY_TESTS: Create the cond var." << std::endl;
     shared_memory::LockedConditionVariable cond_var(
         shared_memory_test::segment_id);
@@ -514,7 +527,7 @@ void fill(double v[], int size, double value)
 
 TEST_F(SharedMemoryTests, test_condition_variable)
 {
-    // std::cout << "Initializing shared array" << std::endl;
+    std::cout << "SHARED_MEMORY_TESTS: Initializing shared array" << std::endl;
     int value = 1;
     double v[shared_memory_test::test_array_size];
     fill(v, shared_memory_test::test_array_size, value);
@@ -523,35 +536,33 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                        v,
                        std::size_t{shared_memory_test::test_array_size});
 
-    // std::cout << "In case previous run crashed without cleaning up"
-    //           << std::endl;
     std::string segment_mutex(shared_memory_test::segment_mutex_id);
-    shared_memory::Mutex::clean(shared_memory_test::segment_mutex_id);
-
-    // std::cout << "Get a condition variable" << std::endl;
+    std::cout << "SHARED_MEMORY_TESTS: Get a condition variable" << std::endl;
     shared_memory::Mutex mutex(segment_mutex, true);
     shared_memory::ConditionVariable condition(
         shared_memory_test::segment_cv_id, true);
 
-    // std::cout << "Starting another process with same condition variable."
-    //           << std::endl;
+    std::cout << "SHARED_MEMORY_TESTS: Starting another process with same "
+                 "condition variable."
+              << std::endl;
     shared_memory::set(
         shared_memory_test::segment_id, "cond_var_test_ready", false);
     _call_executable_non_blocking(shared_memory_test::condition_variable);
 
-    // std::cout << "Proc ready!" << std::endl;
+    std::cout << "SHARED_MEMORY_TESTS: Proc ready!" << std::endl;
     for (int i = 0; i < 10; i++)
     {
         {
-            // std::cout << "Notifying one!" << std::endl;
+            std::cout << "SHARED_MEMORY_TESTS: Notifying one!" << std::endl;
             condition.notify_one();
-            // std::cout << "Creating lock." << std::endl;
+            std::cout << "SHARED_MEMORY_TESTS: Creating lock." << std::endl;
             shared_memory::Lock lock(mutex);
-            // std::cout << "Wait!" << std::endl;
+            std::cout << "SHARED_MEMORY_TESTS: Wait!" << std::endl;
             condition.wait(lock);
 
-            // std::cout << "The other process fill the array with 2."
-            //           << std::endl;
+            std::cout << "SHARED_MEMORY_TESTS: The other process fill the "
+                         "array with 2."
+                      << std::endl;
             shared_memory::get(
                 shared_memory_test::segment_id,
                 shared_memory_test::object_id,
@@ -563,7 +574,8 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                 ASSERT_EQ(v[i], 2);
             }
 
-            // std::cout << "Fill in the shared array with 1." << std::endl;
+            std::cout << "SHARED_MEMORY_TESTS: Fill in the shared array with 1."
+                      << std::endl;
             fill(v, shared_memory_test::test_array_size, value);
             shared_memory::set(
                 shared_memory_test::segment_id,
@@ -582,14 +594,9 @@ TEST_F(SharedMemoryTests, test_condition_variable)
                 ASSERT_EQ(v[i], 1);
             }
         }
-
-        // std::cout << "End of test." << std::endl;
-        condition.notify_one();
     }
-
+    std::cout << "SHARED_MEMORY_TESTS: End of test." << std::endl;
     condition.notify_one();
-    // Wait to make sure the executable is done
-    usleep(3 * TIME_SLEEP);
 }
 
 TEST_F(SharedMemoryTests, exchange_manager)

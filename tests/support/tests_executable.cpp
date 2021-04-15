@@ -9,6 +9,7 @@
  * @brief Used to generate or read data from the shared memory.
  */
 #include <iostream>
+
 #include "shared_memory/condition_variable.hpp"
 #include "shared_memory/demos/four_int_values.hpp"
 #include "shared_memory/exchange_manager_consumer.hpp"
@@ -244,6 +245,7 @@ int main(int, char *argv[])
 
     if (command == shared_memory_test::Actions::condition_variable)
     {
+        std::cout << "TESTS_EXECUTABLE: Get mutex and cond var." << std::endl;
         std::string segment_mutex(shared_memory_test::segment_mutex_id);
         shared_memory::Mutex mutex(shared_memory_test::segment_mutex_id, false);
         shared_memory::ConditionVariable condition(
@@ -253,21 +255,25 @@ int main(int, char *argv[])
         int value = 2;
         for (int i = 0; i < 10; i++)
         {
+            std::cout << "TESTS_EXECUTABLE: Lock." << std::endl;
             shared_memory::Lock lock(mutex);
 
-            for (unsigned int i = 0;
-                    i < shared_memory_test::test_array_size;
-                    i++)
+            std::cout << "TESTS_EXECUTABLE: Set ShM." << std::endl;
+            for (unsigned int i = 0; i < shared_memory_test::test_array_size;
+                 i++)
             {
                 v[i] = value;
             }
             shared_memory::set(shared_memory_test::segment_id,
-                                shared_memory_test::object_id,
-                                v,
-                                shared_memory_test::test_array_size);
+                               shared_memory_test::object_id,
+                               v,
+                               shared_memory_test::test_array_size);
+            std::cout << "TESTS_EXECUTABLE: Notify." << std::endl;
             condition.notify_one();
+            std::cout << "TESTS_EXECUTABLE: Wait." << std::endl;
             condition.wait(lock);
         }
+        condition.notify_one();
     }
 
     if (command == shared_memory_test::Actions::exchange_manager)

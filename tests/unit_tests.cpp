@@ -10,8 +10,11 @@
  */
 
 #include <unistd.h>
+
 #include <cstdlib>
 #include <sstream>
+#include <thread>
+
 #include "gtest/gtest.h"
 #include "shared_memory/array.hpp"
 #include "shared_memory/condition_variable.hpp"
@@ -45,49 +48,49 @@ protected:
         shared_memory::set_verbose(false);
         shared_memory::get_segment_mutex(shared_memory_test::segment_id)
             .unlock();
+        threads_.clear();
     }
+
     void TearDown()
     {
+        for (unsigned int i = 0; i < threads_.size(); ++i)
+        {
+            if (threads_[i].joinable())
+            {
+                threads_[i].join();
+            }
+        }
+        threads_.clear();
         clear_memory();
     }
+
+    static void _call_executable_blocking(int action)
+    {
+        std::stringstream s;
+        s << PATH_TO_EXECUTABLE << " " << action << std::ends;
+        std::system(s.str().c_str());
+    }
+
+    void _call_executable_non_blocking(int action)
+    {
+        threads_.emplace_back(
+            std::thread(&SharedMemoryTests::_call_executable_blocking, action));
+    }
+
+    std::vector<std::thread> threads_;
 };
 
 class DISABLED_SharedMemoryTests : public ::testing::Test
 {
+protected:
+    // Dummy methodes for compilation purposes
+    static void _call_executable_blocking(int){}
+    void _call_executable_non_blocking(int){}
 };
-
-static bool _call_executable(int action, bool blocking = false);
-
-static bool _call_executable(int action, bool blocking)
-{
-    std::stringstream s;
-    s << PATH_TO_EXECUTABLE << " " << action;
-    if (!blocking)
-    {
-        s << " &";
-    }
-    s << std::ends;
-    if (blocking)
-    {
-        if (0 != std::system(s.str().c_str()))
-        {
-            return false;
-        }
-        return true;
-    }
-    std::system(s.str().c_str());
-    return true;
-}
-
-TEST_F(SharedMemoryTests, spawn_thread_test)
-{
-    bool called = _call_executable(shared_memory_test::set_double, true);
-    ASSERT_EQ(called, true);
-}
 
 TEST_F(SharedMemoryTests, double_test)
 {
-    _call_executable(shared_memory_test::set_double, true);
+    _call_executable_blocking(shared_memory_test::set_double);
 
     double value;
     shared_memory::get(
@@ -116,7 +119,7 @@ TEST_F(SharedMemoryTests, non_existing_segment_exception)
 
 TEST_F(SharedMemoryTests, int_test)
 {
-    _call_executable(shared_memory_test::set_int, true);
+    _call_executable_blocking(shared_memory_test::set_int);
 
     int value;
     shared_memory::get(
@@ -126,7 +129,7 @@ TEST_F(SharedMemoryTests, int_test)
 
 TEST_F(SharedMemoryTests, test_float)
 {
-    _call_executable(shared_memory_test::set_float, true);
+    _call_executable_blocking(shared_memory_test::set_float);
 
     float value;
     shared_memory::get(
@@ -136,7 +139,7 @@ TEST_F(SharedMemoryTests, test_float)
 
 TEST_F(SharedMemoryTests, test_string)
 {
-    _call_executable(shared_memory_test::set_string, true);
+    _call_executable_blocking(shared_memory_test::set_string);
 
     std::string str;
     shared_memory::get(
@@ -146,7 +149,7 @@ TEST_F(SharedMemoryTests, test_string)
 
 TEST_F(SharedMemoryTests, test_array)
 {
-    _call_executable(shared_memory_test::set_double_array, true);
+    _call_executable_blocking(shared_memory_test::set_double_array);
 
     double a[shared_memory_test::test_array_size];
     shared_memory::get(shared_memory_test::segment_id,
@@ -162,7 +165,7 @@ TEST_F(SharedMemoryTests, test_array)
 
 TEST_F(SharedMemoryTests, test_vector)
 {
-    _call_executable(shared_memory_test::set_vector, true);
+    _call_executable_blocking(shared_memory_test::set_vector);
 
     std::vector<double> v(shared_memory_test::test_array_size);
     shared_memory::get(
@@ -177,7 +180,7 @@ TEST_F(SharedMemoryTests, test_vector)
 
 TEST_F(SharedMemoryTests, test_eigen_vector)
 {
-    _call_executable(shared_memory_test::set_vector, true);
+    _call_executable_blocking(shared_memory_test::set_vector);
 
     Eigen::VectorXd v(shared_memory_test::test_array_size);
     shared_memory::get(
@@ -192,7 +195,7 @@ TEST_F(SharedMemoryTests, test_eigen_vector)
 
 TEST_F(SharedMemoryTests, test_int_double_map)
 {
-    _call_executable(shared_memory_test::set_int_double_map, true);
+    _call_executable_blocking(shared_memory_test::set_int_double_map);
 
     std::map<int, double> m;
     m[shared_memory_test::map_int_keys1] = 0.0;
@@ -209,7 +212,7 @@ TEST_F(SharedMemoryTests, test_int_double_map)
 
 TEST_F(SharedMemoryTests, test_string_double_map)
 {
-    _call_executable(shared_memory_test::set_string_double_map, true);
+    _call_executable_blocking(shared_memory_test::set_string_double_map);
 
     std::map<std::string, double> m;
     m[shared_memory_test::map_string_keys1] = 0.0;
@@ -226,7 +229,7 @@ TEST_F(SharedMemoryTests, test_string_double_map)
 
 TEST_F(SharedMemoryTests, test_string_vector_double_map)
 {
-    _call_executable(shared_memory_test::set_string_vector_double_map, true);
+    _call_executable_blocking(shared_memory_test::set_string_vector_double_map);
 
     std::map<std::string, std::vector<double>> m;
 
@@ -263,7 +266,7 @@ TEST_F(SharedMemoryTests, test_string_vector_double_map)
 
 TEST_F(SharedMemoryTests, test_string_vector_eigen_map)
 {
-    _call_executable(shared_memory_test::set_string_vector_eigen_map, true);
+    _call_executable_blocking(shared_memory_test::set_string_vector_eigen_map);
 
     std::map<std::string, Eigen::VectorXd> m;
 
@@ -304,7 +307,7 @@ TEST_F(SharedMemoryTests, test_memory_overflow)
 
 TEST_F(SharedMemoryTests, test_wrong_size_vector)
 {
-    _call_executable(shared_memory_test::set_vector, true);
+    _call_executable_blocking(shared_memory_test::set_vector);
 
     std::vector<double> v(shared_memory_test::test_array_size + 1);  // !
 
@@ -349,13 +352,13 @@ TEST_F(SharedMemoryTests, test_concurrency)
                        shared_memory_test::concurrent_proc2_ready,
                        false);
 
-    _call_executable(shared_memory_test::concurrent_1);
-    _call_executable(shared_memory_test::concurrent_2);
+    _call_executable_non_blocking(shared_memory_test::concurrent_1);
+    _call_executable_non_blocking(shared_memory_test::concurrent_2);
 
     // Wait until both sub process are waiting, i.e.
     // wait until we lock both condition variables
     bool subproc_ready = false;
-    while(!subproc_ready)
+    while (!subproc_ready)
     {
         bool concurrent_proc1_ready = false;
         bool concurrent_proc2_ready = false;
@@ -366,7 +369,7 @@ TEST_F(SharedMemoryTests, test_concurrency)
                            shared_memory_test::concurrent_proc2_ready,
                            concurrent_proc2_ready);
         subproc_ready = concurrent_proc1_ready && concurrent_proc2_ready;
-        if(!subproc_ready)
+        if (!subproc_ready)
         {
             usleep(TIME_SLEEP);
         }
@@ -430,7 +433,6 @@ TEST_F(SharedMemoryTests, test_concurrency)
     ASSERT_EQ(set_2_observed, true);
 }
 
-/*
 TEST_F(SharedMemoryTests, test_locked_condition_variable)
 {
     // create a data vector
@@ -440,7 +442,8 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     shared_memory::LockedConditionVariable cond_var(
         shared_memory_test::segment_id);
 
-    _call_executable(shared_memory_test::locked_condition_variable);
+    _call_executable_non_blocking(
+        shared_memory_test::locked_condition_variable);
 
     cond_var.lock_scope();
     cond_var.wait();
@@ -473,81 +476,98 @@ TEST_F(SharedMemoryTests, test_locked_condition_variable)
     cond_var.notify_all();
     cond_var.unlock_scope();
     usleep(TIME_SLEEP);
-    }*/
+}
 
 TEST_F(SharedMemoryTests, test_timed_wait)
 {
     // get a condition variable
     shared_memory::LockedConditionVariable cond_var(
-        shared_memory_test::segment_id + "_test_timed_wait");
+        shared_memory_test::segment_id);
     cond_var.lock_scope();
     ASSERT_FALSE(cond_var.timed_wait(10));
     cond_var.unlock_scope();
 }
 
-TEST_F(SharedMemoryTests, test_condition_variable)
+void fill(double v[], int size, double value)
 {
-    // initializing shared array
-    int value = 1;
-    double v[shared_memory_test::test_array_size];
-    for (unsigned int i = 0; i < shared_memory_test::test_array_size; i++)
+    for (int i = 0; i < size; i++)
     {
         v[i] = value;
     }
+}
+
+TEST_F(SharedMemoryTests, test_condition_variable)
+{
+    // std::cout << "Initializing shared array" << std::endl;
+    int value = 1;
+    double v[shared_memory_test::test_array_size];
+    fill(v, shared_memory_test::test_array_size, value);
     shared_memory::set(shared_memory_test::segment_id,
                        shared_memory_test::object_id,
                        v,
                        std::size_t{shared_memory_test::test_array_size});
 
-    // in case previous run crashed without cleaning up
+    // std::cout << "In case previous run crashed without cleaning up"
+    //           << std::endl;
     std::string segment_mutex(shared_memory_test::segment_mutex_id);
     shared_memory::Mutex::clean(shared_memory_test::segment_mutex_id);
 
-    // get a condition variable
+    // std::cout << "Get a condition variable" << std::endl;
     shared_memory::Mutex mutex(segment_mutex, true);
     shared_memory::ConditionVariable condition(
         shared_memory_test::segment_cv_id, true);
 
-    // starting another process with same condition variable
-    _call_executable(shared_memory_test::condition_variable);
-    usleep(3 * TIME_SLEEP);
+    // std::cout << "Starting another process with same condition variable."
+    //           << std::endl;
+    shared_memory::set(
+        shared_memory_test::segment_id, "cond_var_test_ready", false);
+    _call_executable_non_blocking(shared_memory_test::condition_variable);
 
-    // other process should be hanging, freeing it
-    condition.notify_one();
-
+    // std::cout << "Proc ready!" << std::endl;
     for (int i = 0; i < 10; i++)
     {
         {
+            // std::cout << "Notifying one!" << std::endl;
+            condition.notify_one();
+            // std::cout << "Creating lock." << std::endl;
             shared_memory::Lock lock(mutex);
+            // std::cout << "Wait!" << std::endl;
             condition.wait(lock);
 
+            // std::cout << "The other process fill the array with 2."
+            //           << std::endl;
+            shared_memory::get(
+                shared_memory_test::segment_id,
+                shared_memory_test::object_id,
+                v,
+                std::size_t{shared_memory_test::test_array_size});
             for (unsigned int i = 0; i < shared_memory_test::test_array_size;
                  i++)
             {
-                v[i] = value;
+                ASSERT_EQ(v[i], 2);
             }
 
+            // std::cout << "Fill in the shared array with 1." << std::endl;
+            fill(v, shared_memory_test::test_array_size, value);
             shared_memory::set(
                 shared_memory_test::segment_id,
                 shared_memory_test::object_id,
                 v,
                 std::size_t{shared_memory_test::test_array_size});
 
-            usleep(500);
-
             shared_memory::get(
                 shared_memory_test::segment_id,
                 shared_memory_test::object_id,
                 v,
                 std::size_t{shared_memory_test::test_array_size});
-
             for (unsigned int i = 0; i < shared_memory_test::test_array_size;
                  i++)
             {
-                ASSERT_EQ(v[i], value);
+                ASSERT_EQ(v[i], 1);
             }
         }
 
+        // std::cout << "End of test." << std::endl;
         condition.notify_one();
     }
 
@@ -591,7 +611,7 @@ TEST_F(SharedMemoryTests, exchange_manager)
             shared_memory_test::exchange_manager_object_id,
             false);
 
-        _call_executable(shared_memory_test::exchange_manager);
+        _call_executable_non_blocking(shared_memory_test::exchange_manager);
 
         int max_wait = 1000000;  // 1 seconds
         int waited = 0;

@@ -247,32 +247,24 @@ int main(int, char *argv[])
             shared_memory_test::segment_cv_id, false);
 
         double v[shared_memory_test::test_array_size];
-
         int value = 2;
-
         for (int i = 0; i < 10; i++)
         {
+            shared_memory::Lock lock(mutex);
+
+            for (unsigned int i = 0;
+                    i < shared_memory_test::test_array_size;
+                    i++)
             {
-                shared_memory::Lock lock(mutex);
-                condition.wait(lock);
-
-                for (unsigned int i = 0;
-                     i < shared_memory_test::test_array_size;
-                     i++)
-                {
-                    v[i] = value;
-                }
-
-                shared_memory::set(shared_memory_test::segment_id,
-                                   shared_memory_test::object_id,
-                                   v,
-                                   shared_memory_test::test_array_size);
+                v[i] = value;
             }
-
+            shared_memory::set(shared_memory_test::segment_id,
+                                shared_memory_test::object_id,
+                                v,
+                                shared_memory_test::test_array_size);
             condition.notify_one();
+            condition.wait(lock);
         }
-
-        condition.notify_one();
     }
 
     if (command == shared_memory_test::Actions::exchange_manager)

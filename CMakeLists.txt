@@ -54,7 +54,6 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} Boost::boost)
 target_link_libraries(${PROJECT_NAME} cereal::cereal)
 target_link_libraries(${PROJECT_NAME} rt::rt)
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 # Export the target.

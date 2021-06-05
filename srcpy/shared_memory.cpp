@@ -71,6 +71,16 @@ PYBIND11_MODULE(shared_memory, m)
         return value;
     });
 
+    m.def("set_long_int", [](std::string segment, std::string object, long int value) {
+        shared_memory::set<long int>(segment, object, value);
+    });
+    
+    m.def("get_long_int", [](std::string segment, std::string object) {
+        long int value;
+        shared_memory::get<long int>(segment, object, value);
+        return value;
+    });
+    
     m.def("set_double",
           [](std::string segment, std::string object, double value) {
               shared_memory::set<double>(segment, object, value);

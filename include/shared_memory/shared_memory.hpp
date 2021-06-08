@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Dense>
 
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/deque.hpp>

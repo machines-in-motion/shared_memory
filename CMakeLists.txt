@@ -55,6 +55,7 @@ target_link_libraries(${PROJECT_NAME} Boost::boost)
 target_link_libraries(${PROJECT_NAME} cereal::cereal)
 target_link_libraries(${PROJECT_NAME} rt::rt)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 
 # Export the target.
 list(APPEND all_targets ${PROJECT_NAME})

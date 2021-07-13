@@ -59,7 +59,7 @@ bool wait_for_segment(const std::string &segment_id, int timeout_ms)
             get_segment(segment_id, false, false);
             return true;
         }
-        catch (Non_existing_segment_exception)
+        catch (const Non_existing_segment_exception &)
         {
             usleep(5);
         }
@@ -104,7 +104,7 @@ SharedMemorySegment::SharedMemorySegment(std::string segment_id,
             segment_manager_ = boost::interprocess::managed_shared_memory(
                 boost::interprocess::open_only, segment_id.c_str());
         }
-        catch (boost::interprocess::interprocess_exception)
+        catch (const boost::interprocess::interprocess_exception &)
         {
             SEGMENT_SIZE_MUTEX.unlock();
             throw Non_existing_segment_exception(segment_id);

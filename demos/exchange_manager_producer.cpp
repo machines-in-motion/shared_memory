@@ -82,7 +82,7 @@ void execute()
                               << "\n";
                     c++;
                 }
-                catch (shared_memory::Memory_overflow_exception)
+                catch (const shared_memory::Memory_overflow_exception &)
                 {
                     if (!waiting_warning_printed)
                     {

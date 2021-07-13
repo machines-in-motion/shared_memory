@@ -27,7 +27,7 @@ int main()
     {
         shared_memory::get<double>(segment_id, segment_id, value, false);
     }
-    catch (shared_memory::Non_existing_segment_exception)
+    catch (const shared_memory::Non_existing_segment_exception &)
     {
     }
 

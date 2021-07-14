@@ -51,15 +51,14 @@ static inline void clear_memory()
                                                          true);
         shared_memory::LockedConditionVariable cond_var(
             shared_memory_test::segment_id, true);
-        
+
         // Mutex
         shared_memory::Mutex::clean(shared_memory_test::segment_mutex_id);
 
         // Condition variables
         shared_memory::ConditionVariable condition(
-                shared_memory_test::segment_cv_id, true);
+            shared_memory_test::segment_cv_id, true);
     }
-
 
     shared_memory::clear_shared_memory(shared_memory_test::segment_id);
 }
@@ -139,7 +138,7 @@ TEST_F(SharedMemoryTests, non_existing_segment_exception)
                                    value,
                                    false);
     }
-    catch (shared_memory::Non_existing_segment_exception)
+    catch (const shared_memory::Non_existing_segment_exception &)
     {
         thrown = true;
     }
@@ -675,7 +674,7 @@ TEST_F(SharedMemoryTests, exchange_manager)
                     id++;
                     waited = 0;
                 }
-                catch (shared_memory::Memory_overflow_exception)
+                catch (const shared_memory::Memory_overflow_exception &)
                 {
                     usleep(200);
                     waited += 200;
@@ -794,7 +793,7 @@ TEST_F(SharedMemoryTests, serialization2)
     {
         shared_memory::Item<10> in(v);
         shared_memory::Item<10> out;
-        const std::string& s = serializer.serialize(in);
+        const std::string &s = serializer.serialize(in);
         serializer.deserialize(s, out);
         ASSERT_EQ(in.get(), out.get());
     }

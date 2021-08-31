@@ -32,7 +32,13 @@ find_package(rt REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(ament_cmake_nose REQUIRED)
-
+ament_export_dependencies(
+  Eigen3
+  Boost
+  mpi_cmake_modules
+  pybind11
+  rt
+  Threads)
 
 # prepare to export all needed targets
 set(all_targets)

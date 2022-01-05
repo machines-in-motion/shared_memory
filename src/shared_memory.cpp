@@ -178,6 +178,11 @@ void delete_segment(const std::string &segment_id)
 
 void delete_all_segment()
 {
+    delete_all_segments();
+}
+
+void delete_all_segments()
+{
     for (SegmentMap::iterator seg_it = GLOBAL_SHM_SEGMENTS.begin();
          seg_it != GLOBAL_SHM_SEGMENTS.end();
          seg_it = GLOBAL_SHM_SEGMENTS.begin())

@@ -351,6 +351,11 @@ void delete_segment(const std::string& segment_id);
  * @brief delete_all_segment delete all mapping to the shared memory used
  * during the current process
  */
+void delete_all_segments();
+
+/**
+ * @brief alias for delete_all_segments (for retro compatibility)
+ */
 void delete_all_segment();
 
 /**

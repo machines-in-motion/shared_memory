@@ -92,7 +92,8 @@ protected:
     {
         std::stringstream s;
         s << PATH_TO_EXECUTABLE << " " << action << std::ends;
-        std::system(s.str().c_str());
+        int r = std::system(s.str().c_str());
+	(void)(r); // avoiding compilation warning
     }
 
     void _call_executable_non_blocking(int action)

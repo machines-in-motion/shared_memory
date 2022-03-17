@@ -11,7 +11,7 @@ void execute()
     shared_memory::Four_int_values fiv(1, 1, 1, 1);
 
     shared_memory::Serializer<shared_memory::Four_int_values> serializer;
-    long int total_size_;
+    long int total_size_=0;
 
     auto start = std::chrono::steady_clock::now();
 

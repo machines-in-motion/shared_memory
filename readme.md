@@ -17,13 +17,15 @@ An example covering the complete API is in [src/examples](https://git-amd.tuebin
 
 ```
 colcon build
+colcon test
 ```
 
-This will *not* work ('install' is required) :
+After the tests have run, use the following to get an overview of the results:
+```
+colcon test-result
+```
+Add `--verbose` to get more information in case there were failures.
 
-```
-catkin run_tests
-```
 
 ### Limitations
 

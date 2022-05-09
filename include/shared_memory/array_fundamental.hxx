@@ -14,7 +14,7 @@ void array<T, SIZE>::init(FUNDAMENTAL)
 template <typename T, int SIZE>
 void array<T, SIZE>::set(uint index, const T& t, FUNDAMENTAL)
 {
-    if (index < 0 || index >= this->size_)
+    if (index >= this->size_)
     {
         throw std::runtime_error("invalid index");
     }
@@ -33,7 +33,7 @@ void array<T, SIZE>::set(uint index, const T& t, FUNDAMENTAL)
 template <typename T, int SIZE>
 void array<T, SIZE>::get(uint index, T& t, FUNDAMENTAL)
 {
-    if (index < 0 || index >= this->size_)
+    if (index >= this->size_)
     {
         throw std::runtime_error("invalid index");
     }

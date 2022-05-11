@@ -17,7 +17,7 @@ template <typename T, int SIZE>
 void array<T, SIZE>::set(uint index, const T& t, SERIALIZABLE)
 {
     uint abs_index = index * this->item_size_;
-    if (abs_index < 0 || index >= this->total_size_)
+    if (index >= this->total_size_)
     {
         throw std::runtime_error("invalid index");
     }
@@ -40,7 +40,7 @@ template <typename T, int SIZE>
 void array<T, SIZE>::get(uint index, T& t, SERIALIZABLE)
 {
     uint abs_index = index * this->item_size_;
-    if (abs_index < 0 || abs_index >= this->total_size_)
+    if (abs_index >= this->total_size_)
     {
         throw std::runtime_error("invalid index");
     }
@@ -60,7 +60,7 @@ template <typename T, int SIZE>
 std::string array<T, SIZE>::get_serialized(uint index, SERIALIZABLE)
 {
     uint abs_index = index * this->item_size_;
-    if (abs_index < 0 || abs_index >= this->total_size_)
+    if (abs_index >= this->total_size_)
     {
         throw std::runtime_error("invalid index");
     }

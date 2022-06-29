@@ -9,7 +9,7 @@
 #
 cmake_minimum_required(VERSION 3.10.2)
 
-project(shared_memory VERSION 2.0.0)
+project(shared_memory VERSION 2.1.0)
 
 # Using C++17
 if(NOT CMAKE_C_STANDARD)

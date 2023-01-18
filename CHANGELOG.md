@@ -5,6 +5,10 @@ The format of this changelog is based on
 
 
 ## [Unreleased]
+### Added
+- Throw error with understandable message in case an object of unexpected size
+  is added to `array`.  Previously this was only resulting in an obscure cereal
+  error later when trying to deserialise.
 
 ## [2.1.0] - 2022-06-29
 ### Added

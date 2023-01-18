@@ -27,6 +27,7 @@ find_package(pybind11 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(cereal REQUIRED)
+find_package(fmt REQUIRED)
 find_package(Threads REQUIRED)
 find_package(rt REQUIRED)
 
@@ -56,6 +57,7 @@ target_link_libraries(${PROJECT_NAME} cereal::cereal)
 target_link_libraries(${PROJECT_NAME} rt::rt)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} fmt::fmt)
 
 # Export the target.
 list(APPEND all_targets ${PROJECT_NAME})

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <fmt/format.h>
+#include <sstream>
 
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/serializer.hpp"

@@ -25,7 +25,19 @@ void array<T, SIZE>::set(uint index, const T& t, SERIALIZABLE)
     {
         mutex_.lock();
     }
+
     const std::string& serialized = this->serializer_.serialize(t);
+
+    if (serialized.size() != this->item_size_)
+    {
+        std::stringstream msg;
+        msg << "Serialized object has unexpected size " << serialized.size()
+            << " (expected " << this->item_size_
+            << ").  Please note that only fixed-size types are supported.";
+
+        throw std::runtime_error(msg.str());
+    }
+
     for (uint index = 0; index < this->item_size_; index++)
     {
         this->shared_[abs_index + index] = serialized[index];

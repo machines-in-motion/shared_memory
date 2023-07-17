@@ -49,13 +49,13 @@ void run()
     bool clear_on_destruction = false;
 
     shared_memory::array<shared_memory::Item<SIZE> > serialized(
-        SEGMENT_SERIALIZED, SIZE, mutex_protected, clear_on_destruction);
+	SEGMENT_SERIALIZED, SIZE, clear_on_destruction, mutex_protected);
 
     shared_memory::array<int> fundamental(
-        SEGMENT_FUNDAMENTAL, SIZE, mutex_protected, clear_on_destruction);
+        SEGMENT_FUNDAMENTAL, SIZE, clear_on_destruction, mutex_protected);
 
     shared_memory::array<int, SIZE> fundamental_array(
-        SEGMENT_FUNDAMENTAL_ARRAY, SIZE, mutex_protected, clear_on_destruction);
+        SEGMENT_FUNDAMENTAL_ARRAY, SIZE, clear_on_destruction, mutex_protected);
 
     shared_memory::Item<SIZE> item;
     int values[SIZE];

@@ -17,6 +17,7 @@
 #include <boost/lockfree/queue.hpp>
 #include <iostream>
 #include <string>
+#include <deque> 
 
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/serializer.hpp"

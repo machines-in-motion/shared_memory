@@ -10,6 +10,8 @@
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include "shared_memory/mutex.hpp"
 #include "shared_memory/shared_memory.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/microsec_time_clock.hpp>
 
 namespace shared_memory
 {

@@ -62,7 +62,7 @@ bool LockedConditionVariable::timed_wait(long wait_nano_seconds)
     if (lock_)
     {
         boost::posix_time::ptime current_time =
-            boost::interprocess::microsec_clock::universal_time();
+            boost::date_time::microsec_clock<boost::posix_time::ptime>::universal_time();
         boost::posix_time::time_duration waiting_time =
             boost::posix_time::microseconds(static_cast<long>(
                 static_cast<double>(wait_nano_seconds) * 0.001));

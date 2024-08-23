@@ -6,6 +6,8 @@
 #include "shared_memory/lock.hpp"
 
 #include <boost/interprocess/sync/named_condition.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/microsec_time_clock.hpp>
 
 namespace shared_memory
 {
